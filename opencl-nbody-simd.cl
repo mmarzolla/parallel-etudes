@@ -1,0 +1,91 @@
+/****************************************************************************
+ *
+ * opencl-nbody-simd.cl -- SIMD kernels for opencl-nbody.c
+ *
+ * Copyright 2021 Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ****************************************************************************/
+#define EPSILON 1.0e-9f
+
+__kernel void
+compute_force_kernel(__global const float3 *x,
+                     __global float3 *v,
+                     float dt,
+                     int n)
+{
+    const int i = get_global_id(0);
+    float3 F = (float3)(0.0f, 0.0f, 0.0f);
+
+    if (i<n) {
+        for (int j = 0; j < n; j++) {
+            const float3 dx = x[j] - x[i];
+            const float distSqr = dot(dx,dx) + EPSILON;
+            const float invDist = 1.0f / sqrt(distSqr);
+            const float invDist3 = invDist * invDist * invDist;
+
+            F += dx * invDist3;
+        }
+        v[i] += dt*F;
+    }
+}
+
+__kernel void
+integrate_positions_kernel(__global float3 *x,
+                           __global const float3 *v,
+                           float dt,
+                           int n)
+{
+    const int i = get_global_id(0);
+    if (i < n) {
+        x[i] += v[i]*dt;
+    }
+}
+
+__kernel void
+kinetic_energy_kernel(__global const float3 *v,
+                      int n,
+                      __global float *results)
+{
+    __local float temp[SCL_DEFAULT_WG_SIZE];
+
+    const int gi = get_global_id(0);
+    const int li = get_local_id(0);
+    const int gid = get_group_id(0);
+
+    int bsize = get_local_size(0) / 2;
+
+    if (gi < n)
+        temp[li] = dot(v[gi],v[gi]);
+    else {
+        temp[li] = 0.0f;
+    }
+    /* wait for all work-items to finish the copy operation */
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+    /* All work-items cooperate to compute the local sum */
+    while ( bsize > 0 ) {
+        if ( li < bsize ) {
+            temp[li] += temp[li + bsize];
+        }
+        bsize = bsize / 2;
+        /* threads must synchronize before performing the next
+           reduction step */
+        barrier(CLK_LOCAL_MEM_FENCE);
+    }
+
+    if ( 0 == li ) {
+        results[gid] = 0.5f*temp[0];
+    }
+}

@@ -1,0 +1,3 @@
+#!/bin/sh
+sed '1,/\*\*\* START OF THIS PROJECT GUTENBERG EBOOK/d;/\*\*\* END OF THIS PROJECT GUTENBERG EBOOK/,$d'
+

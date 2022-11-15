@@ -1,0 +1,199 @@
+/****************************************************************************
+ *
+ * cuda-matsum.cu - Dense matrix-matrix addition with CUDA
+ *
+ * Copyright (C) 2017--2021 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ****************************************************************************/
+
+/***
+% HPC - Somma di matrici con CUDA
+% Moreno Marzolla <moreno.marzolla@unibo.it>
+% Ultimo aggiornamento: 2021-05-15
+
+Il file [cuda-matsum.cu](cuda-matsum.cu) calcola la somma tra due
+matrici quadrate di dimensione $N \times N$ utilizzando la
+CPU. Modificare la funzione `matsum()` in modo che la somma venga
+realizzata dalla GPU, senza necessità di modificare il corpo
+principale del programma. In altre parole, la funzione `matsum()`
+dovrebbe:
+
+- allocare la memoria nella GPU per memorizzare copie delle matrici $p,
+  q, r$;
+
+- copiare il contenuto delle matrici $p, q$ dall'_host_ al _device_;
+
+- eseguire un apposito kernel (da definire) per calcolare la somma $p +
+  q$ usando la GPU;
+
+- copiare il risultato dal _device_ all'_host_;
+
+- liberare la memoria nel _device_
+
+in modo che non sia necessario modificare la funzione `main()`.  Il
+programma deve funzionare con qualsiasi valore di $N$, che quindi non
+deve necessariamente essere un multiplo della dimensione dei thread
+block CUDA. Si noti che in questo esercizio non è conveniente usare la
+shared memory (perché?).
+
+Per compilare:
+
+        nvcc cuda-matsum.cu -o cuda-matsum -lm
+
+Per eseguire:
+
+        ./cuda-matsum [N]
+
+Esempio:
+
+        ./cuda-matsum 1024
+
+## File
+
+- [cuda-matsum.cu](cuda-matsum.cu)
+- [hpc.h](hpc.h)
+
+***/
+#include "hpc.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <assert.h>
+
+#ifndef SERIAL
+#define BLKDIM 32
+
+__global__ void matsum_kernel( float *p, float *q, float *r, int n )
+{
+    const int i = blockIdx.y * blockDim.y + threadIdx.y;
+    const int j = blockIdx.x * blockDim.x + threadIdx.x;
+    if ( i<n && j<n )
+        r[i*n + j] = p[i*n + j] + q[i*n + j];
+}
+#endif
+
+void matsum( float *p, float *q, float *r, int n )
+{
+#ifdef SERIAL
+    /* [TODO] Modify the body of this function to
+       - allocate memory on the device
+       - copy p and q to the device
+       - call an appropriate kernel
+       - copy the result back from the device to the host
+       - free memory on the device
+    */
+    int i, j;
+    for (i=0; i<n; i++) {
+        for (j=0; j<n; j++) {
+            r[i*n + j] = p[i*n + j] + q[i*n + j];
+        }
+    }
+#else
+    float *d_p, *d_q, *d_r;	  /* device copies of p, q, r */
+    const size_t size = n*n*sizeof(*p);
+    dim3 block(BLKDIM, BLKDIM);
+    dim3 grid((n+BLKDIM-1)/BLKDIM, (n+BLKDIM-1)/BLKDIM);
+
+    /* Allocate space for device copies of p, q, r */
+    cudaMalloc((void **)&d_p, size);
+    cudaMalloc((void **)&d_q, size);
+    cudaMalloc((void **)&d_r, size);
+
+    /* Copy inputs to device */
+    cudaMemcpy(d_p, p, size, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_q, q, size, cudaMemcpyHostToDevice);
+
+    /* Launch matsum() kernel on GPU */
+    matsum_kernel<<<grid, block>>>(d_p, d_q, d_r, n);
+
+    /* Copy result back to host */
+    cudaMemcpy(r, d_r, size, cudaMemcpyDeviceToHost);
+
+    cudaFree(d_p); cudaFree(d_q); cudaFree(d_r);
+#endif
+}
+
+/* Initialize square matrix p of size nxn */
+void fill( float *p, int n )
+{
+    int i, j, k=0;
+    for (i=0; i<n; i++) {
+        for (j=0; j<n; j++) {
+            p[i*n+j] = k;
+            k = (k+1) % 1000;
+        }
+    }
+}
+
+/* Check result */
+int check( float *r, int n )
+{
+    int i, j, k = 0;
+    for (i=0; i<n; i++) {
+        for (j=0; j<n; j++) {
+            if (fabsf(r[i*n+j] - 2.0*k) > 1e-5) {
+                fprintf(stderr, "Check FAILED: r[%d][%d] = %f, expeted %f\n", i, j, r[i*n+j], 2.0*k);
+                return 0;
+            }
+            k = (k+1) % 1000;
+        }
+    }
+    printf("Check OK\n");
+    return 1;
+}
+
+int main( int argc, char *argv[] )
+{
+    float *p, *q, *r;
+    int n = 1024;
+    const int max_n = 5000;
+
+    if ( argc > 2 ) {
+        fprintf(stderr, "Usage: %s [n]\n", argv[0]);
+        return EXIT_FAILURE;
+    }
+
+    if ( argc > 1 ) {
+        n = atoi(argv[1]);
+    }
+
+    if ( n > max_n ) {
+        fprintf(stderr, "FATAL: the maximum allowed matrix size is %d\n", max_n);
+        return EXIT_FAILURE;
+    }
+
+    const size_t size = n*n*sizeof(*p);
+
+    /* Allocate space for p, q, r */
+    p = (float*)malloc(size); assert(p != NULL);
+    fill(p, n);
+    q = (float*)malloc(size); assert(q != NULL);
+    fill(q, n);
+    r = (float*)malloc(size); assert(r != NULL);
+
+    const double tstart = hpc_gettime();
+    matsum(p, q, r, n);
+    const double elapsed = hpc_gettime() - tstart;
+
+    printf("Elapsed time (including data movement): %f\n", elapsed);
+
+    /* Check result */
+    check(r, n);
+
+    /* Cleanup */
+    free(p); free(q); free(r);
+
+    return EXIT_SUCCESS;
+}
