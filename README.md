@@ -1,13 +1,13 @@
-# LabASD
+# Parallel Etudes
 
-Questo repository contiene materiale usato per il corso di
-Laboratorio di Algoritmi e Strutture Dati (LabASD), corso di studio
-in Ingegneria e Scienze Informatiche, Università di Bologna.
+This repository contains the source code of exercises that are used in
+the lab sessione for the High Performance Computing (HPC) course,
+University of Bologna.
 
-## Strumenti
+## Prerequisites
 
-Per elaborare i sorgenti contenuti sono necessari le seguenti
-applicazioni:
+To build the executables and documentation for the programs, the
+following tools are required:
 
 - [Pandoc](https://pandoc.org/)
 
@@ -17,10 +17,7 @@ applicazioni:
 
 - [unifdef](https://dotat.at/prog/unifdef/)
 
-- [splint](https://splint.org/) opzionale, serve per l'analisi
-  statica dei sorgenti
-
-## Come funziona
+## How it works
 
 Sono presenti un certo numero di sorgenti in C e alcuni header file. I
 sorgenti includono all'inizio un blocco di testo delimitato da
@@ -84,43 +81,3 @@ Il procedimento può essere schematizzato dal diagramma seguente:
 +--------+                      +------------------+
 ```
 
-Nel Makefile sono definiti i seguenti target:
-
-`ALL`
-
-: (default) compila tutti i file sorgente, genera gli scheletri
-  dei programmi e le soluzioni, genera il testo delle esercitazioni
-  in formato HTML, e copia le immagini e altri file di supporto
-  nelle directory `handouts/` e `solutions/`.
-
-`dist`
-
-: produce un archivio in formato `.tar.gz` che include tutti i file
-
-`pub`
-
-: copia il contenuto delle directory `handouts/` e `solutions/`
-  nella copia locale del mio sito Web personale
-
-`clean`
-
-: rimuove i file temporanei e gli eseguibili
-
-`distclean`
-
-: come `clean`, ma in più rimuove tutto il contenuto delle directory
-  `handouts/` e `solutions/`
-
-`lint`
-
-: analizza in modo statico tutti i sorgenti utilizzando
-  [splint](https://splint.org/). L'analisi statica aiuta a trovare
-  potenziali errori o ambiguità nel codice.
-
-Tutti i programmi sono stati compilati senza errori né _warning_
-usando [GCC](https://gcc.gnu.org/), [clang](https://clang.llvm.org/) e
-[tcc](https://bellard.org/tcc/). I parametri passati sulla riga di
-comando vengono riconosciuti da tutti questi compilatori.  Per
-compilare, ad es., con `ŧcc` si può usare la riga di comando:
-
-    CC=tcc make
