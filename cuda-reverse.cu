@@ -2,7 +2,7 @@
  *
  * cuda-reverse.cu - Array reversal with CUDA
  *
- * Copyright (C) 2017--2021 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,48 +19,46 @@
  ****************************************************************************/
 
 /***
-% HPC - Inversione di un array
+% HPC - Array reversal with CUDA
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Ultimo aggiornamento: 2021-10-15
+% Last updated: 2022-11-15
 
-Realizzare un programma per invertire un array di $n$ elementi interi,
-cioè scambiare il primo elemento con l'ultimo, il secondo col
-penultimo e così via. Realizzare due kernel diversi: il primo ricopia
-gli elementi di un array `in[]` in un altro array `out[]` in modo che
-quest'ultimo contenga gli stessi elementi di in `in[]` in ordine
-inverso; il secondo kernel inverte gli elementi di `in[]` "in place",
-ossia modificando `in[]` senza sfruttare altri array di appoggio.
+Write a program that reverses an array of length $n$, i.e., swaps the
+content of position $0$ and $n-1$, then position $1$ and $n-2$ and so
+on. Specifically, write two versions of such a program: the first
+version reverses an input array `in[]` into a different output array
+`out[]`, so that the input is not modified. The second version
+reverses an array `in[]` "in place" using at most $O(1)$ additional
+storage.
 
-Il file [cuda-reverse.cu](cuda-reverse.cu) fornisce una
-implementazione basata su CPU delle funzioni `reverse()` e
-`inplace_reverse()`; modificare il programma per trasformare le
-funzioni in kernel da invocare opportunamente.
+The file [cuda-reverse.cu](cuda-reverse.cu) provides a CPU-based
+implementation of `reverse()` and `inplace_reverse()` functions.  You
+are required to modify the functions to make use of the GPU.
 
-**Suggerimento:** la funzione `reverse()` può essere facilmente
-trasformata in un kernel eseguito da $n$ CUDA thread (uno per ogni
-elemento dell'array). Ciascun thread copia un elemento di `in[]` nella
-corretta posizione di `out[]`; utilizzare _thread block_ 1D, dato che
-in tal caso risulta facile mappare ciascun thread in un elemento
-dell'array di input. La funzione `inplace_reverse()` si trasforma in
-un kernel in modo simile, che però verrà eseguito da $n/2$ CUDA thread
-anziché $n$; ciascuno degli $n/2$ thread scambia un elemento della
-prima metà dell'array `in[]` con l'elemento in posizione simmetrica
-nella seconda metà. Controllare che il programma funzioni anche se $n$
-è dispari.
+**Hint:** `reverse()` can be easily transformed into a kernel executed
+by $n$ CUDA threads (one for each element of the array). Each thread
+copies an element from `in[]` to the correct position of `out[]`.  Use
+one-dimensional _thread blocks_, since that makes easy to map threads
+to array elements. The `inplace_reverse()` function can be transformed
+into a kernel as well, but in this case only $\lfloor n/2 \rfloor$
+CUDA threads are required (note the rounding): each thread swaps an
+element from the first half of `in[]` with the appropriate element
+from the second half. Make sure that the program works also when the
+input length $n$ is odd.
 
-Per compilare:
+To copmile:
 
         nvcc cuda-reverse.cu -o cuda-reverse
 
-Per eseguire:
+To execute:
 
         ./cuda-reverse [n]
 
-Esempio:
+Example:
 
         ./cuda-reverse
 
-## File
+## Files
 
 - [cuda-reverse.cu](cuda-reverse.cu)
 - [hpc.h](hpc.h)
@@ -74,8 +72,8 @@ Esempio:
 #ifndef SERIAL
 #define BLKDIM 1024
 
-/* Reverse in[] into out[]; n CUDA threads are required to reverse n
-   elements */
+/* Reverses `in[]` into `out[]`; `n` CUDA threads are required to
+   reverse `n` elements */
 __global__ void reverse_kernel( int *in, int *out, int n )
 {
     const int i = threadIdx.x + blockIdx.x * blockDim.x;
@@ -86,7 +84,7 @@ __global__ void reverse_kernel( int *in, int *out, int n )
 }
 #endif
 
-/* Reverse in[] into out[].
+/* Reverses `in[]` into `out[]`.
 
    [TODO] Modify this function so that it:
    - allocates memory on the device to hold a copy of `in` and `out`;
@@ -104,7 +102,7 @@ void reverse( int *in, int *out, int n )
         out[opp] = in[i];
     }
 #else
-    int *d_in, *d_out; /* device copy of in and out */
+    int *d_in, *d_out; /* device copy of `in` and `out` */
     const size_t SIZE = n * sizeof(*in);
 
     /* Allocate device copy of in[] and out[] */
@@ -114,7 +112,7 @@ void reverse( int *in, int *out, int n )
     /* Copy input to device */
     cudaSafeCall( cudaMemcpy(d_in, in, SIZE, cudaMemcpyHostToDevice) );
 
-    /* Launch the reverse() kernel on the GPU */
+    /* Launch `reverse_kernel()` on the GPU */
     reverse_kernel<<<(n + BLKDIM-1)/BLKDIM, BLKDIM>>>(d_in, d_out, n);
     cudaCheckError();
 
@@ -128,8 +126,8 @@ void reverse( int *in, int *out, int n )
 }
 
 #ifndef SERIAL
-/* In-place reversal of in[]; n/2 CUDA threads are required to reverse
-   n elements */
+/* In-place reversal of `in[]`; n/2 CUDA threads are required to
+   reverse n elements */
 __global__ void inplace_reverse_kernel( int *in, int n )
 {
     const int i = threadIdx.x + blockIdx.x * blockDim.x;
@@ -166,14 +164,14 @@ void inplace_reverse( int *in, int n )
     int *d_in; /* device copy of in */
     const size_t SIZE = n * sizeof(*in);
 
-    /* Allocate device copy of in[] */
+    /* Allocate device copy of `in[]` */
     cudaSafeCall( cudaMalloc((void **)&d_in, SIZE) );
 
     /* Copy input to device */
     cudaSafeCall( cudaMemcpy(d_in, in, SIZE, cudaMemcpyHostToDevice) );
 
-    /* Launch the reverse() kernel on the GPU */
-    inplace_reverse_kernel<<<(n/2 + BLKDIM-1)/BLKDIM, BLKDIM>>>(d_in, n);
+    /* Launch `reverse_kernel()` on the GPU */
+    inplace_reverse_kernel<<<(n/2 + BLKDIM - 1)/BLKDIM, BLKDIM>>>(d_in, n);
     cudaCheckError();
 
     /* Copy the result back to host memory */
@@ -221,7 +219,7 @@ int main( int argc, char* argv[] )
     }
 
     if ( n > MAX_N ) {
-        fprintf(stderr, "FATAL: the maximum length is %d\n", MAX_N);
+        fprintf(stderr, "FATAL: input too large (maximum allowed length is %d)\n", MAX_N);
         return EXIT_FAILURE;
     }
 
