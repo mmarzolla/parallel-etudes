@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * cuda-odd-even.cu - Odd-even sort with CUDA
+ * cuda-odd-even.cu - Odd-even sort
  *
- * Copyright (C) 2017--2021 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,39 +19,33 @@
  ****************************************************************************/
 
 /***
-% HPC - Odd-even transposition sort
+% HPC - Odd-even sort
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Ultimo aggiornamento: 2021-11-18
+% Last upated: 2022-11-16
 
-A lezione è stato discusso l'algoritmo di ordinamento _Odd-Even
-Transposition Sort_. L'algoritmo è una variante di BubbleSort, ed è in
-grado di ordinare un array di $n$ elementi in tempo $O(n^2)$. Pur non
-essendo efficiente, l'algoritmo si presta bene ad essere
-parallelizzato. Abbiamo già visto versioni parallele basate su OpenMP
-e MPI; in questo esercizio viene richiesta la realizzazione di una
-versione CUDA.
+The _Odd-Even sort_ algorithm is a variant of BubbleSort, and sorts an
+array of $n$ elements in sequential time $O(n^2)$. Although
+inefficient, odd-even sort is easily parallelizable; indeed, we have
+discussed both an OpenMP and an MPI version. In this exercise we will
+create a CUDA version.
 
-Dato un array `v[]` di $n$ elementi, l'algoritmo esegue $n$ fasi
-numerate da 0 a $n–1$; nelle fasi pari si confrontano gli elementi di
-`v[]` di indice pari con i successivi, scambiandoli se non sono
-nell'ordine corretto. Nelle fasi dispari si esegue la stessa
-operazione confrontando gli elementi di `v[]` di indice dispari con i
-successivi (Figura 1).
+Given an array `v[]` of length $n$, the algorithm performs $n$ steps
+numbered $0, \ldots, n-1$. During even steps, array elements in even
+positions are compared with the next element and swapped if not in the
+correct order. During odd steps, elements in odd position are compared
+(and possibly swapped) with their successors. See Figure 1.
 
-![Figura 1: Odd-Even Sort](cuda-odd-even.png)
+![Figure 1: Odd-Even Sort](cuda-odd-even.png)
 
-Il file [cuda-odd-even.cu](cuda-odd-even.cu) contiene una
-implementazione dell'algoritmo Odd-Even Transposition
-Sort. L'implementazione fornita fa solo uso della CPU: scopo di questo
-esercizio è di sfruttare il parallelismo CUDA.
+The file [cuda-odd-even.cu](cuda-odd-even.cu) contains a serial
+implementation of Odd-Even transposition sort. The purpose of this
+algorithm is to modify the program to use the GPU.
 
-Il paradigma CUDA suggerisce di adottare un parallelismo a grana fine,
-facendo gestire ad ogni thread il confronto e lo scambio di una coppia
-di elementi adiacenti. La soluzione più semplice consiste nel creare
-$n$ CUDA thread e lanciare $n$ volte un kernel che sulla base
-dell'indice della fase (da passare come parametro al kernel), attiva i
-thread che agiscono sugli elementi dell'array di indice pari o
-dispari. In altre parole, la struttura di questo kernel è simile a:
+The CUDA paradigm suggests a fine-grained parallelism where a CUDA
+thread is responsible for a single compare-and-swap operation of a
+pair of adjacent elements. The simplest solution is to launch $n$ CUDA
+threads during each phase; only even (resp. odd) threads will be
+active during even (resp. odd) phases. The kernel looks like this:
 
 ```C
 __global__ odd_even_step_bad( int *x, int n, int phase )
@@ -63,44 +57,48 @@ __global__ odd_even_step_bad( int *x, int n, int phase )
 }
 ```
 
-Questa soluzione non è però efficiente, perché solo metà dei thread
-sono attivi durante ogni fase. Realizzare quindi una seconda versione
-in cui in ogni fase si lanciano $\lceil n/2 \rceil$ CUDA thread,
-facendo in modo che tutti i thread siano sempre attivi durante ogni
-fase. Nelle fasi pari i thread $0, 1, 2, 3, \ldots$ gestiranno
-rispettivamente le coppie di indici $(0, 1)$, $(2, 3)$, $(4, 5)$, $(6,
-7)$, $\ldots$, mentre nelle fasi dispari gestiranno le coppie di
-indici $(1, 2)$, $(3, 4)$, $(5, 6)$, $(7, 8)$, $\ldots$.
+This solution is simple but definitely _not_ efficient since only half
+the threads are active during each phase, so a lot of computational
+resources are wasted. To address this issue, write a second version
+where $\lceil n/2 \rceil$ CUDA threads are executed at each phase, so
+that each one is always active. Indexing becomes more problematic,
+since each thread should be uniquely assigned to an even (resp. odd)
+position depending on the phase.  Specifically, in even phases threads
+$0, 1, 2, 3, \ldots$ are required to handle the pairs $(0, 1)$, $(2,
+3)$, $(4, 5)$, $(6, 7)$, $\ldots$. During odd phases, the threads are
+required to handle the pairs $(1, 2)$, $(3, 4)$, $(5, 6)$, $(7, 8)$,
+$\ldots$.
 
-La Tabella 1 illustra la corrispondenza tra l'indice "lineare" dei
-thread `idx`, calcolato come nel frammento di codice sopra, e la
-coppia di indici dell'array che devono gestire.
+Table 1 illustrates the correspondence between the "linear" index
+`idx` of each thread, computed using the expression in the above code
+snipped, and the index pair it needs to manage.
 
-:Tabella 1: corrispondenza tra indice dei thread e dell'array
+:Table 1: Correspondence between "linear" thread index and array index
+pairs.
 
-Indice thread      Fasi pari     Fasi dispari
+Thread index       Even phases   Odd phases
 -----------------  ------------  --------------
 0                  $(0,1)$       $(1,2)$
 1                  $(2,3)$       $(3,4)$
 2                  $(4,5)$       $(5,6)$
-3                  $(6,7)$       $(7,8)$ 
+3                  $(6,7)$       $(7,8)$
 4                  $(8,9)$       $(9,10)$
-...                ...           ... 
+...                ...           ...
 -----------------  ------------  --------------
 
-Per compilare:
+Compile with:
 
         nvcc cuda-odd-even.cu -o cuda-odd-even
 
-Per eseguire:
+Execute with:
 
         ./cuda-odd-even [len]
 
-Esempio:
+Example:
 
         ./cuda-odd-even 1024
 
-## File
+## Files
 
 - [cuda-odd-even.cu](cuda-odd-even.cu)
 - [hpc.h](hpc.h)
