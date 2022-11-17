@@ -21,32 +21,35 @@
 /***
 % HPC - Array reversal with CUDA
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-11-15
+% Last updated: 2022-11-17
 
-Write a program that reverses an array of length $n$, i.e., swaps the
-content of position $0$ and $n-1$, then position $1$ and $n-2$ and so
-on. Specifically, write two versions of such a program: the first
-version reverses an input array `in[]` into a different output array
-`out[]`, so that the input is not modified. The second version
-reverses an array `in[]` "in place" using at most $O(1)$ additional
-storage.
+Write a program that reverses an array `v[]` of length $n$, i.e.,
+exchanges `v[0]` and `v[n-1]`, `v[1]` and `v[n-2]` and so
+on. You should write two versions of the program:
+
+1. the first version reverses an input array `in[]` into a different
+   output array `out[]`, so that the input is not modified. You can
+   assume that `in[]` and `out[]` are mapped to different,
+   non-overlapping memory blocks.
+
+2. The second version reverses an array `in[]` "in place" using at
+   most $O(1)$ additional storage.
 
 The file [cuda-reverse.cu](cuda-reverse.cu) provides a CPU-based
-implementation of `reverse()` and `inplace_reverse()` functions.  You
-are required to modify the functions to make use of the GPU.
+implementation of `reverse()` and `inplace_reverse()`.  Modify the
+functions to use of the GPU.
 
 **Hint:** `reverse()` can be easily transformed into a kernel executed
-by $n$ CUDA threads (one for each element of the array). Each thread
-copies an element from `in[]` to the correct position of `out[]`.  Use
-one-dimensional _thread blocks_, since that makes easy to map threads
-to array elements. The `inplace_reverse()` function can be transformed
-into a kernel as well, but in this case only $\lfloor n/2 \rfloor$
-CUDA threads are required (note the rounding): each thread swaps an
-element from the first half of `in[]` with the appropriate element
-from the second half. Make sure that the program works also when the
-input length $n$ is odd.
+by $n$ CUDA threads (one for each array element). Each thread copies
+one element from `in[]` to `out[]`. Use one-dimensional _thread
+blocks_, since that makes easy to map threads to array elements.
+`inplace_reverse()` can be transformed into a kernel as well, but in
+this case only $\lfloor n/2 \rfloor$ CUDA threads are required (note
+the rounding): each thread swaps an element from the first half of
+`in[]` with the appropriate element from the second half. Make sure
+that the program works also when the input length $n$ is odd.
 
-To copmile:
+To compile:
 
         nvcc cuda-reverse.cu -o cuda-reverse
 
@@ -72,7 +75,8 @@ Example:
 #ifndef SERIAL
 #define BLKDIM 1024
 
-/* Reverses `in[]` into `out[]`; `n` CUDA threads are required to
+/* Reverses `in[]` into `out[]`. Assume that `in[]` and `out[]` always
+   point to non-overlapping memory blocks. Uses `n` CUDA threads to
    reverse `n` elements */
 __global__ void reverse_kernel( int *in, int *out, int n )
 {
@@ -84,11 +88,12 @@ __global__ void reverse_kernel( int *in, int *out, int n )
 }
 #endif
 
-/* Reverses `in[]` into `out[]`.
+/* Reverses `in[]` into `out[]`; assume that `in[]` and `out[]` do not
+   overlap.
 
    [TODO] Modify this function so that it:
    - allocates memory on the device to hold a copy of `in` and `out`;
-   - copies `in` and `out` to the device
+   - copies `in` to the device
    - launches a kernel (to be defined)
    - copies data back from device to host
    - deallocates memory on the device

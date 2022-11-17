@@ -21,14 +21,14 @@
 /***
 % HPC - Dot product
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-11-11
+% Last updated: 2022-11-17
 
 ## Familiarize with the environment
 
 The server has three identical GPUs (NVidia GeForce GTX 1070). The
 first one is used by default, although it is possible to select
-another card either programmatically (e.g., `cudaSetDevice(0)` uses
-the first GPU, `cudaSetDevice(1)` uses the second one, and so on), or
+another card either programmatically (`cudaSetDevice(0)` uses the
+first GPU, `cudaSetDevice(1)` uses the second one, and so on), or
 using the environment variable `CUDA_VISIBLE_DEVICES`.
 
 For example
@@ -39,16 +39,16 @@ runs `cuda-stencil1d` on the first GPU (default), while
 
         CUDA_VISIBLE_DEVICES=1 ./cuda-stencil1d
 
-runs the program on the second one.
+runs the program on the second GPU.
 
-Invoke `deviceQuery` from the command line to display the hardware
+Run `deviceQuery` from the command line to display the hardware
 features of the GPUs.
 
 ## Scalar product
 
 The program [cuda-dot.cu](cuda-dot.cu) computes the dot product of two
-arrays `x[]` and `y[]` of equal length $n$. Modify the program to use
-the GPU, by transforming the `dot()` function into a kernel.  The dot
+arrays `x[]` and `y[]` of length $n$. Modify the program to use the
+GPU, by transforming the `dot()` function into a kernel.  The dot
 product $s$ of two arrays `x[]` and `y[]` is defined as
 
 $$
@@ -56,15 +56,16 @@ s = \sum_{i=0}^{n-1} x[i] \times y[i]
 $$
 
 Some modifications of the `dot()` function are required to use the
-GPU. In this exercise we implement a simple (although not very
-efficient) approach where we use a single block of _BLKDIM_ threads:
+GPU. In this exercise we implement a simple (although not efficient)
+approach where we use a _single_ block of _BLKDIM_ threads.  The
+algorithm works as follows:
 
 1. The CPU allocates a `tmp[]` array of _BLKDIM_ elements on the GPU,
-   in addition to a copy of `x[]` and `y[]`. Use `cudaMalloc()` to
-   allocate `tmp[]`.
+   in addition to a copy of `x[]` and `y[]`.
 
-2. The CPU executes a single 1D thread block consisting of _BLKDIM_
-   threads
+2. The CPU executes a single 1D thread block containing _BLKDIM_
+   threads; use the maximum number of threads per block supported by
+   the hardware, which is _BLKDIM = 1024_.
 
 3. Thread $t$ ($t = 0, \ldots, \mathit{BLKDIM}-1$) computes the value
    of the expression $(x[t] \times y[t] + x[t + \mathit{BLKDIM}]
@@ -72,17 +73,15 @@ efficient) approach where we use a single block of _BLKDIM_ threads:
    \times y[t + 2 \times \mathit{BLKDIM}] + \ldots)$ and stores the
    result in `tmp[t]` (see Figure 1).
 
-4. When the kernel terminates, the CPU transfers `tmp[]` into host
-   memory and performs a sum-reduction to compute the result.
-
-The computation of the dot product requires a step (step 3) that is
-performed by the GPU, and a second step (step 4) that is performed by
-the GPU.
+4. When the kernel terminates, the CPU transfers `tmp[]` back to host
+   memory and performs a sum-reduction to compute the final result.
 
 ![Figure 1](cuda-dot.png)
 
-The program must work correctly for any value of $n$, even if it is
+Your program must work correctly for any value of $n$, even if it is
 not a multiple of _BLKDIM_.
+
+A better way to compute a reduction will be shown in future lectures.
 
 To compile:
 
@@ -111,11 +110,11 @@ Example:
 #ifndef SERIAL
 #define BLKDIM 1024
 
-__global__ void dot_kernel( double *x, double *y, int n, double *tmp )
+__global__ void dot_kernel( const float *x, const float *y, int n, float *tmp )
 {
     const int tid = threadIdx.x;
     int i;
-    double s = 0.0;
+    float s = 0.0;
     for (i = tid; i < n; i += blockDim.x) {
         s += x[i] * y[i];
     }
@@ -123,19 +122,19 @@ __global__ void dot_kernel( double *x, double *y, int n, double *tmp )
 }
 #endif
 
-double dot( double *x, double *y, int n )
+float dot( const float *x, const float *y, int n )
 {
 #ifdef SERIAL
     /* [TODO] modify this function so that (part of) the dot product
        computation is executed on the GPU. */
-    double result = 0.0;
+    float result = 0.0;
     for (int i = 0; i < n; i++) {
         result += x[i] * y[i];
     }
     return result;
 #else
-    double tmp[BLKDIM];
-    double *d_x, *d_y, *d_tmp; /* device copies of x, y, tmp */
+    float tmp[BLKDIM];
+    float *d_x, *d_y, *d_tmp; /* device copies of x, y, tmp */
     const size_t SIZE_TMP = sizeof(tmp);
     const size_t SIZE_XY = n*sizeof(*x);
 
@@ -156,7 +155,7 @@ double dot( double *x, double *y, int n )
     cudaSafeCall( cudaMemcpy(tmp, d_tmp, SIZE_TMP, cudaMemcpyDeviceToHost) );
 
     /* Perform the last reduction on the CPU */
-    double result = 0.0;
+    float result = 0.0;
     for (int i=0; i<BLKDIM; i++) {
         result += tmp[i];
     }
@@ -169,11 +168,11 @@ double dot( double *x, double *y, int n )
 #endif
 }
 
-void vec_init( double *x, double *y, int n )
+void vec_init( float *x, float *y, int n )
 {
     int i;
-    const double tx[] = {1.0/64.0, 1.0/128.0, 1.0/256.0};
-    const double ty[] = {1.0, 2.0, 4.0};
+    const float tx[] = {1.0/64.0, 1.0/128.0, 1.0/256.0};
+    const float ty[] = {1.0, 2.0, 4.0};
     const size_t LEN = sizeof(tx)/sizeof(tx[0]);
 
     for (i=0; i<n; i++) {
@@ -184,7 +183,7 @@ void vec_init( double *x, double *y, int n )
 
 int main( int argc, char* argv[] )
 {
-    double *x, *y, result;
+    float *x, *y, result;
     int n = 1024*1024;
     const int MAX_N = 128 * n;
 
@@ -205,23 +204,22 @@ int main( int argc, char* argv[] )
     const size_t SIZE = n*sizeof(*x);
 
     /* Allocate space for host copies of x, y */
-    x = (double*)malloc(SIZE);
+    x = (float*)malloc(SIZE);
     assert(x != NULL);
-    y = (double*)malloc(SIZE);
+    y = (float*)malloc(SIZE);
     assert(y != NULL);
     vec_init(x, y, n);
+    const float expected = ((float)n)/64;
 
-    printf("Computing the dot product of %d elements... ", n);
+    printf("Computing the dot product of %d elements...\n", n);
     result = dot(x, y, n);
-    printf("result=%f\n", result);
-
-    const double expected = ((double)n)/64;
+    printf("got=%f, expected=%f\n", result, expected);
 
     /* Check result */
     if ( fabs(result - expected) < 1e-5 ) {
         printf("Check OK\n");
     } else {
-        printf("Check FAILED: got %f, expected %f\n", result, expected);
+        printf("Check FAILED\n");
     }
 
     /* Cleanup */
