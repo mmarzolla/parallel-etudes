@@ -5,8 +5,8 @@
 ## Written by Moreno Marzolla on 2022-11-11
 ## Last updated 2022-11-11
 
-NFRAMES=1000000  # number of time steps
-RES=1080         # image resolution
+NSTEPS=1000000  # number of time steps
+RES=1080        # image resolution
 
 if [ ! -f ./opencl-anneal-movie ]; then
     echo "FATAL: ./opencl-anneal-movie not found"
@@ -14,10 +14,10 @@ if [ ! -f ./opencl-anneal-movie ]; then
 fi
 
 ## generate the frames
-## ./opencl-anneal-movie $NFRAMES $RES
+./opencl-anneal-movie $NSTEPS $RES
 
 ## insert annotations
-for n in `seq 0 $NFRAMES`; do
+for n in `seq 0 $NSTEPS`; do
     INPUTF=`printf "opencl-anneal-%06d.pbm" $n`
     OUTPUTF=`printf "opencl-anneal-%06d-out.pbm" $n`
     LABEL=`printf "%05d" $n`
