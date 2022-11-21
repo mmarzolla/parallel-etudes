@@ -54,6 +54,22 @@ long mark( int *isprime, int rank, int step, long from, long to, long p)
 	return nmarked;
 }
 
+/* Serial version*/
+long mark_serial( char *isprime, int k, long from, long to )
+{
+    long nmarked = 0l;
+
+    from = ((from + k - 1)/k)*k; /* start from the lowest multiple of p that is >= from */
+    for ( long x=from; x<to; x+=k ) {
+        if (isprime[x]) {
+            isprime[x] = 0;
+            nmarked++;
+        }
+    }
+
+    return nmarked;
+}
+
 int main( int argc, char *argv[] )
 {
 	int *isprime = NULL, *my_primes, result = 0;
@@ -75,7 +91,19 @@ int main( int argc, char *argv[] )
 		fprintf(stderr, "FATAL: the vector length (%ld) must be multiple of %d\n", n, comm_sz);
 		MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
 	}
-    
+
+#ifdef SERIAL
+
+    if ( 0 == my_rank ) {
+        for (i=2; i*i<=n; i++) {
+            if (isprime[i]) {
+                result += mark_serial(isprime, i*i, n+1, i);
+            }
+        }
+    }
+
+#else
+
     if ( 0 == my_rank ) {
 		isprime = (int*)malloc(n*sizeof(*isprime)); assert(isprime != NULL);
 		/* Initially, all numbers are considered primes */
@@ -127,7 +155,8 @@ int main( int argc, char *argv[] )
                 0,              /* destination           */
                 MPI_COMM_WORLD  /* communicator          */
                 );
-    
+
+#endif
     
     if ( 0 == my_rank) {
 		elapsed = MPI_Wtime() - tstart;
