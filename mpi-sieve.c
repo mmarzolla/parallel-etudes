@@ -167,6 +167,28 @@ $n$. Use the table to check the correctness of your implementation
 #include <stdlib.h>
 #include <assert.h>
 
+#ifdef SERIAL
+
+/* Mark all mutliples of `p` in the set {`from`, ..., `to`-1}; return how
+   many numbers have been marked for the first time. `from` does not
+   need to be a multiple of `p`. */
+long mark_serial( char *isprime, int k, long from, long to )
+{
+    long nmarked = 0l;
+
+    from = ((from + k - 1)/k)*k; /* start from the lowest multiple of p that is >= from */
+    for ( long x=from; x<to; x+=k ) {
+        if (isprime[x]) {
+            isprime[x] = 0;
+            nmarked++;
+        }
+    }
+
+    return nmarked;
+}
+
+#else
+
 /* Mark all mutliples of `p` in the set {`from`, ..., `to`-1}; return how
    many numbers have been marked for the first time. `from` does not
    need to be a multiple of `p`. */
@@ -185,21 +207,7 @@ long mark( int *isprime, int rank, int step, long from, long to, long p)
 	return nmarked;
 }
 
-/* Serial version*/
-long mark_serial( char *isprime, int k, long from, long to )
-{
-    long nmarked = 0l;
-
-    from = ((from + k - 1)/k)*k; /* start from the lowest multiple of p that is >= from */
-    for ( long x=from; x<to; x+=k ) {
-        if (isprime[x]) {
-            isprime[x] = 0;
-            nmarked++;
-        }
-    }
-
-    return nmarked;
-}
+#endif
 
 int main( int argc, char *argv[] )
 {
