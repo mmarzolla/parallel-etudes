@@ -21,7 +21,7 @@
 /***
 % HPC - Inclusive Scan
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-11-01
+% Last updated: 2022-11-21
 
 The file [mpi-inclusive-scan.c](mpi-inclusive-scan.c) contains a MPI program
 with two solutions to an inclusive scan.
