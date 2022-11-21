@@ -18,6 +18,42 @@
  *
  ****************************************************************************/
 
+/***
+% HPC - Inclusive Scan
+% Moreno Marzolla <moreno.marzolla@unibo.it>
+% Last updated: 2022-11-01
+
+The file [mpi-inclusive-scan.c](mpi-inclusive-scan.c) contains a MPI program
+with two solutions to an inclusive scan.
+The first one is a naive approach: node 0 (the master) collects all partial
+results, and computes the final value without using the reduction primitive.
+The second one uses the MPI_Scan directive, used to perform an inclusive
+prefix reduction on data distributed across the calling processes. The operation
+returns, in the `recvbuf` of the process with rank `i`, the reduction of the
+values in the `sendbufs` of processses with ranks 0, ..., i.
+
+To use the naive implementation, compile with:
+
+        mpicc -DNAIVE -std=c99 -Wall -Wpedantic mpi-inclusive-scan.c -o mpi-inclusive-scan -lm 
+
+To use the MPI_Scan directive, compile with:
+
+        mpicc -std=c99 -Wall -Wpedantic mpi-inclusive-scan.c -o mpi-inclusive-scan -lm
+
+Execute with:
+
+        mpirun -n P ./mpi-inclusive-scan
+
+Example:
+
+        mpirun -n 4 ./mpi-inclusive-scan
+
+## Files
+
+- [mpi-inclusive-scan.c](mpi-inclusive-scan.c)
+
+***/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
