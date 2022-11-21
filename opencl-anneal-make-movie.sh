@@ -1,12 +1,12 @@
 #!/bin/sh
 
-## Crea un filmano montando un certo numero di frame
-## dell'automa cellulare ANNEAL.
+## Make a movie of the ANNEAL Callular Automaton
 
-## Scritto da Moreno Marzolla il 2021-11-19
-## Ultimo aggiornamento 2022-11-11
+## Written by Moreno Marzolla on 2022-11-11
+## Last updated 2022-11-21
 
-NFRAMES=1000000  # number of time steps
+DEFAULT_DEVICE=1 # simpleCL default device (0=usually the CPU)
+NSTEPS=50000     # number of time steps
 RES=1080         # image resolution
 
 if [ ! -f ./opencl-anneal-movie ]; then
@@ -14,24 +14,24 @@ if [ ! -f ./opencl-anneal-movie ]; then
     exit 1
 fi
 
-## generate the frames
-./opencl-anneal-movie $NFRAMES $RES
+## generate frames
+SCL_DEFAULT_DEVICE=$DEFAULT_DEVICE ./opencl-anneal-movie $NSTEPS $RES
 
 ## insert annotations
-for n in `seq 0 $NFRAMES`; do
+for n in `seq 0 $NSTEPS`; do
     INPUTF=`printf "opencl-anneal-%06d.pbm" $n`
-    OUTPUTF=`printf "opencl-anneal-%06d-out.pbm" $n`
+    OUTPUTF=`printf "opencl-anneal-%06d-out.png" $n`
     LABEL=`printf "%05d" $n`
     if [ -f "$INPUTF" ]; then
         echo "Annotating ${INPUTF}..."
         convert $INPUTF \
                 -gravity southwest \
                 -font Courier \
-                -stroke black -strokewidth 10 -pointsize 100 -annotate 0 $LABEL \
-                -stroke none -fill white -annotate 0 $LABEL \
+                -stroke black -strokewidth 15 -pointsize 100 -annotate 0 $LABEL \
+                -stroke yellow -strokewidth 4 -fill yellow -annotate 0 $LABEL \
                 $OUTPUTF
     fi
 done
 
-## crea il video
-ffmpeg -y -i "opencl-anneal-%05d-out.pbm" -vcodec mpeg4 opencl-anneal.avi
+## make video @30fps
+ffmpeg -y -i "opencl-anneal-%06d-out.png" -vcodec mpeg4 -r 30 opencl-anneal.avi

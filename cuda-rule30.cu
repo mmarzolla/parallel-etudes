@@ -388,7 +388,7 @@ int main( int argc, char* argv[] )
         /* Compute next state */
         step<<<(width + BLKDIM-1)/BLKDIM, BLKDIM>>>(d_cur, d_next, ext_width);
         cudaCheckError();
-        
+
         cudaSafeCall( cudaMemcpy(cur, d_next, ext_size, cudaMemcpyDeviceToHost) );
 
         /* swap d_cur and d_next on the GPU */

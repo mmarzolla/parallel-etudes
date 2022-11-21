@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * cuda-anneal.cu - ANNEAL cellular automaton with CUDA
+ * cuda-anneal.cu - ANNEAL cellular automaton
  *
- * Copyright (C) 2017--2021 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,117 +19,101 @@
  ****************************************************************************/
 
 /***
-% HPC - L'automa cellulare ANNEAL
+% HPC - ANNEAL cellular automaton
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Ultimo aggiornamento: 2021-11-28
+% Last updated: 2022-11-21
 
-In questo esercizio consideriamo un semplice automa cellulare binario
-in due dimensioni, denominato _ANNEAL_ (noto anche come _twisted
-majority rule_). L'automa opera su un dominio quadrato di dimensione
-$N \times N$, in cui ogni cella può avere valore 0 oppure 1. Si assume
-un dominio toroidale, in modo che ogni cella, incluse quelle sul
-bordo, abbia sempre otto celle adiacenti. Due celle si considerano
-adiacenti se hanno un lato oppure uno spigolo in comune.
+In this exercise we consider a simple two-dimensional, binary Cellular
+Automaton called _ANNEAL_ (also known as _twisted majority rule_). The
+automaton operates on a square domain of size $N \times N$, where
+each cell can have value 0 or 1. Cyclic boundary conditions are
+assumed, so that each cell has eight adjacent neighbors. Two cells are
+considered adjacent if they share a side or a corner.
 
-L'automa evolve a istanti di tempo discreti $t = 0, 1, 2, \ldots$. Lo
-stato di una cella al tempo $t+1$ dipende dal proprio stato e da
-quello degli otto vicini al tempo $t$. In dettaglio, per ogni cella
-$x$ sia $B_x$ il numero di celle con valore 1 presenti nell'intorno di
-dimensione $3 \times 3$ centrato su $x$ (si conta anche lo stato di
-$x$, quindi si avrà sempre $0 \leq B_x \leq 9$). Se $B_x=4$ oppure
-$B_x \geq 6$, allora il nuovo stato della cella $x$ è 1; in caso
-contrario il nuovo stato è 0. La Figura 1 mostra alcuni esempi.
+The automaton evolves at discrete time steps $t = 0, 1, 2,
+\ldots$. The state of a cell at time $t + 1$ depends on its state at
+time $t$, and on the state of its neighbors at time $t$. Specifically,
+for each cell $x$ let $B_x$ be the number of cells in state 1 within
+the neighborhood of size $3 \times 3$ centered on $x$ (including $x$,
+so you will always have $0 \leq B_x \leq 9$). If $B_x = 4$ or $B_x
+\geq 6$, then the new state of $x$ is 1, otherwise the new state is
+0. See Figure 1.
 
-![Figura 1: Esempi di calcolo del nuovo stato della cella centrale di un blocco di dimensione $3 \times 3$](cuda-anneal1.png)
+![Figure 1: Examples of computation of the new state of the central
+ cell of a block of size $3 \times 3$](cuda-anneal1.png)
 
-Come sempre in questi casi si devono utilizzare due griglie (domini)
-per rappresentare lo stato corrente dell'automa e lo stato al passo
-successivo. Lo stato delle celle viene sempre letto dalla griglia
-corrente, e i nuovi valori vengono sempre scritti nella griglia
-successiva. Quando il nuovo stato di tutte le celle è stato calcolato,
-si scambiano le griglie e si ripete.
+To simulate synchrnonous, concurrent updates of all cells, two domains
+must be used. The state of a cell is always read from the "current"
+domain, and new values are written to the "next" domain. The domains
+are exchanged at the end of each step.
 
-Il dominio viene inizializzato ponendo ogni cella a 0 o 1 con uguale
-probabilità; di conseguenza, circa metà delle celle saranno nello
-stato 0 e l'altra metà sarà nello stato 1. La Figura 2 mostra
-l'evoluzione di una griglia di dimensione $256 \times 256$ dopo 10,
-100 e 1024 iterazioni. Si può osservare come le celle 0 e 1 tendano
-progressivamente ad addensarsi, pur con la presenza di piccole
-"bolle". È disponibile un [breve video che mostra l'evoluzione
-dell'automa](https://youtu.be/UNpl2iUyz3Q) nel tempo.
+The initial state of a cell is chosen at random with equal
+probability. Figure 2 shows the evolution of a grid of size $256
+\times 256$ after 10, 100 and 1024 iterations. We observe the emergence
+of "blobs" of cells that grow over time, with the exception of small
+"bubbles" that remain stable. You might be interested in [a short
+video showing the evolution of the
+automaton](https://youtu.be/UNpl2iUyz3Q) over time.
 
-![Figura 2: Evoluzione dell'automa _ANNEAL_ ([video](https://youtu.be/UNpl2iUyz3Q))](anneal-demo.png)
+![Figure 2: Evolution of the _ANNEAL_ automaton ([video](https://youtu.be/UNpl2iUyz3Q))](anneal-demo.png)
 
-Il file [cuda-anneal.cu](cuda-anneal.cu) contiene una implementazione
-seriale dell'algoritmo che calcola e salva su un file l'evoluzione
-dopo $K$ iterazioni dell'automa cellulare basato sulla regola
-ANNEAL. Scopo di questo esercizio è di modificare il programma per
-delegare alla GPU sia il calcolo del nuovo stato, sia la copia dei
-bordi del dominio (necessaria per simulare un dominio toroidale).
+The file [cuda-anneal.cu](cuda-anneal.cu) contains a serial
+implementation of the algorithm that computes the evolution of the
+_ANNEAL_ CA after $K$ iterations. The final state is written to a
+file. The goal of this exercise is to modify the program to delegate
+the computation of new states to the GPU.
 
-Alcuni suggerimenti:
+Some suggestions:
 
-- Iniziare sviluppando una versione che non usa la memoria
-  `__shared__`. Trasformare le funzioni `copy_top_bottom()`,
-  `copy_left_right()` e `step()` in kernel; in questo modo è possibile
-  fare evolvere l'automa interamente nella memoria della GPU. La
-  dimensione dei thread block necessari a copiare le celle sarà
-  diverso dalla dimensione dei blocchi usati per l'evoluzione
-  dell'automa (vedi punti seguenti).
+- Start by developing a version that does _not_ use shared
+  memory. Transform the `copy_top_bottom()`, `copy_left_right()` and
+  `step()` functions into kernels. Note that the size of the thread
+  block that copies the sides of the domain will be different from the
+  size of the domain that computes the evolution of the automaton (see
+  the following points).
 
-- Per copiare le ghost cell ai lati è sufficiente organizzare i thread
-  in un array (blocchi 1D). Quindi per l'esecuzione dei kernel
-  `copy_top_bottom()` e `copy_left_right()` saranno necessari $(N+2)$
-  thread.
+- To copy the ghost cells, use a 1D array of threads. So, to run
+  kernels `copy_top_bottom()` and `copy_left_right()` you need $(N +
+  2)$ threads.
 
-- Dato che il dominio è bidimensionale, per calcolare l'evoluzione
-  dell'automa conviene usare blocchi bidimensionali di thread. Usando
-  blocchi di thread di dimensioni $\mathit{BLKDIM} \times
-  \mathit{BLKDIM}$, la griglia dovrà avere dimensioni $(N +
-  \mathit{BLKDIM} - 1)/\mathit{BLKDIM} \times (N + \mathit{BLKDIM} -
-  1)/\mathit{BLKDIM}$. Ricordarsi che la GPU consente al massimo 1024
-  thread per blocco; suggerisco quindi di usare $\mathit{BLKDIM}=32$
-  in modo che un blocco sia composto esattamente da 1024 CUDA thread.
+- Since the domain is two-dimensional, it is convenient to organize
+  the threads in two-dimensional blocksof size $32 \times 32$.
 
-- Nel kernel `step()`, ciascun thread calcola il nuovo stato di una
-  cella di coordinate $(i, j)$. Ricordare che si sta lavorando su un
-  dominio "allargato" con due righe e due colonne in più, quindi le
-  celle "vere" (non ghost) sono quelle con coordinate $1 \leq i, j
-  \leq N$. Di conseguenza, ogni thread calcolerà $i, j$ come:
+- In the `step()` kernel, each thrad computes the new state of a
+  coordinate cell $(i, j)$. Remember that you are working on a
+  "extended" domain with two more rows and two columns, hence the
+  "true" (non-ghost) cells are those with coordinates $1 \leq i, j \leq N$.
+  Therefore, each thread will compute $i, j$ as:
 ```C
   const int i = 1 + threadIdx.y + blockIdx.y * blockDim.y;
   const int j = 1 + threadIdx.x + blockIdx.x * blockDim.x;
 ```
-  In questo modo i thread verranno associati alle celle di coordinate
-  da $(1, 1)$ in poi. Prima di effettuare qualsiasi computazione,
-  ogni thread dovrà verificare che $1 \leq i, j \leq N$, in modo
-  tale che eventuali thread in eccesso vengano disattivati.
+  In this way the threads will be associated with the coordinate cells
+  from $(1, 1)$ onward. Before making any computation, each
+  threa must verify that $1 \leq i, j \leq N$, so that all
+  excess threads are deactivated.
 
-## Uso della _shared memory_
+## Using local memory
 
-Questo programma potrebbe beneficiare dall'uso della memoria
-`__shared__`, dato che ogni cella del dominio viene letta 9 volte da 9
-thread diversi. Tuttavia, **sul server non si noterà alcun
-miglioramento delle prestazioni** perché le GPU sono dotate di memoria
-_cache_ e il numero di riletture non è abbastanza elevato da
-ammortizzare il costo della copia verso la memoria
-condivisa. Nonostante questo, è un esercizio istruttivo realizzare una
-versione che sfrutti la memoria _shared_.
+This program might benefit from the use of shared memory, since each
+cell is read 9 times by 9 different thrads. However, no performance
+improvement is likely to be observed on the server, since the GPUs
+there have on-board caches. Despite this, it is useful to use local
+memory anyway, to see how it can be done.
 
-Assumiamo che $N$ sia un multiplo esatto di _BLKDIM_. Ciascun blocco di
-thread copia gli elementi della porzione di dominio di sua competenza
-in un buffer locale `buf[BLKDIM+2][BLKDIM+2]` che include due righe e
-due colonne (le prime e le ultime) di ghost cell, e calcolare il
-nuovo stato delle celle usando i dati nel buffer locale anziché
-accedendo alla memoria globale.
+Let us assume that thead blocks have size $\mathit{BLKDIM} \times
+\mathit{BLKDIM}$ where _BLKDIM_ is a divisor of $N$. Each workgroup
+copies the elements of the domain portion of its own competence in a
+local buffer `buf[BLKDIM+2][BLKDIM+2]` which includes two ghost rows
+and columns, and computes the new state of the cells using the data in
+the local buffer instead of accessing global memory.
 
-In situazioni del genere è utile usare due coppie di indici $(gi, gj)$
-per indicare le posizioni delle celle nella matrice globale e $(li,
-lj)$ per le posizioni delle celle nel buffer locale. L'idea è che la
-cella di coordinate $(gi, gj)$ nella matrice globale corrisponda a
-quella di coordinate $(li, lj)$ nel buffer locale. Usando ghost cell
-sia a livello globale che a livello locale il calcolo delle coordinate
-può essere effettuato come segue:
+Here it is useful to use two pairs of indexes $(gi, gj)$ to indicate
+the positions of the cells in the global array and $(li, lj)$ for the
+cell positions in the local buffer. The idea is that the coordinate
+cell $(gi, gj)$ in the global matrix matches the one of coordinates
+$(li, lj)$ in the local buffer. Using ghost cell both globally and
+locally the calculation of coordinates can be done as follows:
 
 ```C
     const int gi = 1 + threadIdx.y + blockIdx.y * blockDim.y;
@@ -138,40 +122,39 @@ può essere effettuato come segue:
     const int lj = 1 + threadIdx.x;
 ```
 
-![Figura 3: Copia dei dati dal dominio globale verso la shared memory](cuda-anneal3.png)
+![Figure 3: Copying data from global to shared memory](cuda-anneal3.png)
 
-La parte più laboriosa è la copia dei dati dalla griglia globale al
-buffer locale. Usando $\mathit{BLKDIM} \times \mathit{BLKDIM}$ thread
-per blocco, la copia della parte centrale (cioè tutto ad esclusione
-dell'area tratteggiata della Figura 3) si effettua con:
+The hardest part is copying the data from the global grid to the
+shared buffer. Using blocks of size $\mathit{BLKDIM} \times
+\mathit{BLKDIM}$, the copy of the central part (i.e., everything
+excluding the hatched area of Figure 3) is carried out with:
 
 ```C
     buf[li][lj] = *IDX(cur, ext_n, gi, gj);
 ```
 
-dove `ext_n = (N + 2)` è il lato del dominio inclusa la ghost
+where `ext_n = (N + 2)` is the side of the domain, including the ghost
 area.
 
-![Figura 4: Thread attivi durante il riempimento del dominio locale](cuda-anneal4.png)
+![Figure 4: Active threads while filling the shared memory](cuda-anneal4.png)
 
-Per inizializzare la ghost area occorre procedere in tre fasi (Figura 4):
+To initialize the ghost area you might proceed as follows (Figure 4):
 
-1. La ghost area superiore e inferiore viene delegata ai thread della
-   prima riga (quelli con $li = 1$);
+1. The upper and lower ghost area is delegated to the threads of the
+   first row (i.e., those with $li = 1$);
 
-2. La ghost area a sinistra e a destra viene delegata ai thread della
-   prima colonna (quelli con $lj = 1$);
+2. The left and right ghost area is delegated to the threads of the
+   first column (i.e., those with $lj = 1$);
 
-3. La ghost area negli angoli viene delegata al singolo thread con
-   $(li, lj) = (1, 1)$.
+3. The corners are delegated to the top left thread with $(li, lj) =
+   (1, 1)$.
 
-(Si potrebbe essere tentati di collassare le fasi 1 e 2 in un'unica
-fase da far svolgere ad esempio ai thread della prima riga; questo
-sarebbe corretto, ma presenterebbe problemi nel caso si decidesse di
-generalizzare il codice a lati del dominio non necessariamente
-multipli di $\mathit{BLKDIM}$).
+(You might be tempted to collapse steps 1 and 2 into a single step
+that is carried out, e.g., by the threads of the first row; this would
+be correct, but it would be difficult to generalize the program to
+domains whose sides are not multiple of $\mathit{BLKDIM}$).
 
-Si avrà in pratica la struttura seguente:
+In practice, you may use the following schema:
 
 ```C
     if ( li == 1 ) {
@@ -188,43 +171,40 @@ Si avrà in pratica la struttura seguente:
     }
 ```
 
-Chi vuole cimentarsi con una versione ancora più laboriosa può provare
-a modificare il codice per gestire anche il caso in cui la dimensione
-del dominio non sia multipla di _BLKDIM_. Prestare attenzione che non
-è sufficiente disattivare i thread al di fuori del dominio, ma bisogna
-modificare l'operazione di la copia della ghost area.
+Those who want to try an even harder version can modify the code to
+handle domains whose sides are not multiple of _BLKDIM_. Deactivating
+threads outside the domain is not enough: you need to modify the code
+that fills the ghost area.
 
-Per compilare senza usare shared memory:
+To compile without using shared memory:
 
         nvcc cuda-anneal.cu -o cuda-anneal
 
-Per generare una immagine ad ogni passo:
+To generate an image after every step:
 
         nvcc -DDUMPALL cuda-anneal.cu -o cuda-anneal
 
-È possibile montare le immagini in un video in formato AVI/MPEG-4 con:
+You can make an AVI / MPEG-4 animatino using:
 
         ffmpeg -y -i "cuda-anneal-%06d.pbm" -vcodec mpeg4 cuda-anneal.avi
 
-(il comando `ffmpeg` è già installato sul server).
-
-Per compilare la soluzione abilitando la shared memory:
+To compile with shared memory:
 
         nvcc -DUSE_SHARED cuda-anneal.cu -o cuda-anneal-shared
 
-Per eseguire:
+To execute:
 
         ./cuda-anneal [steps [N]]
 
-Esempio:
+Example:
 
         ./cuda-anneal 64
 
-## File
+## Files
 
 - [cuda-anneal.cu](cuda-anneal.cu)
-- [Animazione](https://youtu.be/UNpl2iUyz3Q)
 - [hpc.h](hpc.h)
+- [Animation of the CA](https://youtu.be/UNpl2iUyz3Q)
 
 ***/
 #include "hpc.h"
@@ -630,6 +610,6 @@ int main( int argc, char* argv[] )
     cudaFree(d_next);
 #endif
     fprintf(stderr, "Elapsed time: %f (%f Mupd/s)\n", elapsed, (n*n/1.0e6)*nsteps/elapsed);
-    
+
     return EXIT_SUCCESS;
 }
