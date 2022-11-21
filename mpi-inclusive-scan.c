@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
     fill(local_x, len, my_rank);
     clean(scan_x, len);
 
-#ifndef NAIVE
+#ifdef NAIVE
 
     if (my_rank > 0) {
         MPI_Recv( scan_x,           /* buf          */
