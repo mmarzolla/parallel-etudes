@@ -458,7 +458,9 @@ int main( int argc, char* argv[] )
     /* evolve the CA */
     const double tstart = hpc_gettime();
 #ifdef DUMPALL
-    int dump_at = 1;
+    int dump_at = 1; /* dump a new frame when the time step is multiple of this variable */
+    int n_dumped = 0; /* number of frames already dumped at the current frame rate */
+    const int DOUBLE_FR_EVERY = 1000; /* double the frame rate every this frames have been dumped */
 #endif
     for (s=0; s<nsteps; s += 1) {
         sclSetArgsEnqueueKernel(copy_top_bottom_kernel,
@@ -478,11 +480,15 @@ int main( int argc, char* argv[] )
 
 #ifdef DUMPALL
         if (s % dump_at == 0) {
+            n_dumped++;
+            fprintf(stderr, "Writing frame %d\n", s);
             sclMemcpyDeviceToHost(cur, d_next, ext_size);
             write_pbm(cur, ext_n, s);
         }
-        if (s && ((s % (dump_at*1000) == 0)))
-            dump_at *= 2;
+        if (n_dumped > DOUBLE_FR_EVERY) {
+            n_dumped = 0;
+            dump_at *= 2; /* double frame rate */
+        }
 #endif
         cl_mem d_tmp = d_cur;
         d_cur = d_next;

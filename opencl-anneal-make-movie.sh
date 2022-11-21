@@ -1,10 +1,9 @@
 #!/bin/sh
 
-## Crea un filmano montando un certo numero di frame
-## dell'automa cellulare ANNEAL.
+## Make a movie of the ANNEAL Callular Automaton
 
-## Scritto da Moreno Marzolla il 2021-11-19
-## Ultimo aggiornamento 2022-11-11
+## Written by Moreno Marzolla on 2022-11-11
+## Last updated 2022-11-11
 
 NFRAMES=1000000  # number of time steps
 RES=1080         # image resolution
@@ -15,7 +14,7 @@ if [ ! -f ./opencl-anneal-movie ]; then
 fi
 
 ## generate the frames
-./opencl-anneal-movie $NFRAMES $RES
+## ./opencl-anneal-movie $NFRAMES $RES
 
 ## insert annotations
 for n in `seq 0 $NFRAMES`; do
