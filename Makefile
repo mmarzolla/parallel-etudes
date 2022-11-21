@@ -182,6 +182,11 @@ solutions/%.h: %.h
 solutions/%.cl: %.cl
 	unifdef -x2 -USERIAL $< > $@
 
+pub: ALL
+	rsync -av --delete-after handouts/ ~/public_html/teaching/high-performance-computing/2022-2023/handouts && \
+	rsync -av --delete-after solutions/ ~/public_html/teaching/high-performance-computing/2022-2023/solutions && \
+	put-aruba.sh
+
 clean:
 	\rm -r -f *.html a.out *.o ${EXE} anneal-*.pbm coupled-oscillators.ppm anneal.avi cuda-anneal-*.pbm cuda-anneal.avi opencl-anneal-*.pbm opencl-anneal.avi opencl-rule30.pbm *.tmp.p[pbg]m sphfract.ppm opencl-mandelbrot.ppm cat-map-demo-[0-9]*.png cat-map-demo-[0-9]*.pgm anneal-demo-[0-9]*.p??
 

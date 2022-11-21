@@ -21,11 +21,11 @@
 /***
 % HPC - ANNEAL cellular automaton
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-11-03
+% Last updated: 2022-11-21
 
 In this exercise we consider a simple two-dimensional, binary Cellular
 Automaton called _ANNEAL_ (also known as _twisted majority rule_). The
-automaton operates on a square domain of size $N \ times N$, where
+automaton operates on a square domain of size $N \times N$, where
 each cell can have value 0 or 1. Cyclic boundary conditions are
 assumed, so that each cell has eight adjacent neighbors. Two cells are
 considered adjacent if they share a side or a corner.
@@ -34,13 +34,13 @@ The automaton evolves at discrete time steps $t = 0, 1, 2,
 \ldots$. The state of a cell at time $t + 1$ depends on its state at
 time $t$, and on the state of its neighbors at time $t$. Specifically,
 for each cell $x$ let $B_x$ be the number of cells in state 1 within
-the neighborhood of size $3 \ times 3$ centered on $x$ (including $x$,
-so you will always have $0 \ leq B_x \ leq 9$). If $B_x = 4$ or $B_x
+the neighborhood of size $3 \times 3$ centered on $x$ (including $x$,
+so you will always have $0 \leq B_x \leq 9$). If $B_x = 4$ or $B_x
 \geq 6$, then the new state of $x$ is 1, otherwise the new state is
 0. See Figure 1.
 
 ![Figure 1: Examples of computation of the new state of the central
- cell of a block of size $3 \ times 3$](openclanneal1.png)
+ cell of a block of size $3 \times 3$](openclanneal1.png)
 
 To simulate synchrnonous, concurrent updates of all cells, two domains
 must be used. The state of a cell is always read from the "current"
@@ -48,8 +48,8 @@ domain, and new values are written to the "next" domain. The domains
 are exchanged at the end of each step.
 
 The initial state of a cell is chosen at random with equal
-probability. Figure 2 shows the evolution of a grid of size $256 \
-times 256$ after 10, 100 and 1024 iterations. We observe the emergence
+probability. Figure 2 shows the evolution of a grid of size $256
+\times 256$ after 10, 100 and 1024 iterations. We observe the emergence
 of "blobs" of cells that grow over time, with the exception of small
 "bubbles" that remain stable. You might be interested in [a short
 video showing the evolution of the
@@ -67,14 +67,14 @@ Some suggestions:
 
 - Start by developing a version that does _not_ use local
   memory. Transform the `copy_top_bottom()`, `copy_left_right()` and
-  `step()` functions to kernels. Note that the size of the workgroups
-  that copy the sides of the domain will be different from the the
-  size of the domain that computes the evolution of the automaton (see
-  the following points).
+  `step()` functions into kernels. Note that the size of the
+  workgroups that copies the sides of the domain will be different
+  from the size of the domain that computes the evolution of the
+  automaton (see the following points).
 
-- To copy the ghost cells, use a 1D array of work-items. So, for
-  running kernels `copy_top_bottom()` and `copy_left_right()` you need
-  $(N + 2)$ work-items.
+- To copy the ghost cells, use a 1D array of work-items. So, to run
+  kernels `copy_top_bottom()` and `copy_left_right()` you need $(N +
+  2)$ work-items.
 
 - Since the domain is two-dimensional, it is convenient to organize the
   work-items in two-dimensional blocks. You can set the number of
@@ -84,16 +84,16 @@ Some suggestions:
 - In the `step()` kernel, each work-item computes the new state of a
   coordinate cell $(i, j)$. Remember that you are working on a
   "extended" domain with two more rows and two columns, hence the
-  "true" (non-ghost) cells are those with coordinates $1 \ leq i, j
-  \ leq N$. Consequently, each work-item will compute $i, j$ as:
+  "true" (non-ghost) cells are those with coordinates $1 \leq i, j
+  \leq N$. Therefore, each work-item will compute $i, j$ as:
 ```C.
   const int i = 1 + get_global_id (1);
   const int j = 1 + get_global_id (0);
 ```
   In this way the work-items will be associated with the coordinate cells
-  from $(1, 1)$ onwards[^1]. Before making any computation,
-  each work-item must verify that $1 \ leq i, j \ leq N$, so
-  such that any excess work-items are deactivated.
+  from $(1, 1)$ onward[^1]. Before making any computation,
+  each work-item must verify that $1 \leq i, j \leq N$, so
+  that excess work-items are deactivated.
 
 [^1]: OpenCL allows you to launch a kernel by specifying an "offset"
       to be added to the global index of work-items; this allows to
@@ -105,9 +105,9 @@ Some suggestions:
 This program could benefit from the use of local memory, since each
 cell is read 9 times by 9 different work-items. However, no
 performance improvement will be observed on the lab server, since the
-GPUs there have on-board cache memory that is used
-automatically. Despite this, it is useful to use local memory anyway,
-to see how it can be done.
+GPUs there have on-board caches that are used automatically. Despite
+this, it is useful to use local memory anyway, to see how it can be
+done.
 
 Let us assume that a workgroup is a square of size $\mathit{BLKDIM}
 \times \mathit{BLKDIM}$ where _BLKDIM_ is an integer multiple of
@@ -117,13 +117,12 @@ includes two ghost rows and columns, and computes the new state of the
 cells using the data in the local buffer instead of accessing global
 memory.
 
-In such situations it is useful to use two pairs of indexes $(gi, gj)$
-to indicate the positions of the cells in the global array and $(li,
-lj)$ for the cell positions in the local buffer. The idea is that the
-coordinate cell $(gi, gj)$ in the global matrix matches the one of
-coordinates $(li, lj)$ in the local buffer. Using ghost cell both
-globally and locally the calculation of coordinates can be done as
-follows:
+Here it is useful to use two pairs of indexes $(gi, gj)$ to indicate
+the positions of the cells in the global array and $(li, lj)$ for the
+cell positions in the local buffer. The idea is that the coordinate
+cell $(gi, gj)$ in the global matrix matches the one of coordinates
+$(li, lj)$ in the local buffer. Using ghost cell both globally and
+locally the calculation of coordinates can be done as follows:
 
 ```C.
     const int gi = 1 + get_global_id (1);
@@ -136,8 +135,8 @@ follows:
 
 The hardest part is copying the data from the global grid to the local
 buffer. Using workgroup of size $\mathit{BLKDIM} \times
-\mathit{BLKDIM}$, the copy of the central part (i.e. all ad exclusion
-of the hatched area of Figure 3) is carried out with:
+\mathit{BLKDIM}$, the copy of the central part (i.e., everything
+ùexcluding the hatched area of Figure 3) is carried out with:
 
 ```C.
     buf[li][lj] = *IDX(cur, ext_n, gi, gj);
@@ -148,17 +147,16 @@ area.
 
 ![Figure 4: Active work-items while filling the local domain](openclanneal4.png)
 
-To initialize the ghost area it is necessary to proceed in three steps
-(Figure 4):
+To initialize the ghost area you might proceed as follows (Figure 4):
 
-1. The upper and lower ghost areas are delegated to work-items
-   of the first line (those with $li = 1$);
+1. The upper and lower ghost area is delegated to the work-items of
+   the first row (i.e., those with $li = 1$);
 
-2. The left and right ghost area is delegated to work-items of the
-   first column (those with $lj = 1$);
+2. The left and right ghost area is delegated to the work-items of the
+   first column (i.e., those with $lj = 1$);
 
-3. The ghost area in the corners is delegated to the single work-item
-   with $(li, lj) = (1, 1)$.
+3. The ghost area in the corners is delegated to the top left
+   work-item with $(li, lj) = (1, 1)$.
 
 (You might be tempted to collapse steps 1 and 2 into a single step
 that is carried out, e.g., by the work-items on the first row; this
@@ -182,11 +180,10 @@ In practice, you will have the following structure:
     }
 ```
 
-Those who want to try their hand at an even more laborious version can
-try to modify the code to also handle the case where the size of the
-domain is not a multiple of _BLKDIM_. Be careful that you don't it is
-sufficient to deactivate the work-items outside the domain, but you
-have to modify the copy operation of the ghost area.
+Those who want to try an even harder version can try to modify the
+code to handle the case where the size of the domain is not an integer
+multiple of _BLKDIM_. Deactivating excess work-items it not enough:
+you need to modify the initialization of the local memory as well.
 
 To compile without using local storage:
 
