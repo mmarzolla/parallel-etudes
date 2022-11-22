@@ -132,8 +132,8 @@ excluding the hatched area of Figure 3) is carried out with:
     buf[li][lj] = *IDX(cur, ext_width, gi, gj);
 ```
 
-where `ext_width = (W + 2)` is the side of the domain, including the ghost
-area.
+where `ext_width = (W + 2)` is the width of the domain including the
+ghost area.
 
 ![Figure 4: Active threads while filling the shared memory](cuda-anneal4.png)
 
