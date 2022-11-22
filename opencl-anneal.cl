@@ -2,7 +2,7 @@
  *
  * opencl-anneal.cl -- Kernels for opencl-anneal.c
  *
- * Copyright 2021 Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright 2021, 2022 Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@
  ****************************************************************************/
 typedef unsigned char cell_t;
 
-int IDX(int dim, int i, int j)
+int IDX(int width, int i, int j)
 {
-    return (i*dim + j);
+    return (i*width + j);
 }
 
 __kernel void
@@ -72,10 +72,14 @@ step_kernel(__global const cell_t *cur,
     const int j = LEFT + get_global_id(0);
 
     if ( i <= BOTTOM && j <= RIGHT ) {
-        const int nblack =
-            cur[IDX(ext_width, i-1, j-1)] + cur[IDX(ext_width, i-1, j)] + cur[IDX(ext_width, i-1, j+1)] +
-            cur[IDX(ext_width, i  , j-1)] + cur[IDX(ext_width, i  , j)] + cur[IDX(ext_width, i  , j+1)] +
-            cur[IDX(ext_width, i+1, j-1)] + cur[IDX(ext_width, i+1, j)] + cur[IDX(ext_width, i+1, j+1)];
+        int nblack = 0;
+#pragma unroll
+        for (int di=-1; di<=1; di++) {
+#pragma unroll
+            for (int dj=-1; dj<=1; dj++) {
+                nblack += cur[IDX(ext_width, i+di, j+dj)];
+            }
+        }
         next[IDX(ext_width, i, j)] = (nblack >= 6 || nblack == 4);
     }
 }
@@ -136,10 +140,14 @@ step_kernel_local(__global const cell_t *cur,
         }
         barrier(CLK_LOCAL_MEM_FENCE); /* Wait for all threads to fill the local memory */
 
-        const int nblack =
-            buf[li-1][lj-1] + buf[li-1][lj] + buf[li-1][lj+1] +
-            buf[li  ][lj-1] + buf[li  ][lj] + buf[li  ][lj+1] +
-            buf[li+1][lj-1] + buf[li+1][lj] + buf[li+1][lj+1];
+        int nblack = 0;
+#pragma unroll
+        for (int di=-1; di<=1; di++) {
+#pragma unroll
+            for (int dj=-1; dj<=1; dj++) {
+                nblack += buf[li+di][lj+dj];
+            }
+        }
         next[IDX(ext_width, gi, gj)] = (nblack >= 6 || nblack == 4);
     }
 }

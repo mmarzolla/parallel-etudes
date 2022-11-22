@@ -185,7 +185,7 @@ code to handle the case where the size of the domain is not an integer
 multiple of _BLKDIM_. Deactivating excess work-items it not enough:
 you need to modify the initialization of the local memory as well.
 
-To compile without using local storage:
+To compile without using local memory:
 
         cc opencl-anneal.c simpleCL.c -o opencl-anneal -lOpenCL -lm
 
@@ -193,15 +193,13 @@ To generate an image at each step:
 
         cc -DDUMPALL opencl-anneal.c simpleCL.c -o opencl-anneal -lOpenCL -lm
 
-You can edit images in an AVI / MPEG-4 format video with:
+You can make an AVI / MPEG-4 animation using:
 
         ffmpeg -y -i "opencl-anneal-%06d.pbm" -vcodec mpeg4 opencl-anneal.avi
 
-(the `ffmpeg` command is already installed on the server).
+To compile with local memory:
 
-To build the solution by enabling local storage:
-
-        cc -DUSE_LOCAL opencl-anneal.c simpleCL.c -o opencl-anneal-local -lOpenCL
+        cc -DUSE_LOCAL opencl-anneal.c simpleCL.c -o opencl-anneal-local -lOpenCL -lm
 
 To execute:
 
@@ -210,8 +208,6 @@ To execute:
 Example:
 
         ./opencl-anneal 64
-
-## References
 
 ## References
 
@@ -409,7 +405,7 @@ int main( int argc, char* argv[] )
     if ( argc > 3 ) {
         height = atoi(argv[3]);
     }
-    
+
     if ( width > MAXN || height > MAXN ) { /* maximum image size is MAXN * MAXN */
         fprintf(stderr, "FATAL: the maximum allowed grid size is %d x %d\n", MAXN, MAXN);
         return EXIT_FAILURE;
@@ -454,7 +450,7 @@ int main( int argc, char* argv[] )
     const sclDim copyLRGrid = DIM1(sclRoundUp(ext_height, SCL_DEFAULT_WG_SIZE));
     const sclDim copyTBBlock = DIM1(SCL_DEFAULT_WG_SIZE);
     const sclDim copyTBGrid = DIM1(sclRoundUp(ext_width, SCL_DEFAULT_WG_SIZE));
-    
+
     /* 2D blocks used for the update step */
     const sclDim stepBlock = DIM2(SCL_DEFAULT_WG_SIZE2D, SCL_DEFAULT_WG_SIZE2D);
     const sclDim stepGrid = DIM2(sclRoundUp(width, SCL_DEFAULT_WG_SIZE2D),
@@ -462,7 +458,7 @@ int main( int argc, char* argv[] )
 #else
     sclDim copyLRBlock, copyLRGrid, copyTBGrid, copyTBBlock, stepBlock, stepGrid;
     sclWGSetup1D(ext_width, &copyTBGrid, &copyTBBlock);
-    sclWGSetup1D(ext_height, &copyLRGrid, &copyLRBlock);    
+    sclWGSetup1D(ext_height, &copyLRGrid, &copyLRBlock);
     sclWGSetup2D(width, height, &stepGrid, &stepBlock);
 #endif
 

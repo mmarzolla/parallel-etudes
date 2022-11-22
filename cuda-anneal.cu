@@ -183,7 +183,7 @@ To generate an image after every step:
 
         nvcc -DDUMPALL cuda-anneal.cu -o cuda-anneal
 
-You can make an AVI / MPEG-4 animatino using:
+You can make an AVI / MPEG-4 animation using:
 
         ffmpeg -y -i "cuda-anneal-%06d.pbm" -vcodec mpeg4 cuda-anneal.avi
 
@@ -368,17 +368,18 @@ __global__ void copy_left_right(cell_t *grid, int ext_width, int ext_height)
    [TODO] This function should be transformed into a kernel. */
 void step(cell_t *cur, cell_t *next, int ext_width, int ext_height)
 {
-    int i, j;
     const int LEFT = 1;
     const int RIGHT = ext_width - 2;
     const int TOP = 1;
     const int BOTTOM = ext_height - 2;
-    for (i=TOP; i <= BOTTOM; i++) {
-        for (j=LEFT; j <= RIGHT; j++) {
-            const int nblack =
-                *IDX(cur, ext_width, i-1, j-1) + *IDX(cur, ext_width, i-1, j) + *IDX(cur, ext_width, i-1, j+1) +
-                *IDX(cur, ext_width, i  , j-1) + *IDX(cur, ext_width, i  , j) + *IDX(cur, ext_width, i  , j+1) +
-                *IDX(cur, ext_width, i+1, j-1) + *IDX(cur, ext_width, i+1, j) + *IDX(cur, ext_width, i+1, j+1);
+    for (int i=TOP; i <= BOTTOM; i++) {
+        for (int j=LEFT; j <= RIGHT; j++) {
+            int nblack = 0;
+            for (int di=-1; di<=1; di++) {
+                for (int dj=-1; dj<=1; dj++) {
+                    nblack += *IDX(cur, ext_width, i+di, j+dj);
+                }
+            }
             *IDX(next, ext_width, i, j) = (nblack >= 6 || nblack == 4);
         }
     }
@@ -396,10 +397,40 @@ __global__ void step(cell_t *cur, cell_t *next, int ext_width, int ext_height)
     const int j = LEFT + threadIdx.x + blockIdx.x * blockDim.x;
 
     if ( i <= BOTTOM && j <= RIGHT ) {
-        const int nblack =
-            *IDX(cur, ext_width, i-1, j-1) + *IDX(cur, ext_width, i-1, j) + *IDX(cur, ext_width, i-1, j+1) +
-            *IDX(cur, ext_width, i  , j-1) + *IDX(cur, ext_width, i  , j) + *IDX(cur, ext_width, i  , j+1) +
-            *IDX(cur, ext_width, i+1, j-1) + *IDX(cur, ext_width, i+1, j) + *IDX(cur, ext_width, i+1, j+1);
+        int nblack = 0;
+        /* The `#pragma unroll` directive instructs nvcc to unroll the
+           "for" loop immediately following it. Loop unrolling is a
+           well-known optimization techniques that consists of
+           replacing, e.g., the code:
+
+           for (int i=0; i<5; i++) {
+              foo(i);
+           }
+
+           with
+
+           foo(0);
+           foo(1);
+           foo(2);
+           foo(3);
+           foo(4);
+
+           to avoid the overhead of testing, branching and
+           incrementing the loop counter.
+
+           Loop unrolloing is normally left to the compiler; however,
+           nvcc allows the user to explicitly ask for unrolling
+           certain loop(s). Unrolling is useful for "small" loops with
+           a simple body that is iterated only a few times (ideally,
+           the number of iterations should be known at compile-time).
+        */
+#pragma unroll
+        for (int di=-1; di<=1; di++) {
+#pragma unroll
+            for (int dj=-1; dj<=1; dj++) {
+                nblack += *IDX(cur, ext_width, i+di, j+dj);
+            }
+        }
         *IDX(next, ext_width, i, j) = (nblack >= 6 || nblack == 4);
     }
 }
@@ -456,10 +487,14 @@ __global__ void step_shared(cell_t *cur, cell_t *next, int ext_width, int ext_he
         }
         __syncthreads(); /* Wait for all threads to fill the shared memory */
 
-        const int nblack =
-            buf[li-1][lj-1] + buf[li-1][lj] + buf[li-1][lj+1] +
-            buf[li  ][lj-1] + buf[li  ][lj] + buf[li  ][lj+1] +
-            buf[li+1][lj-1] + buf[li+1][lj] + buf[li+1][lj+1];
+        int nblack = 0;
+#pragma unroll
+        for (int di=-1; di<=1; di++) {
+#pragma unroll
+            for (int dj=-1; dj<=1; dj++) {
+                nblack += buf[li+di][lj+dj];
+            }
+        }
         *IDX(next, ext_width, gi, gj) = (nblack >= 6 || nblack == 4);
     }
 }
