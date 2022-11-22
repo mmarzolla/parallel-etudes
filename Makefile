@@ -45,11 +45,15 @@ $(EXE_OPENCL): CFLAGS+=simpleCL.c
 $(EXE_OPENCL): LDLIBS+=-lOpenCL
 opencl: $(EXE_OPENCL)
 
+opencl-anneal: LDLIBS+=-lm
+
 opencl-anneal-local: CFLAGS+=-DUSE_LOCAL
+opencl-anneal-local: LDLIBS+=-lm
 opencl-anneal-local: opencl-anneal.c
 	$(CC) $(CFLAGS) $< -o $@ $(LDLIBS)
 
 opencl-anneal-movie: CFLAGS+=-DDUMPALL
+opencl-anneal-movie: LDLIBS+=-lm
 opencl-anneal-movie: opencl-anneal.c
 	$(CC) $(CFLAGS) $< -o $@ $(LDLIBS)
 
@@ -188,7 +192,7 @@ pub: ALL
 	put-aruba.sh
 
 clean:
-	\rm -r -f *.html a.out *.o ${EXE} anneal-*.pbm coupled-oscillators.ppm anneal.avi cuda-anneal-*.pbm cuda-anneal.avi opencl-anneal-*.pbm opencl-anneal.avi opencl-rule30.pbm *.tmp.p[pbg]m sphfract.ppm opencl-mandelbrot.ppm cat-map-demo-[0-9]*.png cat-map-demo-[0-9]*.pgm anneal-demo-[0-9]*.p??
+	\rm -r -f *.html a.out *.o ${EXE} anneal-*.pbm coupled-oscillators.ppm anneal.avi cuda-anneal-*.pbm cuda-anneal.avi opencl-anneal-*.pbm opencl-anneal-*-out.png opencl-anneal.avi opencl-rule30.pbm *.tmp.p[pbg]m sphfract.ppm opencl-mandelbrot.ppm cat-map-demo-[0-9]*.png cat-map-demo-[0-9]*.pgm anneal-demo-[0-9]*.p??
 
 distclean: clean
 	\rm -rf handouts/* solutions/*

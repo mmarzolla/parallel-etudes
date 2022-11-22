@@ -26,54 +26,57 @@ int IDX(int dim, int i, int j)
 
 __kernel void
 copy_top_bottom_kernel(__global cell_t *grid,
-                       int ext_n)
+                       int ext_width,
+                       int ext_height)
 {
     const int j = get_global_id(0);
     const int TOP = 1;
-    const int BOTTOM = ext_n - 2;
+    const int BOTTOM = ext_height - 2;
     const int TOP_GHOST = TOP - 1;
     const int BOTTOM_GHOST = BOTTOM + 1;
 
-    if (j < ext_n) {
-        grid[IDX(ext_n, BOTTOM_GHOST, j)] = grid[IDX(ext_n, TOP, j)]; /* top to bottom halo */
-        grid[IDX(ext_n, TOP_GHOST, j)] = grid[IDX(ext_n, BOTTOM, j)]; /* bottom to top halo */
+    if (j < ext_width) {
+        grid[IDX(ext_width, BOTTOM_GHOST, j)] = grid[IDX(ext_width, TOP, j)]; /* top to bottom halo */
+        grid[IDX(ext_width, TOP_GHOST, j)] = grid[IDX(ext_width, BOTTOM, j)]; /* bottom to top halo */
     }
 }
 
 __kernel void
 copy_left_right_kernel(__global cell_t *grid,
-                       int ext_n)
+                       int ext_width,
+                       int ext_height)
 {
     const int i = get_global_id(0);
     const int LEFT = 1;
-    const int RIGHT = ext_n - 2;
+    const int RIGHT = ext_width - 2;
     const int LEFT_GHOST = LEFT - 1;
     const int RIGHT_GHOST = RIGHT + 1;
 
-    if (i < ext_n) {
-        grid[IDX(ext_n, i, RIGHT_GHOST)] = grid[IDX(ext_n, i, LEFT)]; /* left column to right halo */
-        grid[IDX(ext_n, i, LEFT_GHOST)] = grid[IDX(ext_n, i, RIGHT)]; /* right column to left halo */
+    if (i < ext_height) {
+        grid[IDX(ext_width, i, RIGHT_GHOST)] = grid[IDX(ext_width, i, LEFT)]; /* left column to right halo */
+        grid[IDX(ext_width, i, LEFT_GHOST)] = grid[IDX(ext_width, i, RIGHT)]; /* right column to left halo */
     }
 }
 
 __kernel void
 step_kernel(__global const cell_t *cur,
             __global cell_t *next,
-            int ext_n)
+            int ext_width,
+            int ext_height)
 {
     const int LEFT = 1;
-    const int RIGHT = ext_n - 2;
+    const int RIGHT = ext_width - 2;
     const int TOP = 1;
-    const int BOTTOM = ext_n - 2;
+    const int BOTTOM = ext_height - 2;
     const int i = TOP + get_global_id(1);
     const int j = LEFT + get_global_id(0);
 
     if ( i <= BOTTOM && j <= RIGHT ) {
         const int nblack =
-            cur[IDX(ext_n, i-1, j-1)] + cur[IDX(ext_n, i-1, j)] + cur[IDX(ext_n, i-1, j+1)] +
-            cur[IDX(ext_n, i  , j-1)] + cur[IDX(ext_n, i  , j)] + cur[IDX(ext_n, i  , j+1)] +
-            cur[IDX(ext_n, i+1, j-1)] + cur[IDX(ext_n, i+1, j)] + cur[IDX(ext_n, i+1, j+1)];
-        next[IDX(ext_n, i, j)] = (nblack >= 6 || nblack == 4);
+            cur[IDX(ext_width, i-1, j-1)] + cur[IDX(ext_width, i-1, j)] + cur[IDX(ext_width, i-1, j+1)] +
+            cur[IDX(ext_width, i  , j-1)] + cur[IDX(ext_width, i  , j)] + cur[IDX(ext_width, i  , j+1)] +
+            cur[IDX(ext_width, i+1, j-1)] + cur[IDX(ext_width, i+1, j)] + cur[IDX(ext_width, i+1, j+1)];
+        next[IDX(ext_width, i, j)] = (nblack >= 6 || nblack == 4);
     }
 }
 
@@ -87,14 +90,15 @@ step_kernel(__global const cell_t *cur,
 __kernel void
 step_kernel_local(__global const cell_t *cur,
                   __global cell_t *next,
-                  int ext_n)
+                  int ext_width,
+                  int ext_height)
 {
     __local cell_t buf[SCL_DEFAULT_WG_SIZE2D+2][SCL_DEFAULT_WG_SIZE2D+2];
 
     const int LEFT = 1;
-    const int RIGHT = ext_n - 2;
+    const int RIGHT = ext_width - 2;
     const int TOP = 1;
-    const int BOTTOM = ext_n - 2;
+    const int BOTTOM = ext_height - 2;
 
     /* "global" indexes */
     const int gi = TOP + get_global_id(1);
@@ -110,25 +114,25 @@ step_kernel_local(__global const cell_t *cur,
        this thread block. Its maximum size is blockdim.x * blockDim.y,
        but could be less than that if the domain size is not a
        multiple of the block size. */
-    const int height = min((int)get_local_size(1), ext_n-1-gi);
-    const int width  = min((int)get_local_size(0), ext_n-1-gj);
+    const int height = min((int)get_local_size(1), ext_height-1-gi);
+    const int width  = min((int)get_local_size(0), ext_width-1-gj);
 
     if ( gi <= BOTTOM && gj <= RIGHT ) {
-        buf[li][lj] = cur[IDX(ext_n, gi, gj)];
+        buf[li][lj] = cur[IDX(ext_width, gi, gj)];
         if (li == 1) {
             /* top and bottom */
-            buf[0       ][lj] = cur[IDX(ext_n, gi-1, gj)];
-            buf[1+height][lj] = cur[IDX(ext_n, gi+height, gj)];
+            buf[0       ][lj] = cur[IDX(ext_width, gi-1, gj)];
+            buf[1+height][lj] = cur[IDX(ext_width, gi+height, gj)];
         }
         if (lj == 1) { /* left and right */
-            buf[li][0      ] = cur[IDX(ext_n, gi, gj-1)];
-            buf[li][1+width] = cur[IDX(ext_n, gi, gj+width)];
+            buf[li][0      ] = cur[IDX(ext_width, gi, gj-1)];
+            buf[li][1+width] = cur[IDX(ext_width, gi, gj+width)];
         }
         if (li == 1 && lj == 1) { /* corners */
-            buf[0       ][0       ] = cur[IDX(ext_n, gi-1, gj-1)];
-            buf[0       ][lj+width] = cur[IDX(ext_n, gi-1, gj+width)];
-            buf[1+height][0       ] = cur[IDX(ext_n, gi+height, gj-1)];
-            buf[1+height][1+width ] = cur[IDX(ext_n, gi+height, gj+width)];
+            buf[0       ][0       ] = cur[IDX(ext_width, gi-1, gj-1)];
+            buf[0       ][lj+width] = cur[IDX(ext_width, gi-1, gj+width)];
+            buf[1+height][0       ] = cur[IDX(ext_width, gi+height, gj-1)];
+            buf[1+height][1+width ] = cur[IDX(ext_width, gi+height, gj+width)];
         }
         barrier(CLK_LOCAL_MEM_FENCE); /* Wait for all threads to fill the local memory */
 
@@ -136,6 +140,6 @@ step_kernel_local(__global const cell_t *cur,
             buf[li-1][lj-1] + buf[li-1][lj] + buf[li-1][lj+1] +
             buf[li  ][lj-1] + buf[li  ][lj] + buf[li  ][lj+1] +
             buf[li+1][lj-1] + buf[li+1][lj] + buf[li+1][lj+1];
-        next[IDX(ext_n, gi, gj)] = (nblack >= 6 || nblack == 4);
+        next[IDX(ext_width, gi, gj)] = (nblack >= 6 || nblack == 4);
     }
 }

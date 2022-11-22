@@ -3,11 +3,12 @@
 ## Make a movie of the ANNEAL Callular Automaton
 
 ## Written by Moreno Marzolla on 2022-11-11
-## Last updated 2022-11-21
+## Last updated 2022-11-22
 
 DEFAULT_DEVICE=1 # simpleCL default device (0=usually the CPU)
-NSTEPS=50000     # number of time steps
-RES=1080         # image resolution
+NSTEPS=300000    # number of time steps
+WIDTH=1920       # image resolution
+HEIGHT=1080
 
 if [ ! -f ./opencl-anneal-movie ]; then
     echo "FATAL: ./opencl-anneal-movie not found"
@@ -15,7 +16,7 @@ if [ ! -f ./opencl-anneal-movie ]; then
 fi
 
 ## generate frames
-SCL_DEFAULT_DEVICE=$DEFAULT_DEVICE ./opencl-anneal-movie $NSTEPS $RES
+SCL_DEFAULT_DEVICE=$DEFAULT_DEVICE ./opencl-anneal-movie $NSTEPS $WIDTH $HEIGHT
 
 ## insert annotations
 for n in `seq 0 $NSTEPS`; do
@@ -34,4 +35,4 @@ for n in `seq 0 $NSTEPS`; do
 done
 
 ## make video @30fps
-ffmpeg -y -i "opencl-anneal-%06d-out.png" -vcodec mpeg4 -r 30 opencl-anneal.avi
+ffmpeg -pattern_type glob -y -i "opencl-anneal-*-out.png" -vcodec mpeg4 -r 30 opencl-anneal.avi
