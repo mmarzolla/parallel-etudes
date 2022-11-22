@@ -22,7 +22,7 @@ SCL_DEFAULT_DEVICE=$DEFAULT_DEVICE ./opencl-anneal-movie $NSTEPS $WIDTH $HEIGHT
 for n in `seq 0 $NSTEPS`; do
     INPUTF=`printf "opencl-anneal-%06d.pbm" $n`
     OUTPUTF=`printf "opencl-anneal-%06d-out.png" $n`
-    LABEL=`printf "%05d" $n`
+    LABEL=`printf "%06d" $n`
     if [ -f "$INPUTF" ]; then
         echo "Annotating ${INPUTF}..."
         convert $INPUTF \
