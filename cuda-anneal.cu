@@ -23,11 +23,11 @@
 % Moreno Marzolla <moreno.marzolla@unibo.it>
 % Last updated: 2022-11-22
 
-In this exercise we consider a simple two-dimensional, binary Cellular
-Automaton called _ANNEAL_ (also known as _twisted majority rule_). The
-automaton operates on a square domain of size $W \times H$. Cyclic
-boundary conditions are assumed, so that each cell has eight adjacent
-neighbors. Two cells are adjacent if they share a side or a corner.
+The _ANNEAL_ callular automaton (also known as _twisted majority
+rule_) is a simple two-dimensional, binary CA defined on a grid of
+size $W \times H$. Cyclic boundary conditions are assumed, so that
+each cell has eight adjacent neighbors. Two cells are adjacent if they
+share a side or a corner.
 
 The automaton evolves at discrete time steps $t = 0, 1, 2,
 \ldots$. The state of a cell $x$ at time $t + 1$ depends on its state
