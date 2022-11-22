@@ -21,11 +21,11 @@
 /***
 % HPC - ANNEAL cellular automaton
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-11-21
+% Last updated: 2022-11-22
 
 In this exercise we consider a simple two-dimensional, binary Cellular
 Automaton called _ANNEAL_ (also known as _twisted majority rule_). The
-automaton operates on a square domain of size $N \times N$, where
+automaton operates on a domain of size $W \times H$, where
 each cell can have value 0 or 1. Cyclic boundary conditions are
 assumed, so that each cell has eight adjacent neighbors. Two cells are
 considered adjacent if they share a side or a corner.
@@ -49,11 +49,11 @@ are exchanged at the end of each step.
 
 The initial state of a cell is chosen at random with equal
 probability. Figure 2 shows the evolution of a grid of size $256
-\times 256$ after 10, 100 and 1024 iterations. We observe the emergence
-of "blobs" of cells that grow over time, with the exception of small
-"bubbles" that remain stable. You might be interested in [a short
-video showing the evolution of the
-automaton](https://youtu.be/UNpl2iUyz3Q) over time.
+\times 256$ after 10, 100 and 1024 iterations. We observe the
+emergence of "blobs" of cells that grow over time, with the exception
+of small "bubbles" that remain stable. You might be interested in [a
+short YouTube video showing the evolution of the
+automaton](https://youtu.be/TSHWSjICCxs) over time.
 
 ![Figure 2: Evolution of the _ANNEAL_ automaton ([video](https://youtu.be/UNpl2iUyz3Q))](anneal-demo.png)
 
@@ -72,9 +72,9 @@ Some suggestions:
   from the size of the domain that computes the evolution of the
   automaton (see the following points).
 
-- To copy the ghost cells, use a 1D array of work-items. So, to run
-  kernels `copy_top_bottom()` and `copy_left_right()` you need $(N +
-  2)$ work-items.
+- To copy the ghost cells, use a 1D array of work-items. Therefore,
+  the kernel `copy_top_bottom()` requires $(W+2)$ work-items, while
+  `copy_left_right()` requires $(H + 2)$.
 
 - Since the domain is two-dimensional, it is convenient to organize the
   work-items in two-dimensional blocks. You can set the number of
@@ -90,9 +90,9 @@ Some suggestions:
   const int i = 1 + get_global_id (1);
   const int j = 1 + get_global_id (0);
 ```
-  In this way the work-items will be associated with the coordinate cells
-  from $(1, 1)$ onward[^1]. Before making any computation,
-  each work-item must verify that $1 \leq i, j \leq N$, so
+  In this way the work-items will be associated with the coordinate
+  cells from $(1, 1)$ onward[^1]. Before making any computation, each
+  work-item must verify that $1 \leq i \leq H$, $1 \leq j \leq W$, so
   that excess work-items are deactivated.
 
 [^1]: OpenCL allows you to launch a kernel by specifying an "offset"
@@ -110,9 +110,9 @@ this, it is useful to use local memory anyway, to see how it can be
 done.
 
 Let us assume that a workgroup is a square of size $\mathit{BLKDIM}
-\times \mathit{BLKDIM}$ where _BLKDIM_ is an integer multiple of
-$N$. Each workgroup copies the elements of the domain portion of its
-own competence in a local buffer `buf[BLKDIM+2][BLKDIM+2]` which
+\times \mathit{BLKDIM}$ where _BLKDIM_ is an integer multiple of $W$
+and $H$. Each workgroup copies the elements of the domain portion of
+its own competence in a local buffer `buf[BLKDIM+2][BLKDIM+2]` which
 includes two ghost rows and columns, and computes the new state of the
 cells using the data in the local buffer instead of accessing global
 memory.
@@ -139,10 +139,10 @@ buffer. Using workgroup of size $\mathit{BLKDIM} \times
 ùexcluding the hatched area of Figure 3) is carried out with:
 
 ```C.
-    buf[li][lj] = *IDX(cur, ext_n, gi, gj);
+    buf[li][lj] = *IDX(cur, ext_width, gi, gj);
 ```
 
-where `ext_n = (N + 2)` is the side of the domain including the ghost
+where `ext_width = (W + 2)` is the domain width, including the ghost
 area.
 
 ![Figure 4: Active work-items while filling the local domain](openclanneal4.png)
@@ -167,16 +167,16 @@ In practice, you will have the following structure:
 
 ```C.
     if (li == 1) {
-        "fill the cell buf [0] [lj] and buf [BLKDIM + 1] [lj]"
+        "fill buf[0][lj] and buf[BLKDIM+1][lj]"
     }
     if (lj == 1) {
-        "fill the cell buf [li] [0] and buf [li] [BLKDIM + 1]"
+        "fill buf[li][0] and buf[li][BLKDIM+1]"
     }
     if (li == 1 && lj == 1) {
-        "fill buf [0] [0]"
-        "fill buf [0] [BLKDIM + 1]"
-        "fill buf [BLKDIM + 1] [0]"
-        "fill buf [BLKDIM + 1] [BLKDIM + 1]"
+        "fill buf[0][0]"
+        "fill buf[0][BLKDIM+1]"
+        "fill buf[BLKDIM+1][0]"
+        "fill buf[BLKDIM+1][BLKDIM+1]"
     }
 ```
 
@@ -205,17 +205,26 @@ To build the solution by enabling local storage:
 
 To execute:
 
-        ./opencl-anneal [steps [N]]
+        ./opencl-anneal [steps [W [H]]]
 
 Example:
 
         ./opencl-anneal 64
 
+## References
+
+## References
+
+- Tommaso Toffoli, Norman Margolus, _Cellular Automata Machines: a new
+  environment for modeling_, MIT Press, 1987, ISBN 9780262526319.
+  [PDF](https://people.csail.mit.edu/nhm/cam-book.pdf) from Normal
+  Margolus home page.
+
 ## Files
 
 - [opencl-anneal.c](opencl-anneal.c)
 - [simpleCL.c](simpleCL.c) [simpleCL.h](simpleCL.h) [hpc.h](hpe.h)
-- [Animation of the CA](https://youtu.be/UNpl2iUyz3Q)
+- [Animation of the CA](https://youtu.be/TSHWSjICCxs)
 
 ***/
 #include "hpc.h"
