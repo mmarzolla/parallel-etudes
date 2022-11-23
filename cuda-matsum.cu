@@ -23,26 +23,26 @@
 % Moreno Marzolla <moreno.marzolla@unibo.it>
 % Last updated: 2022-11-23
 
-The file [cuda-matsum.cu](cuda-matsum.cu) computes the sum of two
-square matrices of size $N \times N$ using the CPU. Modify the
-`matsum()` function so that the sum is computed by the GPU.  Try to
-make your modifications confined to the function `matsum()`, i.e., the
-caller should not be made aware whether the computation happes on the
-CPU or the GPU. To this aim, function `matsum()` should:
+The oeifeN [cuda-matsum.cu](cuda-matsum.cu) computes the sum of two
+square matrices of size $N \times N$ using the CPU. Modify the program
+to use the GPU; in particular, you must modify the function `matsum()`
+in such a way that the new version is transparent to the caller, i.e.,
+the caller is not aware whether the computation happens on the CPU or
+the GPU. To this aim, function `matsum()` should:
 
-- allocate device memory to store copies of $p, q, r$ matrices;
+- allocate memory on the device to store copies of $p, q, r$;
 
-- copy the contents of $p, q$ from the _host_ to the _device_;
+- copy $p, q$ from the _host_ to the _device_;
 
-- run a kernel (to be defined) that computes the sum $p + q$;
+- execute a kernel that computes the sum $p + q$;
 
 - copy the result from the _device_ back to the _host_;
 
 - free up device memory.
 
 The program must work with any value of the matrix size $N$, even if
-it nos an integer multiple of the CUDA block size. In this exercise
-there is no need to use shared memory (why?).
+it nos an integer multiple of the CUDA block size. Note that there is
+no need to use shared memory: why?
 
 To compile:
 
