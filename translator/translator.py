@@ -2,8 +2,28 @@ from googletrans import Translator
 import os
 import time
 
+'''
+File name of all of the programs that have been translated
+so far.
+
+!! IMPORTANT !!
+Always leave one empty line at the end of the file
+'''
 DONE_SO_FAR = 'data.txt'
+
+# Directory from which the translator will search for files
 DIR = "../lab/"
+
+'''
+Opening and closing delimiters of portion of comments that
+want to be remove from the translation, this is usefull to
+keep the context of the markdown used as it is.
+
+!! IMPORTANT !!
+To add new expression that need to be removed from the text
+remeber that the delimiters follow an hierarchy from the least
+to the most specific
+'''
 to_remove = [
         ("---------------------------------------- ----- ----- ----- ----- ----- ----- ----- -----", "---------------------------------------- ----- ----- ----- ----- ----- ----- ----- -----"),
         ("```C", "```"),
@@ -13,6 +33,12 @@ to_remove = [
         ("![", ")"),
         ("$", "$"),
     ]
+
+'''
+Same as `to_remove` but these delimiters are used
+recursively to translate within the retacted words
+where is needed
+'''
 open_delimiters = ["[", "(", "!", "\n"]
 close_delimiters = ["]", ")", "!"]
 
