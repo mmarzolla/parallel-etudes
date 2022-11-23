@@ -48,7 +48,7 @@ The transformation corresponds to a linear "stretching" of the image,
 that is then broken down into triangles that are rearranged as shown
 in Figure 1.
 
-![Figura 1: Arnold's cat map](cat-map.png)
+![Figura 1: Arnold's cat map](cat-map.svg)
 
 Arnold's cat map has interesting properties. Let $C^k(x, y)$ be the
 result of iterating $k$ times the function $C$, i.e.:
@@ -70,7 +70,7 @@ image is no longer discernible. However, after a certain number of
 iterations that depend on $N$ and has been proved to never exceed
 $3N$, we get back the original image! (Figure 2).
 
-![Figura 2: Some iterations of the cat map](cat-map-demo.png)
+![Figura 2: Some iterations of the cat map](cat-map-demo.svg)
 
 The _minimum recurrence time_ for an image is the minimum positive
 integer $k \geq 1$ such that $C^k(x, y) = (x, y)$ for all $(x, y)$. In
