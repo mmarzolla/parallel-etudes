@@ -53,7 +53,7 @@ probability. Figure 2 shows the evolution of a grid of size $256
 made [a short YouTube video to show the evolution of the
 automaton](https://youtu.be/TSHWSjICCxs) over time.
 
-![Figure 2: Evolution of the _ANNEAL_ CA ([YouTube video](https://youtu.be/UNpl2iUyz3Q))](anneal-demo.png)
+![Figure 2: Evolution of the _ANNEAL_ CA ([YouTube video](https://youtu.be/TSHWSjICCxs))](anneal-demo.png)
 
 The file [cuda-anneal.cu](cuda-anneal.cu) contains a serial program
 that computes the evolution of the _ANNEAL_ CA after $K$
