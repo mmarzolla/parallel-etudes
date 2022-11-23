@@ -53,13 +53,12 @@ probability. Figure 2 shows the evolution of a grid of size $256
 made [a short YouTube video to show the evolution of the
 automaton](https://youtu.be/TSHWSjICCxs) over time.
 
-![Figure 2: Evolution of the _ANNEAL_ automaton ([video](https://youtu.be/UNpl2iUyz3Q))](anneal-demo.png)
+![Figure 2: Evolution of the _ANNEAL_ CA ([YouTube video](https://youtu.be/UNpl2iUyz3Q))](anneal-demo.png)
 
-The file [cuda-anneal.cu](cuda-anneal.cu) contains a serial
-implementation of the algorithm that computes the evolution of the
-_ANNEAL_ CA after $K$ iterations. The final state is written to a
-file. The goal of this exercise is to modify the program to use the
-GPU to update the domain.
+The file [cuda-anneal.cu](cuda-anneal.cu) contains a serial program
+that computes the evolution of the _ANNEAL_ CA after $K$
+iterations. The final state is written to a file. The goal of this
+exercise is to modify the program to use the GPU to update the domain.
 
 Some suggestions:
 
@@ -210,7 +209,7 @@ Example:
 
 - [cuda-anneal.cu](cuda-anneal.cu)
 - [hpc.h](hpc.h)
-- [Animation of the CA](https://youtu.be/TSHWSjICCxs)
+- [Animation of the ANNEAL CA on YouTube](https://youtu.be/TSHWSjICCxs)
 
 ***/
 #include "hpc.h"
