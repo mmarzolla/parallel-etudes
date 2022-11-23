@@ -21,11 +21,11 @@
 /***
 % HPC - ANNEAL cellular automaton
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-11-21
+% Last updated: 2022-11-22
 
 In this exercise we consider a simple two-dimensional, binary Cellular
 Automaton called _ANNEAL_ (also known as _twisted majority rule_). The
-automaton operates on a square domain of size $N \times N$, where
+automaton operates on a domain of size $W \times H$, where
 each cell can have value 0 or 1. Cyclic boundary conditions are
 assumed, so that each cell has eight adjacent neighbors. Two cells are
 considered adjacent if they share a side or a corner.
@@ -49,11 +49,11 @@ are exchanged at the end of each step.
 
 The initial state of a cell is chosen at random with equal
 probability. Figure 2 shows the evolution of a grid of size $256
-\times 256$ after 10, 100 and 1024 iterations. We observe the emergence
-of "blobs" of cells that grow over time, with the exception of small
-"bubbles" that remain stable. You might be interested in [a short
-video showing the evolution of the
-automaton](https://youtu.be/UNpl2iUyz3Q) over time.
+\times 256$ after 10, 100 and 1024 iterations. We observe the
+emergence of "blobs" of cells that grow over time, with the exception
+of small "bubbles" that remain stable. You might be interested in [a
+short YouTube video showing the evolution of the
+automaton](https://youtu.be/TSHWSjICCxs) over time.
 
 ![Figure 2: Evolution of the _ANNEAL_ automaton ([video](https://youtu.be/UNpl2iUyz3Q))](anneal-demo.png)
 
@@ -72,9 +72,9 @@ Some suggestions:
   from the size of the domain that computes the evolution of the
   automaton (see the following points).
 
-- To copy the ghost cells, use a 1D array of work-items. So, to run
-  kernels `copy_top_bottom()` and `copy_left_right()` you need $(N +
-  2)$ work-items.
+- To copy the ghost cells, use a 1D array of work-items. Therefore,
+  the kernel `copy_top_bottom()` requires $(W+2)$ work-items, while
+  `copy_left_right()` requires $(H + 2)$.
 
 - Since the domain is two-dimensional, it is convenient to organize the
   work-items in two-dimensional blocks. You can set the number of
@@ -90,9 +90,9 @@ Some suggestions:
   const int i = 1 + get_global_id (1);
   const int j = 1 + get_global_id (0);
 ```
-  In this way the work-items will be associated with the coordinate cells
-  from $(1, 1)$ onward[^1]. Before making any computation,
-  each work-item must verify that $1 \leq i, j \leq N$, so
+  In this way the work-items will be associated with the coordinate
+  cells from $(1, 1)$ onward[^1]. Before making any computation, each
+  work-item must verify that $1 \leq i \leq H$, $1 \leq j \leq W$, so
   that excess work-items are deactivated.
 
 [^1]: OpenCL allows you to launch a kernel by specifying an "offset"
@@ -110,9 +110,9 @@ this, it is useful to use local memory anyway, to see how it can be
 done.
 
 Let us assume that a workgroup is a square of size $\mathit{BLKDIM}
-\times \mathit{BLKDIM}$ where _BLKDIM_ is an integer multiple of
-$N$. Each workgroup copies the elements of the domain portion of its
-own competence in a local buffer `buf[BLKDIM+2][BLKDIM+2]` which
+\times \mathit{BLKDIM}$ where _BLKDIM_ is an integer multiple of $W$
+and $H$. Each workgroup copies the elements of the domain portion of
+its own competence in a local buffer `buf[BLKDIM+2][BLKDIM+2]` which
 includes two ghost rows and columns, and computes the new state of the
 cells using the data in the local buffer instead of accessing global
 memory.
@@ -139,10 +139,10 @@ buffer. Using workgroup of size $\mathit{BLKDIM} \times
 ùexcluding the hatched area of Figure 3) is carried out with:
 
 ```C.
-    buf[li][lj] = *IDX(cur, ext_n, gi, gj);
+    buf[li][lj] = *IDX(cur, ext_width, gi, gj);
 ```
 
-where `ext_n = (N + 2)` is the side of the domain including the ghost
+where `ext_width = (W + 2)` is the domain width, including the ghost
 area.
 
 ![Figure 4: Active work-items while filling the local domain](openclanneal4.png)
@@ -167,16 +167,16 @@ In practice, you will have the following structure:
 
 ```C.
     if (li == 1) {
-        "fill the cell buf [0] [lj] and buf [BLKDIM + 1] [lj]"
+        "fill buf[0][lj] and buf[BLKDIM+1][lj]"
     }
     if (lj == 1) {
-        "fill the cell buf [li] [0] and buf [li] [BLKDIM + 1]"
+        "fill buf[li][0] and buf[li][BLKDIM+1]"
     }
     if (li == 1 && lj == 1) {
-        "fill buf [0] [0]"
-        "fill buf [0] [BLKDIM + 1]"
-        "fill buf [BLKDIM + 1] [0]"
-        "fill buf [BLKDIM + 1] [BLKDIM + 1]"
+        "fill buf[0][0]"
+        "fill buf[0][BLKDIM+1]"
+        "fill buf[BLKDIM+1][0]"
+        "fill buf[BLKDIM+1][BLKDIM+1]"
     }
 ```
 
@@ -185,59 +185,65 @@ code to handle the case where the size of the domain is not an integer
 multiple of _BLKDIM_. Deactivating excess work-items it not enough:
 you need to modify the initialization of the local memory as well.
 
-To compile without using local storage:
+To compile without using local memory:
 
-        cc opencl-anneal.c simpleCL.c -o opencl-anneal -lOpenCL
+        cc opencl-anneal.c simpleCL.c -o opencl-anneal -lOpenCL -lm
 
 To generate an image at each step:
 
-        cc -DDUMPALL opencl-anneal.c simpleCL.c -o opencl-anneal -lOpenCL
+        cc -DDUMPALL opencl-anneal.c simpleCL.c -o opencl-anneal -lOpenCL -lm
 
-You can edit images in an AVI / MPEG-4 format video with:
+You can make an AVI / MPEG-4 animation using:
 
         ffmpeg -y -i "opencl-anneal-%06d.pbm" -vcodec mpeg4 opencl-anneal.avi
 
-(the `ffmpeg` command is already installed on the server).
+To compile with local memory:
 
-To build the solution by enabling local storage:
-
-        cc -DUSE_LOCAL opencl-anneal.c simpleCL.c -o opencl-anneal-local -lOpenCL
+        cc -DUSE_LOCAL opencl-anneal.c simpleCL.c -o opencl-anneal-local -lOpenCL -lm
 
 To execute:
 
-        ./opencl-anneal [steps [N]]
+        ./opencl-anneal [steps [W [H]]]
 
 Example:
 
         ./opencl-anneal 64
 
+## References
+
+- Tommaso Toffoli, Norman Margolus, _Cellular Automata Machines: a new
+  environment for modeling_, MIT Press, 1987, ISBN 9780262526319.
+  [PDF](https://people.csail.mit.edu/nhm/cam-book.pdf) from Normal
+  Margolus home page.
+
 ## Files
 
 - [opencl-anneal.c](opencl-anneal.c)
 - [simpleCL.c](simpleCL.c) [simpleCL.h](simpleCL.h) [hpc.h](hpe.h)
-- [Animation of the CA](https://youtu.be/UNpl2iUyz3Q)
+- [Animation of the CA](https://youtu.be/TSHWSjICCxs)
 
 ***/
 #include "hpc.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <math.h>
 #include "simpleCL.h"
 
 typedef unsigned char cell_t;
 
-int IDX(int ext_n, int i, int j)
+int IDX(int ext_width, int i, int j)
 {
-    return (i*ext_n + j);
+    return (i*ext_width + j);
 }
 
 /*
-  `grid` points to a (ext_n * ext_n) block of bytes; this function
-  copies the top and bottom ext_n elements to the opposite halo (see
-  figure below).
+  `grid` points to a (ext_width * ext_heigth) block of bytes; this
+  function copies the top and bottom ext_width elements to the
+  opposite halo (see figure below).
 
-   LEFT_GHOST=0     RIGHT=ext_n-2
-   | LEFT=1         | RIGHT_GHOST=ext_n-1
+   LEFT_GHOST=0     RIGHT=ext_width-2
+   | LEFT=1         | RIGHT_GHOST=ext_width-1
    | |              | |
    v v              v v
   +-+----------------+-+
@@ -248,35 +254,35 @@ int IDX(int ext_n, int i, int j)
   | |                | |
   | |                | |
   | |                | |
-  |Y|YYYYYYYYYYYYYYYY|Y| <- BOTTOM=ext_n - 2
+  |Y|YYYYYYYYYYYYYYYY|Y| <- BOTTOM=ext_height - 2
   +-+----------------+-+
-  |X|XXXXXXXXXXXXXXXX|X| <- BOTTOM_GHOST=ext_n - 1
+  |X|XXXXXXXXXXXXXXXX|X| <- BOTTOM_GHOST=ext_height - 1
   +-+----------------+-+
 
  */
 #ifdef SERIAL
 /* [TODO] Transform this function into a kernel */
-void copy_top_bottom(cell_t *grid, int ext_n)
+void copy_top_bottom(cell_t *grid, int ext_width, int ext_height)
 {
     int j;
     const int TOP = 1;
-    const int BOTTOM = ext_n - 2;
+    const int BOTTOM = ext_height - 2;
     const int TOP_GHOST = TOP - 1;
     const int BOTTOM_GHOST = BOTTOM + 1;
 
-    for (j=0; j<ext_n; j++) {
-        grid[IDX(ext_n, BOTTOM_GHOST, j)] = grid[IDX(ext_n, TOP, j)]; /* top to bottom halo */
-        grid[IDX(ext_n, TOP_GHOST, j)] = grid[IDX(ext_n, BOTTOM, j)]; /* bottom to top halo */
+    for (j=0; j<ext_width; j++) {
+        grid[IDX(ext_width, BOTTOM_GHOST, j)] = grid[IDX(ext_width, TOP, j)]; /* top to bottom halo */
+        grid[IDX(ext_width, TOP_GHOST, j)] = grid[IDX(ext_widthn, BOTTOM, j)]; /* bottom to top halo */
     }
 }
 
 /*
-  `grid` points to a ext_n*ext_n block of bytes; this function copies
-  the left and right ext_n elements to the opposite halo (see figure
-  below).
+  `grid` points to a ext_width*ext_height block of bytes; this
+  function copies the left and right ext_height elements to the
+  opposite halo (see figure below).
 
-   LEFT_GHOST=0     RIGHT=ext_n-2
-   | LEFT=1         | RIGHT_GHOST=ext_n-1
+   LEFT_GHOST=0     RIGHT=ext_width-2
+   | LEFT=1         | RIGHT_GHOST=ext_width-1
    | |              | |
    v v              v v
   +-+----------------+-+
@@ -287,44 +293,44 @@ void copy_top_bottom(cell_t *grid, int ext_n)
   |X|Y              X|Y|
   |X|Y              X|Y|
   |X|Y              X|Y|
-  |X|Y              X|Y| <- BOTTOM=ext_n - 2
+  |X|Y              X|Y| <- BOTTOM=ext_height - 2
   +-+----------------+-+
-  |X|Y              X|Y| <- BOTTOM_GHOST=ext_n - 1
+  |X|Y              X|Y| <- BOTTOM_GHOST=ext_height - 1
   +-+----------------+-+
 
  */
 /* [TODO] This function should be transformed into a kernel */
-void copy_left_right(cell_t *grid, int ext_n)
+void copy_left_right(cell_t *grid, int ext_width, int ext_height)
 {
     int i;
     const int LEFT = 1;
-    const int RIGHT = ext_n - 2;
+    const int RIGHT = ext_width - 2;
     const int LEFT_GHOST = LEFT - 1;
     const int RIGHT_GHOST = RIGHT + 1;
 
-    for (i=0; i<ext_n; i++) {
-        grid[IDX(ext_n, i, RIGHT_GHOST)] = grid[IDX(ext_n, i, LEFT)]; /* left column to right halo */
-        grid[IDX(ext_n, i, LEFT_GHOST)] = grid[IDX(ext_n, i, RIGHT)]; /* right column to left halo */
+    for (i=0; i<ext_height; i++) {
+        grid[IDX(ext_width, i, RIGHT_GHOST)] = grid[IDX(ext_width, i, LEFT)]; /* left column to right halo */
+        grid[IDX(ext_width, i, LEFT_GHOST)] = grid[IDX(ext_width, i, RIGHT)]; /* right column to left halo */
     }
 }
 
 /* Compute the `next` grid given the current configuration `cur`.
    Both grids have (ext_n*ext_n) elements.
    [TODO] This function should be transformed into a kernel. */
-void step(cell_t *cur, cell_t *next, int ext_n)
+void step(cell_t *cur, cell_t *next, int ext_width, int ext_height)
 {
     int i, j;
     const int LEFT = 1;
-    const int RIGHT = ext_n - 2;
+    const int RIGHT = ext_width - 2;
     const int TOP = 1;
-    const int BOTTOM = ext_n - 2;
+    const int BOTTOM = ext_height - 2;
     for (i=TOP; i <= BOTTOM; i++) {
         for (j=LEFT; j <= RIGHT; j++) {
             const int nblack =
-                cur[IDX(ext_n, i-1, j-1)] + cur[IDX(ext_n, i-1, j)] + cur[IDX(ext_n, i-1, j+1)] +
-                cur[IDX(ext_n, i  , j-1)] + cur[IDX(ext_n, i  , j)] + cur[IDX(ext_n, i  , j+1)] +
-                cur[IDX(ext_n, i+1, j-1)] + cur[IDX(ext_n, i+1, j)] + cur[IDX(ext_n, i+1, j+1)];
-            next[IDX(ext_n, i, j)] = (nblack >= 6 || nblack == 4);
+                cur[IDX(ext_width, i-1, j-1)] + cur[IDX(ext_width, i-1, j)] + cur[IDX(ext_width, i-1, j+1)] +
+                cur[IDX(ext_width, i  , j-1)] + cur[IDX(ext_width, i  , j)] + cur[IDX(ext_width, i  , j+1)] +
+                cur[IDX(ext_width, i+1, j-1)] + cur[IDX(ext_width, i+1, j)] + cur[IDX(ext_width, i+1, j+1)];
+            next[IDX(ext_width, i, j)] = (nblack >= 6 || nblack == 4);
         }
     }
 }
@@ -332,25 +338,25 @@ void step(cell_t *cur, cell_t *next, int ext_n)
 
 /* Initialize the current grid `cur` with alive cells with density
    `p`. */
-void init( cell_t *cur, int ext_n, float p )
+void init( cell_t *cur, int ext_width, int ext_height, float p )
 {
     int i, j;
     const int LEFT = 1;
-    const int RIGHT = ext_n - 2;
+    const int RIGHT = ext_width - 2;
     const int TOP = 1;
-    const int BOTTOM = ext_n - 2;
+    const int BOTTOM = ext_height - 2;
 
     srand(1234);
     for (i=TOP; i <= BOTTOM; i++) {
         for (j=LEFT; j <= RIGHT; j++) {
-            cur[IDX(ext_n, i, j)] = (((float)rand())/RAND_MAX < p);
+            cur[IDX(ext_width, i, j)] = (((float)rand())/RAND_MAX < p);
         }
     }
 }
 
 /* Write `cur` to a PBM (Portable Bitmap) file whose name is derived
    from the step number `stepno`. */
-void write_pbm( cell_t *cur, int ext_n, int stepno )
+void write_pbm( cell_t *cur, int ext_width, int ext_height, int stepno )
 {
     int i, j;
     char fname[128];
@@ -368,10 +374,10 @@ void write_pbm( cell_t *cur, int ext_n, int stepno )
     }
     fprintf(f, "P1\n");
     fprintf(f, "# produced by opencl-anneal.c\n");
-    fprintf(f, "%d %d\n", ext_n-2, ext_n-2);
-    for (i=1; i<ext_n-1; i++) {
-        for (j=1; j<ext_n-1; j++) {
-            fprintf(f, "%d ", cur[IDX(ext_n, i, j)]);
+    fprintf(f, "%d %d\n", ext_width-2, ext_height-2);
+    for (i=1; i<ext_height-1; i++) {
+        for (j=1; j<ext_width-1; j++) {
+            fprintf(f, "%d ", cur[IDX(ext_width, i, j)]);
         }
         fprintf(f, "\n");
     }
@@ -380,11 +386,11 @@ void write_pbm( cell_t *cur, int ext_n, int stepno )
 
 int main( int argc, char* argv[] )
 {
-    int s, nsteps = 64, n = 512;
+    int s, nsteps = 64, width = 512, height = 512;
     const int MAXN = 2048;
 
-    if ( argc > 3 ) {
-        fprintf(stderr, "Usage: %s [nsteps [n]]\n", argv[0]);
+    if ( argc > 4 ) {
+        fprintf(stderr, "Usage: %s [nsteps [width [height]]]\n", argv[0]);
         return EXIT_FAILURE;
     }
 
@@ -393,31 +399,36 @@ int main( int argc, char* argv[] )
     }
 
     if ( argc > 2 ) {
-        n = atoi(argv[2]);
+        height = width = atoi(argv[2]);
     }
 
-    if ( n > MAXN ) { /* maximum image size is MAXN */
-        fprintf(stderr, "FATAL: the maximum allowed grid size is %d\n", MAXN);
+    if ( argc > 3 ) {
+        height = atoi(argv[3]);
+    }
+
+    if ( width > MAXN || height > MAXN ) { /* maximum image size is MAXN * MAXN */
+        fprintf(stderr, "FATAL: the maximum allowed grid size is %d x %d\n", MAXN, MAXN);
         return EXIT_FAILURE;
     }
 
-    const int ext_n = n + 2;
-    const size_t ext_size = ext_n * ext_n * sizeof(cell_t);
+    const int ext_width = width + 2;
+    const int ext_height = height + 2;
+    const size_t ext_size = ext_width * ext_height * sizeof(cell_t);
 
-    fprintf(stderr, "Anneal CA: steps=%d size=%d\n", nsteps, n);
+    fprintf(stderr, "Anneal CA: steps=%d size=%d x %d\n", nsteps, width, height);
 
 #ifdef SERIAL
     cell_t *cur = (cell_t*)malloc(ext_size); assert(cur);
     cell_t *next = (cell_t*)malloc(ext_size); assert(next);
-    init(cur, ext_n, 0.5);
+    init(cur, ext_width, ext_height, 0.5);
     const double tstart = hpc_gettime();
     for (s=0; s<nsteps; s++) {
-        copy_top_bottom(cur, ext_n);
-        copy_left_right(cur, ext_n);
+        copy_top_bottom(cur, ext_width, ext_height);
+        copy_left_right(cur, ext_width, ext_height);
 #ifdef DUMPALL
-        write_pbm(cur, ext_n, s);
+        write_pbm(cur, ext_width, ext_height, s);
 #endif
-        step(cur, next, ext_n);
+        step(cur, next, ext_width, ext_height);
         cell_t *tmp = cur;
         cur = next;
         next = tmp;
@@ -435,21 +446,25 @@ int main( int argc, char* argv[] )
 
 #if 0
     /* 1D blocks used for filling ghost area */
-    const sclDim copyBlock = DIM1(SCL_DEFAULT_WG_SIZE);
-    const sclDim copyGrid = DIM1(sclRoundUp(ext_n, SCL_DEFAULT_WG_SIZE));
+    const sclDim copyLRBlock = DIM1(SCL_DEFAULT_WG_SIZE);
+    const sclDim copyLRGrid = DIM1(sclRoundUp(ext_height, SCL_DEFAULT_WG_SIZE));
+    const sclDim copyTBBlock = DIM1(SCL_DEFAULT_WG_SIZE);
+    const sclDim copyTBGrid = DIM1(sclRoundUp(ext_width, SCL_DEFAULT_WG_SIZE));
+
     /* 2D blocks used for the update step */
     const sclDim stepBlock = DIM2(SCL_DEFAULT_WG_SIZE2D, SCL_DEFAULT_WG_SIZE2D);
-    const sclDim stepGrid = DIM2(sclRoundUp(n, SCL_DEFAULT_WG_SIZE2D),
-                                 sclRoundUp(n, SCL_DEFAULT_WG_SIZE2D));
+    const sclDim stepGrid = DIM2(sclRoundUp(width, SCL_DEFAULT_WG_SIZE2D),
+                                 sclRoundUp(height, SCL_DEFAULT_WG_SIZE2D));
 #else
-    sclDim copyBlock, copyGrid, stepBlock, stepGrid;
-    sclWGSetup1D(ext_n, &copyGrid, &copyBlock);
-    sclWGSetup2D(n, n, &stepGrid, &stepBlock);
+    sclDim copyLRBlock, copyLRGrid, copyTBGrid, copyTBBlock, stepBlock, stepGrid;
+    sclWGSetup1D(ext_width, &copyTBGrid, &copyTBBlock);
+    sclWGSetup1D(ext_height, &copyLRGrid, &copyLRBlock);
+    sclWGSetup2D(width, height, &stepGrid, &stepBlock);
 #endif
 
     /* Allocate space for host copy of the current grid */
     cell_t *cur = (cell_t*)malloc(ext_size); assert(cur != NULL);
-    init(cur, ext_n, 0.5);
+    init(cur, ext_width, ext_height, 0.5);
 
     /* Allocate space for device copy of |cur| and |next| grids */
     cl_mem d_cur = sclMallocCopy(ext_size, cur, CL_MEM_READ_WRITE);
@@ -460,30 +475,33 @@ int main( int argc, char* argv[] )
 #ifdef DUMPALL
     int dump_at = 1; /* dump a new frame when the time step is multiple of this variable */
     int n_dumped = 0; /* number of frames already dumped at the current frame rate */
-    const int DOUBLE_FR_EVERY = 1000; /* double the frame rate every this frames have been dumped */
+    const int DOUBLE_FR_EVERY = 500; /* double the frame rate every this frames have been dumped */
 #endif
     for (s=0; s<nsteps; s += 1) {
         sclSetArgsEnqueueKernel(copy_top_bottom_kernel,
-                                copyGrid, copyBlock,
-                                ":b :d",
-                                d_cur, ext_n);
+                                copyTBGrid, copyTBBlock,
+                                ":b :d :d",
+                                d_cur, ext_width, ext_height);
 
         sclSetArgsEnqueueKernel(copy_left_right_kernel,
-                                copyGrid, copyBlock,
-                                ":b :d",
-                                d_cur, ext_n);
+                                copyLRGrid, copyLRBlock,
+                                ":b :d :d",
+                                d_cur, ext_width, ext_height);
 
         sclSetArgsEnqueueKernel(step_kernel,
                                 stepGrid, stepBlock,
-                                ":b :b :d",
-                                d_cur, d_next, ext_n);
+                                ":b :b :d :d",
+                                d_cur, d_next, ext_width, ext_height);
 
 #ifdef DUMPALL
         if (s % dump_at == 0) {
+            const double elapsed = hpc_gettime() - tstart;
+            const int mm = trunc(elapsed / 60);
+            const float ss = elapsed - mm*60;
             n_dumped++;
-            fprintf(stderr, "Writing frame %d\n", s);
+            fprintf(stderr, "Writing frame %6d (elapsed: %d:%05.2f)\n", s, mm, ss);
             sclMemcpyDeviceToHost(cur, d_next, ext_size);
-            write_pbm(cur, ext_n, s);
+            write_pbm(cur, ext_width, ext_height, s);
         }
         if (n_dumped > DOUBLE_FR_EVERY) {
             n_dumped = 0;
@@ -499,7 +517,7 @@ int main( int argc, char* argv[] )
     /* Copy back result to host */
     sclMemcpyDeviceToHost(cur, d_cur, ext_size);
 #endif
-    write_pbm(cur, ext_n, s);
+    write_pbm(cur, ext_width, ext_height, s);
     free(cur);
 #ifdef SERIAL
     free(next);
@@ -508,6 +526,6 @@ int main( int argc, char* argv[] )
     sclFree(d_next);
     sclFinalize();
 #endif
-    fprintf(stderr, "\n\nElapsed time: %f (%f Mupd/s)\n", elapsed, (n*n/1.0e6)*nsteps/elapsed);
+    fprintf(stderr, "\n\nElapsed time: %f (%f Mupd/s)\n", elapsed, (width * height / 1.0e6)*nsteps/elapsed);
     return EXIT_SUCCESS;
 }

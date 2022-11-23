@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * cuda-matsum.cu - Dense matrix-matrix addition with CUDA
+ * cuda-matsum.cu - Matrix-matrix addition
  *
- * Copyright (C) 2017--2021 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,48 +19,44 @@
  ****************************************************************************/
 
 /***
-% HPC - Somma di matrici con CUDA
+% HPC - Matrix-matrix addition
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Ultimo aggiornamento: 2021-05-15
+% Last updated: 2022-11-23
 
-Il file [cuda-matsum.cu](cuda-matsum.cu) calcola la somma tra due
-matrici quadrate di dimensione $N \times N$ utilizzando la
-CPU. Modificare la funzione `matsum()` in modo che la somma venga
-realizzata dalla GPU, senza necessità di modificare il corpo
-principale del programma. In altre parole, la funzione `matsum()`
-dovrebbe:
+The oeifeN [cuda-matsum.cu](cuda-matsum.cu) computes the sum of two
+square matrices of size $N \times N$ using the CPU. Modify the program
+to use the GPU; in particular, you must modify the function `matsum()`
+in such a way that the new version is transparent to the caller, i.e.,
+the caller is not aware whether the computation happens on the CPU or
+the GPU. To this aim, function `matsum()` should:
 
-- allocare la memoria nella GPU per memorizzare copie delle matrici $p,
-  q, r$;
+- allocate memory on the device to store copies of $p, q, r$;
 
-- copiare il contenuto delle matrici $p, q$ dall'_host_ al _device_;
+- copy $p, q$ from the _host_ to the _device_;
 
-- eseguire un apposito kernel (da definire) per calcolare la somma $p +
-  q$ usando la GPU;
+- execute a kernel that computes the sum $p + q$;
 
-- copiare il risultato dal _device_ all'_host_;
+- copy the result from the _device_ back to the _host_;
 
-- liberare la memoria nel _device_
+- free up device memory.
 
-in modo che non sia necessario modificare la funzione `main()`.  Il
-programma deve funzionare con qualsiasi valore di $N$, che quindi non
-deve necessariamente essere un multiplo della dimensione dei thread
-block CUDA. Si noti che in questo esercizio non è conveniente usare la
-shared memory (perché?).
+The program must work with any value of the matrix size $N$, even if
+it nos an integer multiple of the CUDA block size. Note that there is
+no need to use shared memory: why?
 
-Per compilare:
+To compile:
 
         nvcc cuda-matsum.cu -o cuda-matsum -lm
 
-Per eseguire:
+To execute:
 
         ./cuda-matsum [N]
 
-Esempio:
+Example:
 
         ./cuda-matsum 1024
 
-## File
+## Files
 
 - [cuda-matsum.cu](cuda-matsum.cu)
 - [hpc.h](hpc.h)
@@ -91,7 +87,7 @@ void matsum( float *p, float *q, float *r, int n )
        - allocate memory on the device
        - copy p and q to the device
        - call an appropriate kernel
-       - copy the result back from the device to the host
+       - copy the result from the device to the host
        - free memory on the device
     */
     int i, j;
@@ -121,7 +117,9 @@ void matsum( float *p, float *q, float *r, int n )
     /* Copy result back to host */
     cudaMemcpy(r, d_r, size, cudaMemcpyDeviceToHost);
 
-    cudaFree(d_p); cudaFree(d_q); cudaFree(d_r);
+    cudaFree(d_p);
+    cudaFree(d_q);
+    cudaFree(d_r);
 #endif
 }
 
@@ -174,6 +172,8 @@ int main( int argc, char *argv[] )
         return EXIT_FAILURE;
     }
 
+    printf("Matrix size: %d x %d\n", n, n);
+
     const size_t size = n*n*sizeof(*p);
 
     /* Allocate space for p, q, r */
@@ -188,12 +188,15 @@ int main( int argc, char *argv[] )
     const double elapsed = hpc_gettime() - tstart;
 
     printf("Elapsed time (including data movement): %f\n", elapsed);
+    printf("Throughput (Melements/s): %f\n", n*n/(1e6 * elapsed));
 
     /* Check result */
     check(r, n);
 
     /* Cleanup */
-    free(p); free(q); free(r);
+    free(p);
+    free(q);
+    free(r);
 
     return EXIT_SUCCESS;
 }

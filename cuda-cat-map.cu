@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * cuda-cat-map.cu - Arnold's cat map with CUDA
+ * cuda-cat-map.cu - Arnold's cat map
  *
- * Copyright (C) 2016--2021 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2016--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,102 +19,128 @@
  ****************************************************************************/
 
 /***
-% HPC - La mappa del gatto di Arnold
+% HPC - Arnold's cat map
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Ultimo aggiornamento: 2021-05-15
+% Last updated: 2022-11-23
 
-Anche la mappa del gatto di Arnold è una vecchia conoscenza, che
-abbiamo incontrato in una precedente esercitazione. In questo
-esercizio si chiede di realizzare un programma CUDA che trasforma una
-immagine mediante la mappa del gatto. Riportiamo nel seguito la
-descrizione del problema.
+![Vladimir Igorevich Arnold (1937--2010). By Svetlana Tretyakova - <http://www.mccme.ru/arnold/pool/original/VI_Arnold-05.jpg>, CC BY-SA 3.0](Vladimir_Arnold.jpg)
 
-La [mappa del gatto di
-Arnold](https://en.wikipedia.org/wiki/Arnold%27s_cat_map) è una
-funzione che trasforma una immagine $P$ di dimensione $N \times N$ in
-una nuova immagine $P'$ delle stesse dimensioni. Per ogni $0 \leq x <
-N,\ 0 \leq y < N$, il pixel di coordinate $(x,y)$ in $P$ viene
-collocato nella posizione $(x',y')$ di $P'$ dove:
+[Arnold's cat map](https://en.wikipedia.org/wiki/Arnold%27s_cat_map)
+is a continuous chaotic function that has been studied in the '60s by
+the Russian mathematician [Vladimir Igorevich
+Arnold](https://en.wikipedia.org/wiki/Vladimir_Arnold). In its
+discrete version, the function can be understood as a transformation
+of a bitmapped image $P$ of size $N \times N$ into a new image $P'$ of
+the same size. For each $0 \leq x, y < N$, the pixel of coordinates
+$(x,y)$ in $P$ is mapped into a new position $C(x, y) = (x', y')$ in
+$P'$ where
 
 $$
 x' = (2x + y) \bmod N, \qquad y' = (x + y) \bmod N
 $$
 
-("mod" è l'operatore modulo, corrispondente all'operatore `%` del
-linguaggio C). Si può assumere che le coordinate $(0, 0)$ indichino il
-pixel in alto a sinistra e le coordinate $(N-1, N-1)$ quello in basso
-a destra, in modo da poter indicizzare l'immagine come se fosse una
-matrice in linguaggio C. La Figura 1 mostra graficamente la
-trasformazione.
+("mod" is the integer remainder operator, i.e., operator `%` of the C
+language). We may assume that $(0, 0)$ is top left and $(N-1, N-1)$
+bottom right, so that the bitmap can be encoded as a regular
+two-dimensional C matrix.
 
-![Figura 1: La mappa del gatto di Arnold](cat-map.png)
+The transformation corresponds to a linear "stretching" of the image,
+that is then broken down into triangles that are rearranged as shown
+in Figure 1.
 
-La mappa del gatto ha proprietà sorprendenti. Applicata ad una
-immagine ne produce una versione molto distorta. Applicata nuovamente
-a quest'ultima immagine, ne produce una ancora più distorta, e così
-via. Tuttavia, dopo un certo numero di iterazioni (il cui valore
-dipende da $N$, ma che in ogni caso è sempre minore o uguale a $3N$)
-ricompare l'immagine di partenza! (Figura 2).
+![Figura 1: Arnold's cat map](cat-map.svg)
 
-![Figura 2: Alcune immagini ottenute iterando la mappa del gatto $k$ volte](cat-map-demo.png)
+Arnold's cat map has interesting properties. Let $C^k(x, y)$ be the
+result of iterating $k$ times the function $C$, i.e.:
 
-Il _tempo minimo di ricorrenza_ per l'immagine
-[cat1368.pgm](cat1368.pgm) di dimensione $1368 \times 1368$ fornita
-come esempio è $36$: iterando $k$ volte della mappa del gatto si
-otterrà l'immagine originale se e solo se $k$ è multiplo di 36. Non è
-nota alcuna formula analitica che leghi il tempo minimo di ricorrenza
-alla dimensione $N$ dell'immagine.
+$$
+C^k(x, y) = \begin{cases}
+(x, y) & \mbox{if $k=0$}\\
+C(C^{k-1}(x,y)) & \mbox{if $k>0$}
+\end{cases}
+$$
 
-Viene fornito un programma sequenziale che calcola la $k$-esima
-iterata della mappa del gatto usando la CPU. Il programma viene
-invocato specificando sulla riga di comando il numero di iterazioni
-$k$. Il programma legge una immagine in formato PGM da standard input,
-e produce una nuova immagine su standard output ottenuta applicando
-$k$ volte la mappa del gatto. Occorre ricordarsi di redirezionare lo
-standard output su un file, come indicato nelle istruzioni nel
-sorgente.
+Therefore, $C^2(x,y) = C(C(x,y))$, $C^3(x,y) = C(C(C(x,y)))$, and so
+on.
 
-Per sfruttare il parallelismo offerto da CUDA è utile usare una
-griglia bidimensionale di thread block a loro volta bidimensionali,
-ciascuno con $\mathit{BLKDIM} \times \mathit{BLKDIM}$
-thread. Pertanto, data una immagine di $N \times N$ pixel, sono
-necessari:
+If we take an image and apply $C$ once, we get a severely distorted
+version of the input. If we apply $C$ on the resulting image, we get
+an even more distorted image. As we keep applying $C$, the original
+image is no longer discernible. However, after a certain number of
+iterations that depend on $N$ and has been proved to never exceed
+$3N$, we get back the original image! (Figure 2).
+
+![Figura 2: Some iterations of the cat map](cat-map-demo.png)
+
+The _minimum recurrence time_ for an image is the minimum positive
+integer $k \geq 1$ such that $C^k(x, y) = (x, y)$ for all $(x, y)$. In
+simple terms, the minimum recurrence time is the minimum number of
+iterations of the cat map that produce the starting image.
+
+For example, the minimum recurrence time for
+[cat1368.pgm](cat1368.pgm) of size $1368 \times 1368$ is $36$. As said
+before, the minimum recurrence time depends on the image size $N$.
+Unfortunately, no closed formula is known to compute the minimum
+recurrence time as a function of $N$, although there are results and
+bounds that apply to specific cases.
+
+You are provided with a serial program that computes the $k$-th
+iterate of Arnold's cat map on a square image. The program reads the
+input from standard input in
+[PGM](https://en.wikipedia.org/wiki/Netpbm) (_Portable GrayMap_)
+format. The results is printed to standard output in PGM format. For
+example:
+
+        ./cuda-cat-map 100 < cat1368.pgm > cat1368-100.pgm
+
+applies the cat map $k=100$ times on `cat1368.phm` and saves the
+result to `cat1368-100.pgm`.
+
+To display a PGM image you might need to convert it to a different
+format, e.g., JPEG. Under Linux you can use `convert` from the
+[ImageMagick](https://imagemagick.org/) package:
+
+        convert cat1368-100.pgm cat1368-100.jpeg
+
+To make use of CUDA parallelism, define a 2D grid of 2D blocks that
+covers the input image. The block size is $\mathit{BLKDIM} \times
+\mathit{BLKDIM}$, with `BLKDIM = 32`, and the grid size is:
 
 $$
 (N + \mathit{BLKDIM} – 1) / \mathit{BLKDIM} \times (N + \mathit{BLKDIM} – 1) / \mathit{BLKDIM}
 $$
 
-blocchi di dimensione $\mathit{BLKDIM} \times \mathit{BLKDIM}$ per
-ricoprire interamente l'immagine.  Ogni thread si occupa di calcolare
-una singola iterazione della mappa del gatto, copiando un pixel
-dell'immagine corrente nella posizione appropriata della nuova
-immagine. La segnatura del kernel sarà:
+Each thread applies a single iteration of the cat map and copies one
+pixel from the input image to the correct position of the output
+image.  The kernel has the following signature:
 
 ```C
 __global__ void cat_map_iter( unsigned char *cur, unsigned char *next, int N )
 ```
 
-(dove $N$ è la larghezza o altezza dell'immagine, che deve essere
-quadrata). Utilizzando il proprio ID e quello del blocco in cui si
-trova, ogni thread determina le coordinate $(x, y)$ del pixel su cui
-operare, e calcola le coordinate $(x', y')$ del pixel dopo
-l'applicazione di una iterazione della mappa del gatto. Per calcolare
-la $k$-esima iterata sarà quindi necessario invocare il kernel $k$
-volte, scambiando dopo ogni iterazione le immagini corrente e
-successiva come fatto dal programma seriale.
+where $N$ is the height/width of the image. The program must work
+correctly even if $N$ is not an integer multiple of _BLKDIM_. Each
+thread is mapped to the coordinates $(x, y)$ of a pixel using the
+usual formulas:
 
-La soluzione precedente consente di parallelizzare il programma
-fornito apportando minime modifiche. Si può anche definire un kernel
-che calcoli direttamente la k-esima iterata della mappa del gatto con
-una singola invocazione. La segnatura del nuovo kernel sarà
+```C
+        const int x = threadIdx.x + blockIdx.x * blockDim.x;
+        const int y = threadIdx.y + blockIdx.y * blockDim.y;
+```
+
+Therefore, to compute the $k$-th iteration of the cat map we need to
+execute the kernel $k$ times.
+
+A better approach is to define a kernel
 
 ```C
 __global__ void cat_map_iter_k( unsigned char *cur, unsigned char *next, int N, int k )
 ```
 
-Come nel caso precedente, ciascun thread determina le coordinate
-$(x,y)$ del pixel di sua competenza. Le coordinate del pixel dopo $k$
-iterazioni si possono ottenere applicando lo schema seguente:
+that applies $k$ iterations of the cat map to the current image.  This
+kernel needs to be executed only once, and this saves some significant
+overhead associated to kernel calls. The new kernel can be
+defined as follows:
 
 ```C
 const int x = ...;
@@ -128,34 +154,32 @@ if ( x < N && y < N ) {
 		xcur = xnext;
 		ycur = ynext;
 	}
-	\/\* copia il pixel (x, y) dell'immagine corrente
-	in posizione (xnext, ynext) della nuova immagine \*\/
+	\/\* copy the pixel (x, y) from the current image to
+	the position (xnext, ynext) of the new image \*\/
 }
 ```
 
-In questo modo è sufficiente una singola invocazione del kernel
-(anziché $k$ come nel caso precedente) per ottenere l'immagine
-finale. Consiglio di misurare i tempi di esecuzione delle due
-alternative per capire se e di quanto la seconda soluzione è più
-efficiente della prima.
+I suggest to implement both solutions (the one where the kernel is
+executed $k$ times, and the one where the kernel is executed only
+once) and measure the execution times to see the difference.
 
-Per compilare:
+To compile:
 
         nvcc cuda-cat-map.cu -o cuda-cat-map
 
-Per eseguire:
+To execute:
 
         ./cuda-cat-map k < input_file > output_file
 
-Esempio:
+Example:
 
         ./cuda-cat-map 100 < cat1368.pgm > cat1368.100.pgm
 
-## File
+## Files
 
 - [cuda-cat-map.cu](cuda-cat-map.cu)
 - [hpc.h](hpc.h)
-- [cat1368.pgm](cat1368.pgm) (il tempo di ricorrenza di questa immagine è 36)
+- [cat1368.pgm](cat1368.pgm) (the minimum recurrence time of this image is 36)
 
 ***/
 
@@ -188,7 +212,7 @@ __global__ void cat_map_iter( unsigned char *cur, unsigned char *next, int w, in
 }
 
 /**
- * Compute |k| iterations of the cat map using the GPU
+ * Compute `k` iterations of the cat map using the GPU
  */
 __global__ void cat_map_iter_k( unsigned char *cur, unsigned char *next, int N, int k )
 {
@@ -209,17 +233,16 @@ __global__ void cat_map_iter_k( unsigned char *cur, unsigned char *next, int N, 
 #endif
 
 /**
- * Compute the |k|-th iterate of the cat map for image |img|. The
+ * Compute the `k`-th iterate of the cat map for image `img`. The
  * width and height of the input image must be equal. This function
- * replaces the bitmap of |img| with the one resulting after ierating
- * |k| times the cat map. You need to allocate a temporary image, with
+ * replaces the bitmap of `img` with the one resulting after ierating
+ * `k` times the cat map. You need to allocate a temporary image, with
  * the same size of the original one, so that you read the pixel from
  * the "old" image and copy them to the "new" image (this is similar
  * to a stencil computation, as was discussed in class). After
  * applying the cat map to all pixel of the "old" image the role of
  * the two images is exchanged: the "new" image becomes the "old" one,
- * and vice-versa. At the end of the function, the temporary image
- * must be deallocated.
+ * and vice-versa. The temporary image must be deallocated upon exit.
  */
 void cat_map( PGM_image* img, int k )
 {

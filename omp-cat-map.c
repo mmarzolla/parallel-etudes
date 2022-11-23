@@ -23,17 +23,17 @@
 % Moreno Marzolla <moreno.marzolla@unibo.it>
 % Last updated: 2022-10-18
 
-![Vladimir Igorevich Arnold (12 giugno 1937 - 3 giugno 2010). By Svetlana Tretyakova - <http://www.mccme.ru/arnold/pool/original/VI_Arnold-05.jpg>, CC BY-SA 3.0](Vladimir_Arnold.jpg)
+![Vladimir Igorevich Arnold (1937--2010). By Svetlana Tretyakova - <http://www.mccme.ru/arnold/pool/original/VI_Arnold-05.jpg>, CC BY-SA 3.0](Vladimir_Arnold.jpg)
 
 [Arnold's cat map](https://en.wikipedia.org/wiki/Arnold%27s_cat_map)
-is a continuous chaotic function that has been studied in the '60 by
+is a continuous chaotic function that has been studied in the '60s by
 the Russian mathematician [Vladimir Igorevich
-Arnold](https://en.wikipedia.org/wiki/Vladimir_Arnold) (1937-2010). In
-its discrete version, the function can be understood as a
-transformation of a bitmapped image $P$ of size $N \times N$ into a
-new image $P'$ of the same size. For each $0 \leq x, y < N$, the pixel
-of coordinates $(x,y)$ in $P$ is mapped into a new position $C(x, y) =
-(x', y')$ in $P'$ where
+Arnold](https://en.wikipedia.org/wiki/Vladimir_Arnold). In its
+discrete version, the function can be understood as a transformation
+of a bitmapped image $P$ of size $N \times N$ into a new image $P'$ of
+the same size. For each $0 \leq x, y < N$, the pixel of coordinates
+$(x,y)$ in $P$ is mapped into a new position $C(x, y) = (x', y')$ in
+$P'$ where
 
 $$
 x' = (2x + y) \bmod N, \qquad y' = (x + y) \bmod N

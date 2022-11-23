@@ -177,7 +177,7 @@ __global__ void knapsack_step( float *Vcur, float *Vnext, int *w, float *v, int 
     }
 }
 
-#define BLKSIZE 512
+#define BLKDIM 512
 
 float knapsack(int C, int n, int* w, float *v)
 {
@@ -187,8 +187,8 @@ float knapsack(int C, int n, int* w, float *v)
     float *d_Vcur, *d_Vnext, *tmp;
     float result;
     int i;
-    dim3 grid((NCOLS + BLKSIZE-1)/BLKSIZE);
-    dim3 block(BLKSIZE);
+    dim3 grid((NCOLS + BLKDIM-1)/BLKDIM);
+    dim3 block(BLKDIM);
 
     /* Allocate device copies of v and w */
     cudaSafeCall( cudaMalloc((void**)&d_w, n*sizeof(*d_w)) );

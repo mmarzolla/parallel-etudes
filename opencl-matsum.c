@@ -2,7 +2,7 @@
  *
  * opencl-matsum.cu - Dense matrix-matrix addition with OpenCL
  *
- * Copyright (C) 2017--2021 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Somma di matrici con OpencL
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Ultimo aggiornamento: 2021-12-03
+% Ultimo aggiornamento: 2022-11-22
 
 Il file [opencl-matsum.c](opencl-matsum.c) calcola la somma tra due
 matrici quadrate di dimensione $N \times N$ utilizzando la
@@ -145,7 +145,7 @@ int check( float *r, int n )
     int i, j, k = 0;
     for (i=0; i<n; i++) {
         for (j=0; j<n; j++) {
-            if (fabsf(r[i*n+j] - 2.0*k) > 1e-5) {
+            if (fabsf(r[i*n+j] - 2.0f*k) > 1e-5) {
                 fprintf(stderr, "Check FAILED: r[%d][%d] = %f, expeted %f\n", i, j, r[i*n+j], 2.0*k);
                 return 0;
             }
