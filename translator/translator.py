@@ -12,7 +12,7 @@ Always leave one empty line at the end of the file
 DONE_SO_FAR = 'data.txt'
 
 # Directory from which the translator will search for files
-DIR = "../lab/"
+DIR = "../"
 
 '''
 Opening and closing delimiters of portion of comments that
