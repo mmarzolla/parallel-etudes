@@ -40,7 +40,7 @@ so you will always have $0 \leq B_x \leq 9$). If $B_x = 4$ or $B_x
 0. See Figure 1.
 
 ![Figure 1: Examples of computation of the new state of the central
- cell of a block of size $3 \times 3$](openclanneal1.png)
+ cell of a block of size $3 \times 3$](opencl-anneal1.png)
 
 To simulate synchrnonous, concurrent updates of all cells, two domains
 must be used. The state of a cell is always read from the "current"
@@ -55,7 +55,7 @@ of small "bubbles" that remain stable. You might be interested in [a
 short YouTube video showing the evolution of the
 automaton](https://youtu.be/TSHWSjICCxs) over time.
 
-![Figure 2: Evolution of the _ANNEAL_ automaton ([video](https://youtu.be/UNpl2iUyz3Q))](anneal-demo.png)
+![Figure 2: Evolution of the _ANNEAL_ automaton ([video]()https://youtu.be/TSHWSjICCxs)](anneal-demo.png)
 
 The file [opencl-anneal.c](opencl-anneal.c) contains a serial
 implementation of the algorithm that computes the evolution of the
@@ -131,7 +131,7 @@ locally the calculation of coordinates can be done as follows:
     const int lj = 1 + get_local_id (0);
 ```
 
-![Figure 3: Copying data from global domain to local storage](openclanneal3.png)
+![Figure 3: Copying data from global domain to local storage](opencl-anneal3.png)
 
 The hardest part is copying the data from the global grid to the local
 buffer. Using workgroup of size $\mathit{BLKDIM} \times
@@ -145,7 +145,7 @@ buffer. Using workgroup of size $\mathit{BLKDIM} \times
 where `ext_width = (W + 2)` is the domain width, including the ghost
 area.
 
-![Figure 4: Active work-items while filling the local domain](openclanneal4.png)
+![Figure 4: Active work-items while filling the local domain](opencl-anneal4.png)
 
 To initialize the ghost area you might proceed as follows (Figure 4):
 

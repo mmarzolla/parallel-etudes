@@ -12,7 +12,7 @@ OUTFILES :=
 HANDOUTS_SRC := ${SRC:%.c=handouts/%.c} ${SRC:%.cu=handouts/%.cu} ${SRC:%.cl=handouts/%.cl} ${INC:%.h=handouts/%.h}
 SOLUTIONS_SRC := ${SRC:%.c=solutions/%.c} ${SRC:%.cu=solutions/%.cu} ${SRC:%.cl=solutions/%.cl} ${INC:%.h=solutions/%.h}
 HTML := ${SRC:%.c=handouts/%.html} ${SRC:%.cu=handouts/%.html} handouts/exercises-list.html
-EXTRAS += lab.css labhpc.include $(wildcard *.png *.svg *.jpg *.pgm *.ppm *.md *,sh) mpi-rule30.pdf
+EXTRAS += lab.css $(wildcard *.png *.svg *.jpg *.pgm *.ppm *.md *,sh) mpi-rule30.pdf
 IMGS := omp-c-ray-images.png denoise.png simd-map-levels.png edge-detect.png cat-map-demo.png anneal-demo.png
 CFLAGS += -std=c99 -Wall -Wpedantic -Werror -g -ggdb
 LDLIBS +=
