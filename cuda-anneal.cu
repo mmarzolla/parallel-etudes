@@ -39,7 +39,7 @@ so you will always have $0 \leq B_x \leq 9$). If $B_x = 4$ or $B_x
 0. See Figure 1.
 
 ![Figure 1: Computation of the new state of the central cell of a
- block of size $3 \times 3$](cuda-anneal1.png)
+ block of size $3 \times 3$](cuda-anneal1.svg)
 
 To simulate synchrnonous, concurrent updates of all cells, two domains
 must be used. The state of a cell is read from the "current" domain,
@@ -120,7 +120,7 @@ locally the calculation of coordinates can be done as follows:
     const int lj = 1 + threadIdx.x;
 ```
 
-![Figure 3: Copying data from global to shared memory](cuda-anneal3.png)
+![Figure 3: Copying data from global to shared memory](cuda-anneal3.svg)
 
 The hardest part is copying the data from the global grid to the
 shared buffer. Using blocks of size $\mathit{BLKDIM} \times
@@ -134,7 +134,7 @@ excluding the hatched area of Figure 3) is carried out with:
 where `ext_width = (W + 2)` is the width of the domain including the
 ghost area.
 
-![Figure 4: Active threads while filling the shared memory](cuda-anneal4.png)
+![Figure 4: Active threads while filling the shared memory](cuda-anneal4.svg)
 
 To initialize the ghost area you might proceed as follows (Figure 4):
 
