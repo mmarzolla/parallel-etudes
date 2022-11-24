@@ -29,6 +29,9 @@
 Implementazione della simulazione N-body usando tipi di dato SIMD sul
 device.
 
+> **NOTA** per qualche motivo che non ho compreso, produce un
+> risultato diverso dalla versione non SIMD. Indagare.
+
 ## File
 
 - [opencl-nbody-simd.c](opencl-nbody-simd.c)
