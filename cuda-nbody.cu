@@ -350,8 +350,10 @@ float energy(const float3 *x, const float3 *v, int n)
 
          */
         for (int j=i+1; j<n; j++) {
-            const float3 dx = x[i] - x[j];
-            const float distance = sqrt(dot(dx, dx));
+            const float3 dx = x[i].x - x[j].x;
+            const float3 dy = x[i].y - x[j].y;
+            const float3 dz = x[i].z - x[j].z;
+            const float distance = sqrt(dx*dx + dy*dy + dz*dz);
             energy -= 1.0f / distance;
         }
     }
