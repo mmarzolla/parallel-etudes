@@ -54,9 +54,10 @@ integrate_positions_kernel(__global float3 *x,
 }
 
 __kernel void
-kinetic_energy_kernel(__global const float3 *v,
-                      int n,
-                      __global float *results)
+energy_kernel(__global const float3 *x,
+              __global const float3 *v,
+              int n,
+              __global float *results)
 {
     __local float temp[SCL_DEFAULT_WG_SIZE];
 
@@ -66,9 +67,14 @@ kinetic_energy_kernel(__global const float3 *v,
 
     int bsize = get_local_size(0) / 2;
 
-    if (gi < n)
-        temp[li] = dot(v[gi],v[gi]);
-    else {
+    if (gi < n) {
+        temp[li] = 0.5*dot(v[gi],v[gi]);
+        for (int gj= gi+1; gj<n; gj++) {
+            const float3 dx = x[gi] - x[gj];
+            const float distance = sqrt(dot(dx, dx));
+            temp[li] -= 1.0f / distance;
+        }
+    } else {
         temp[li] = 0.0f;
     }
     /* wait for all work-items to finish the copy operation */
@@ -86,6 +92,6 @@ kinetic_energy_kernel(__global const float3 *v,
     }
 
     if ( 0 == li ) {
-        results[gid] = 0.5f*temp[0];
+        results[gid] = temp[0];
     }
 }

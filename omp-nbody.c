@@ -224,17 +224,17 @@ void integrate_positions(float *x, float *y, float *z,
 float energy(const float *x, const float *y, const float *z,
              const float *vx, const float *vy, const float *vz, int n)
 {
-    float e = 0.0;
+    float energy = 0.0;
     /* The kinetic energy of an n-body system is:
 
        K = (1/2) * sum_i [m_i * (vx_i^2 + vy_i^2 + vz_i^2)]
 
     */
 #ifndef SERIAL
-#pragma omp parallel for default(none) shared(x, y, z, vx, vy, vz, n) reduction(+:e) schedule(dynamic)
+#pragma omp parallel for default(none) shared(x, y, z, vx, vy, vz, n) reduction(+:energy) schedule(dynamic)
 #endif
     for (int i=0; i<n; i++) {
-        e += 0.5 * (vx[i] * vx[i] + vy[i] * vy[i] + vz[i] * vz[i]);
+        energy += 0.5 * (vx[i] * vx[i] + vy[i] * vy[i] + vz[i] * vz[i]);
         /* Accumulate potential energy, defined as
 
            sum_{i<j} - m[j] * m[j] / d_ij
@@ -245,10 +245,10 @@ float energy(const float *x, const float *y, const float *z,
             const float dy = y[i] - y[j];
             const float dz = z[i] - z[j];
             const float distance = sqrt(dx*dx + dy*dy + dz*dz);
-            e -= 1.0f / distance;
+            energy -= 1.0f / distance;
         }
     }
-    return e;
+    return energy;
 }
 
 int main(int argc, char* argv[])

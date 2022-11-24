@@ -389,7 +389,7 @@ int main(int argc, char* argv[])
 #else
         energy = energy(x, y, z, vx, vy, vz, N);
 #endif
-        printf("Iteration %3d/%3d : E=%f, %.3f seconds\n", step, nsteps, energy, elapsed);
+        printf("Iteration %3d/%3d : energy=%f, %.3f seconds\n", step, nsteps, energy, elapsed);
         fflush(stdout);
     }
     const double avg_time = total_time / nsteps;

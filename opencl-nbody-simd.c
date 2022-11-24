@@ -112,22 +112,33 @@ void integrate_positions(cl_float3 *x, const cl_float3 *v, float dt, int n)
     }
 }
 
-float kinetic_energy(const cl_float3 *v, int n)
+float energy(const cl_float3 *x, const cl_float3 *v, int n)
 {
-    float K = 0.0;
-    int i;
+    float energy = 0.0;
     /* The kinetic energy of an n-body system is:
 
        K = (1/2) * sum_i [m_i * (vx_i^2 + vy_i^2 + vz_i^2)]
 
     */
 
-    for (i=0; i<n; i++) {
-        K += (v[i].s[0] * v[i].s[0]) +
-             (v[i].s[1] * v[i].s[1]) +
-             (v[i].s[2] * v[i].s[2]);
+    for (int i=0; i < n; i++) {
+        energy += (v[i].s[0] * v[i].s[0]) +
+                  (v[i].s[1] * v[i].s[1]) +
+                  (v[i].s[2] * v[i].s[2]);
+        /* Accumulate potential energy, defined as
+
+           sum_{i<j} - m[j] * m[j] / d_ij
+
+         */
+        for (int j=i+1; j<n; j++) {
+            const float dx = x[i].s[0] - x[j].s[0];
+            const float dy = x[i].s[1] - x[j].s[1];
+            const float dz = x[i].s[2] - x[j].s[2];
+            const float distance = sqrt(dx*dx + dy*dy + dz*dz);
+            energy -= 1.0f / distance;
+        }
     }
-    return 0.5 * K;
+    return energy;
 }
 #endif
 
@@ -161,6 +172,8 @@ int main(int argc, char* argv[])
         nIters = atoi(argv[2]);
     }
 
+    srand(1234);
+    
     printf("%d particles, %d steps\n", nBodies, nIters);
 
     const size_t size = nBodies*sizeof(cl_float3);
@@ -182,7 +195,7 @@ int main(int argc, char* argv[])
     d_energies = sclMalloc(sizeof(energies), CL_MEM_READ_WRITE);
     sclKernel compute_force_kernel = sclCreateKernel("compute_force_kernel");
     sclKernel integrate_positions_kernel = sclCreateKernel("integrate_positions_kernel");
-    sclKernel kinetic_energy_kernel = sclCreateKernel("kinetic_energy_kernel");
+    sclKernel energy_kernel = sclCreateKernel("energy_kernel");
 #endif
 
     float totalTime = 0.0;
@@ -205,24 +218,23 @@ int main(int argc, char* argv[])
         const double elapsed = hpc_gettime() - tstart;
         totalTime += elapsed;
 #ifndef SERIAL
-        /* The following copy is required to compute the kinetic
-           energy on the CPU. It would be possible to compute the
-           energy on the GPU, so that this copy operation would not be
-           required */
+        /* The following copy is required to compute the energy on the
+           CPU. It would be possible to compute the energy on the GPU,
+           so that this copy operation would not be required */
 
-        sclSetArgsEnqueueKernel(kinetic_energy_kernel,
+        sclSetArgsEnqueueKernel(energy_kernel,
                                 grid, block,
-                                ":b :d :b",
-                                d_v, nBodies, d_energies);
+                                ":b :b :d :b",
+                                d_x, d_v, nBodies, d_energies);
         sclMemcpyDeviceToHost(energies, d_energies, sizeof(energies));
         energy = 0.0f;
         for (int i=0; i<N_OF_BLOCKS; i++) {
             energy += energies[i];
         }
 #else
-        energy = kinetic_energy(v, nBodies);
+        energy = energy(v, nBodies);
 #endif
-        printf("Iteration %3d/%3d : K=%f, %.3f seconds\n", iter, nIters, energy, elapsed);
+        printf("Iteration %3d/%3d : energy=%f, %.3f seconds\n", iter, nIters, energy, elapsed);
         fflush(stdout);
     }
     const double avgTime = totalTime / nIters;

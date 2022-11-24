@@ -23,11 +23,11 @@
 % Moreno Marzolla <moreno.marzolla@unibo.it>
 % Last updated: 2022-11-24
 
-The _ANNEAL_ callular automaton (also known as _twisted majority
-rule_) is a simple two-dimensional, binary CA defined on a grid of
-size $W \times H$. Cyclic boundary conditions are assumed, so that
-each cell has eight neighbors. Two cells are adjacent if they share a
-side or a corner.
+The ANNEAL Callular Automaton (also known as _twisted majority rule_)
+is a simple two-dimensional, binary CA defined on a grid of size $W
+\times H$. Cyclic boundary conditions are assumed, so that each cell
+has eight neighbors. Two cells are adjacent if they share a side or a
+corner.
 
 The automaton evolves at discrete time steps $t = 0, 1, \ldots$. The
 state of a cell $x$ at time $t + 1$ depends on its state at time $t$,
@@ -152,7 +152,7 @@ Filling the ghost area can be done as follows (see Figure 4):
 You might be tempted to collapse steps 1 and 2 into a single step that
 is carried out, e.g., by the threads of the first row. This could
 work, but it would be difficult to generalize the program to domains
-whose sides $W, H$ are not multiple of $\mathit{BLKDIM}$.
+whose sides $W, H$ are not multiple of _BLKDIM_.
 
 In practice, you may use the following schema:
 

@@ -333,20 +333,29 @@ __global__ void integrate_positions(float3 *x, const float3 *v, float dt, int n)
 }
 #endif
 
-float kinetic_energy(const float3 *v, int n)
+float energy(const float3 *x, const float3 *v, int n)
 {
-    float K = 0.0;
-    int i;
+    float energy = 0.0;
     /* The kinetic energy of an n-body system is:
 
        K = (1/2) * sum_i [m_i * (vx_i^2 + vy_i^2 + vz_i^2)]
 
     */
 
-    for (i=0; i<n; i++) {
-        K += (v[i].x * v[i].x) + (v[i].y * v[i].y) + (v[i].z * v[i].z);
+    for (int i=0; i<n; i++) {
+        energy += 0.5*(v[i].x * v[i].x) + (v[i].y * v[i].y) + (v[i].z * v[i].z);
+        /* Accumulate potential energy, defined as
+
+           sum_{i<j} - m[j] * m[j] / d_ij
+
+         */
+        for (int j=i+1; j<n; j++) {
+            const float3 dx = x[i] - x[j];
+            const float distance = sqrt(dot(dx, dx));
+            energy -= 1.0f / distance;
+        }
     }
-    return 0.5 * K;
+    return energy;
 }
 
 int main(int argc, char* argv[])
@@ -377,6 +386,8 @@ int main(int argc, char* argv[])
     if (argc > 2) {
         nIters = atoi(argv[2]);
     }
+
+    srand(1234);
 
     printf("%d particles, %d steps\n", nBodies, nIters);
 #ifndef SERIAL
@@ -420,13 +431,13 @@ int main(int argc, char* argv[])
         const double elapsed = hpc_gettime() - tstart;
         totalTime += elapsed;
 #ifndef SERIAL
-        /* The following copy is required to compute the kinetic
-           energy on the CPU. It would be possible to compute the
-           energy on the GPU, so that this copy operation would not be
-           required */
+        /* The following copy is required to compute the energy on the
+           CPU. It would be possible to compute the energy on the GPU,
+           so that this copy operation would not be required */
+        cudaSafeCall( cudaMemcpy(x, d_x, size, cudaMemcpyDeviceToHost) );
         cudaSafeCall( cudaMemcpy(v, d_v, size, cudaMemcpyDeviceToHost) );
 #endif
-        printf("Iteration %3d/%3d : K=%f, %.3f seconds\n", iter, nIters, kinetic_energy(v, nBodies), elapsed);
+        printf("Iteration %3d/%3d : energy=%f, %.3f seconds\n", iter, nIters, energy(x, v, nBodies), elapsed);
         fflush(stdout);
     }
     const double avgTime = totalTime / nIters;
