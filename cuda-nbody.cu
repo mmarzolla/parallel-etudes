@@ -343,7 +343,7 @@ float energy(const float3 *x, const float3 *v, int n)
     */
 
     for (int i=0; i<n; i++) {
-        energy += 0.5*(v[i].x * v[i].x) + (v[i].y * v[i].y) + (v[i].z * v[i].z);
+        energy += 0.5*(v[i].x * v[i].x + v[i].y * v[i].y + v[i].z * v[i].z);
         /* Accumulate potential energy, defined as
 
            sum_{i<j} - m[j] * m[j] / d_ij
