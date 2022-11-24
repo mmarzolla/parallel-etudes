@@ -150,8 +150,12 @@ float randab( float a, float b )
  * Randomly initialize positions and velocities of the `n` particles
  * stored in `p`.
  */
-void init(float *x, float *y, float *z,
-          float *vx, float *vy, float *vz,
+void init(float *x,
+          float *y,
+          float *z,
+          float *vx,
+          float *vy,
+          float *vz,
           int n)
 {
     for (int i = 0; i < n; i++) {
@@ -167,9 +171,14 @@ void init(float *x, float *y, float *z,
 /**
  * Compute the new velocities of all particles in `p`
  */
-void compute_force(const float *x, const float *y, const float *z,
-                   float *vx, float *vy, float *vz,
-                   float dt, int n)
+void compute_force(const float *x,
+                   const float *y,
+                   const float *z,
+                   float *vx,
+                   float *vy,
+                   float *vz,
+                   float dt,
+                   int n)
 {
 #ifndef SERIAL
 #if __GNUC__ < 9
@@ -203,9 +212,14 @@ void compute_force(const float *x, const float *y, const float *z,
  * Update the positions of all particles in p using the updated
  * velocities.
  */
-void integrate_positions(float *x, float *y, float *z,
-                         const float *vx, const float *vy, const float *vz,
-                         float dt, int n)
+void integrate_positions(float *x,
+                         float *y,
+                         float *z,
+                         const float *vx,
+                         const float *vy,
+                         const float *vz,
+                         float dt,
+                         int n)
 {
 #ifndef SERIAL
 #pragma omp parallel for default(none) shared(x, y, z, vx, vy, vz, n, dt)
@@ -221,34 +235,40 @@ void integrate_positions(float *x, float *y, float *z,
  * Compute the total energy of the system as the sum of kinetic and
  * potential energy.
  */
-float energy(const float *x, const float *y, const float *z,
-             const float *vx, const float *vy, const float *vz, int n)
+float energy(const float *x,
+             const float *y,
+             const float *z,
+             const float *vx,
+             const float *vy,
+             const float *vz,
+             int n)
 {
-    float energy = 0.0;
-    /* The kinetic energy of an n-body system is:
-
-       K = (1/2) * sum_i [m_i * (vx_i^2 + vy_i^2 + vz_i^2)]
-
-    */
+    double result = 0.0;
 #ifndef SERIAL
-#pragma omp parallel for default(none) shared(x, y, z, vx, vy, vz, n) reduction(+:energy) schedule(dynamic)
+#pragma omp parallel for default(none) shared(x, y, z, vx, vy, vz, n) reduction(+:result)
 #endif
     for (int i=0; i<n; i++) {
-        energy += 0.5 * (vx[i] * vx[i] + vy[i] * vy[i] + vz[i] * vz[i]);
+        /* The kinetic energy of an n-body system is:
+
+           K = (1/2) * sum_i [m_i * (vx_i^2 + vy_i^2 + vz_i^2)]
+
+        */
+
+        result += 0.5 * (vx[i] * vx[i] + vy[i] * vy[i] + vz[i] * vz[i]);
         /* Accumulate potential energy, defined as
 
            sum_{i<j} - m[j] * m[j] / d_ij
 
          */
         for (int j=i+1; j<n; j++) {
-            const float dx = x[i] - x[j];
-            const float dy = y[i] - y[j];
-            const float dz = z[i] - z[j];
-            const float distance = sqrt(dx*dx + dy*dy + dz*dz);
-            energy -= 1.0f / distance;
+            const double dx = x[i] - x[j];
+            const double dy = y[i] - y[j];
+            const double dz = z[i] - z[j];
+            const double distance = sqrtf(dx*dx + dy*dy + dz*dz);
+            result -= 1.0 / distance;
         }
     }
-    return energy;
+    return result;
 }
 
 int main(int argc, char* argv[])
@@ -281,7 +301,7 @@ int main(int argc, char* argv[])
 
     printf("%d particles, %d steps\n", N, nsteps);
 
-    const size_t size = N*sizeof(float);
+    const size_t size = N*sizeof(*x);
     x = (float*)malloc(size); assert(x != NULL);
     y = (float*)malloc(size); assert(y != NULL);
     z = (float*)malloc(size); assert(z != NULL);
@@ -299,14 +319,18 @@ int main(int argc, char* argv[])
         const float e = energy(x, y, z, vx, vy, vz, N);
         const double elapsed = hpc_gettime() - tstart;
         total_time += elapsed;
-        printf("Iteration %3d/%3d : E=%f, %.3f seconds\n", step, nsteps, e, elapsed);
+        printf("Iteration %3d/%3d : energy=%f, %.3f seconds\n", step, nsteps, e, elapsed);
         fflush(stdout);
     }
     const double avg_time = total_time / nsteps;
 
     printf("Average %0.3f Billion Interactions / second\n", 1e-9 * N * N / avg_time);
 
-    free(x); free(y); free(z);
-    free(vx); free(vy); free(vz);
+    free(x);
+    free(y);
+    free(z);
+    free(vx);
+    free(vy);
+    free(vz);
     return EXIT_SUCCESS;
 }

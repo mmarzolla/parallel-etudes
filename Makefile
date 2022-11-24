@@ -14,7 +14,7 @@ SOLUTIONS_SRC := ${SRC:%.c=solutions/%.c} ${SRC:%.cu=solutions/%.cu} ${SRC:%.cl=
 HTML := ${SRC:%.c=handouts/%.html} ${SRC:%.cu=handouts/%.html} handouts/exercises-list.html
 EXTRAS += lab.css $(wildcard *.png *.svg *.jpg *.pgm *.ppm *.md *,sh) mpi-rule30.pdf
 IMGS := omp-c-ray-images.png denoise.png simd-map-levels.png edge-detect.png cat-map-demo.png anneal-demo.png
-CFLAGS += -std=c99 -Wall -Wpedantic -Werror -g -ggdb
+CFLAGS += -std=c99 -Wall -Wpedantic -g -ggdb
 LDLIBS +=
 PANDOC_EXTRA_OPTS += -V lang=en-US --mathjax="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
 NVCC ?= nvcc
