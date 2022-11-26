@@ -5,7 +5,7 @@
  * N-body simulation with CUDA (from https://github.com/harrism/mini-nbody)
  *
  * Copyright (C) Mark Harris
- * Modified in 2020 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Modified in 2020--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,7 @@
 /***
 % HPC - N-Body simulation
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-09-07
-
+% Last updated: 2022-11-26
 
 ![A frame of the Bolshoi simulation (source: <http://hipacc.ucsc.edu/Bolshoi/Images.html>)](bolshoi.png)
 
@@ -120,7 +119,7 @@ memory $N$ times; indeed, each of the $N$ CUDA threads scans the
 entire `p[]` array, so each element of `p[]` is accessed $N$ times
 by $N$ different threads.
 
-![Figure 1: Using _shared memory_](cuda-nbody.png)
+![Figure 1: Using _shared memory_](cuda-nbody.svg)
 
 In situations like this, it can be useful to try to use use shared
 memory to reduce access to the device memory (Figure 1). To do this:

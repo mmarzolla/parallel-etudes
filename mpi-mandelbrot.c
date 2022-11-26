@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * mpi-mandelbrot.c - Draw the Mandelbrot set with MPI
+ * mpi-mandelbrot.c - Mandelbrot set
  *
  * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
@@ -19,30 +19,30 @@
  ****************************************************************************/
 
 /***
-% HPC - Draw the Mandelbrot set with MPI
+% HPC - Mandelbrot set
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-11-02
+% Last updated: 2022-11-26
 
-![Benoit Mandelbrot (1924--2010)](Benoit_Mandelbrot.jpg)
+![The Mandelbrot set](mandelbrot-set.png)
 
 The file [mpi-mandelbrot.c](mpi-mandelbrot.c) contains the skeleton of
-an MPI program that computes the Mandelbrot set; it is not a real
-parallel version, since the master process does everything.
+an MPI program that computes the Mandelbrot set; it is not a parallel
+version, since the master process does everything.
 
 The program accepts the image height as an optional command-line
-parameter; the image width is computed automatically to include the
-whole set. The program writes a graphical representation of the
-Mandelbrot set into a file `mandebrot.ppm` in PPM (_Portable Pixmap_)
-format. If you don't have a suitable viewer, you can convert the
-image, e.g., into PNG with the command:
+parameter; the width is computed automatically to include the whole
+set. The program writes a graphical representation of the Mandelbrot
+set into a file `mandebrot.ppm` in PPM (_Portable Pixmap_) format. If
+you don't have a suitable viewer, you can convert the image, e.g.,
+into PNG with the command:
 
         convert mandelbrot.ppm mandelbrot.png
 
-The goal of this exercise is to write a truly parallel implementation
-of the program, where all MPI processes contribute to the
-computation. To do this, partition the image into $P$ vertical blocks
-where $P$ is the number of MPI processes, and let each process compute
-a portion of the image (see Figure 1).
+The goal of this exercise is to write a parallel version of the
+program, where all MPI processes contribute to the computation. To do
+this, you should partition the image into $P$ vertical blocks where
+$P$ is the number of MPI processes, and let each process compute a
+portion of the image (see Figure 1).
 
 ![Figure 1: Domain decomposition for the computation of the Mandelbrot
  set with 4 MPI processes](mpi-mandelbrot.png)
@@ -50,7 +50,7 @@ a portion of the image (see Figure 1).
 Specifically, each process computes a portion of the image of size
 $\mathit{xsize} \times (\mathit{ysize} / P)$. This is an
 _embarrassingly parallel_ computation, since there is no need to
-communicate. However, the processes _do_ need to send their portion of
+communicate. However, the processes do need to send their portion of
 image to the master, which will take care of stitching them together
 to form the final result. This is done using the `MPI_Gather()`
 function. This is a color image where three bytes are used to encode
@@ -60,11 +60,11 @@ P)$ elements of type `MPI_BYTE`.
 
 You can initially assume that the vertical size _ysize_ is an integer
 multiple of $P$, and then relax this assumption. To this aim, you may
-let process 0 take care of computing the last `(ysize % P)` rows of
-the image, or use `MPI_Gatherv()` to allow different block sizes to be
-assembled together.
+let process 0 take care of the last `(ysize % P)` rows, or use
+`MPI_Gatherv()` to allow different block sizes to be assembled
+together.
 
-You may want to keep the serial program as a reference§; to check the
+You may want to keep the serial program as a reference; to check the
 correctness of the parallel implementation, you can compare the output
 images produced by both versions with the command:
 

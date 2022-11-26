@@ -23,7 +23,7 @@
 % Moreno Marzolla <moreno.marzolla@unibo.it>
 % Last updated: 2022-10-18
 
-![Vladimir Igorevich Arnold (1937--2010). By Svetlana Tretyakova - <http://www.mccme.ru/arnold/pool/original/VI_Arnold-05.jpg>, CC BY-SA 3.0](Vladimir_Arnold.jpg)
+![Arnold's cat map](cat-map.png)
 
 [Arnold's cat map](https://en.wikipedia.org/wiki/Arnold%27s_cat_map)
 is a continuous chaotic function that has been studied in the '60s by

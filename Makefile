@@ -139,6 +139,12 @@ edge-detect.png: omp-edge-detect BWstop-sign.pgm
 	./omp-edge-detect < BWstop-sign.pgm > BWstop-sign-edges.pgm
 	montage BWstop-sign.pgm BWstop-sign-edges.pgm -tile 2x1 -geometry +0+0 -resize 400x $@
 
+cat-map.png: omp-cat-map
+	for niter in 0 1 2 5 10 36; do \
+	  ./omp-cat-map "$${niter}" < cat1368.pgm > `printf "cat-map-demo-%02d.pgm" $${niter}` ; \
+	done
+	montage "cat-map-demo-[0-9]*.pgm" -scale x600 -tile 6x1 -geometry +0+0 $@
+
 cat-map-demo.png: omp-cat-map
 	for niter in 0 1 2 5 10 36; do \
 	  ./omp-cat-map "$${niter}" < cat1368.pgm > "cat-map-demo-$${niter}.pgm" ; \

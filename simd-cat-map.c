@@ -23,6 +23,8 @@
 % Moreno Marzolla <moreno.marzolla@unibo.it>
 % Ultimo aggiornamento: 2022-11-26
 
+![Arnold's cat map](cat-map.png)
+
 Scopo di questo esercizio è sviluppare una versione SIMD di una
 funzione che calcola l'iterata della _mappa del gatto di Arnold_, una
 vecchia conoscenza che abbiamo già incontrato in altre esercitazioni.
