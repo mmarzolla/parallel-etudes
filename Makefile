@@ -144,6 +144,7 @@ cat-map.png: omp-cat-map
 	  ./omp-cat-map "$${niter}" < cat1368.pgm > `printf "cat-map-demo-%02d.pgm" $${niter}` ; \
 	done
 	montage "cat-map-demo-[0-9]*.pgm" -scale x600 -tile 6x1 -geometry +0+0 $@
+	\rm -f "cat-map-demo-[0-9]*.pgm"
 
 cat-map-demo.png: omp-cat-map
 	for niter in 0 1 2 5 10 36; do \
@@ -151,6 +152,7 @@ cat-map-demo.png: omp-cat-map
 	  convert "cat-map-demo-$${niter}.pgm" -resize 128 -pointsize 18 -background white label:"K = $$niter" -gravity Center -append `printf "cat-map-demo-%02d.png" $${niter}` ; \
 	done
 	montage "cat-map-demo-[0-9]*.png" -tile 6x1 -geometry +5+5 $@
+	\rm -f "cat-map-demo-[0-9]*.pgm" "cat-map-demo-[0-9]*.png"
 
 anneal-demo.png: opencl-anneal
 	for niter in 0 10 100 1000; do \
@@ -159,6 +161,7 @@ anneal-demo.png: opencl-anneal
 	  convert "$${FILENAME}" -resize 256 -pointsize 18 -background white label:"$$niter Iterations" -gravity Center -append `printf "anneal-demo-%06d.png" $${niter}` ; \
 	done
 	montage "anneal-demo-[0-9]*.png" -tile 4x1 -geometry +5+5 $@
+	\rm -f "opencl-anneal-[0-9]*.pbm" "anneal-demo-[0-9]*.png"
 
 valve-noise.ppm: valve.png
 	convert $< -attenuate 0.2 +noise impulse -format ppm $@
