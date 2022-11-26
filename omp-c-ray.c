@@ -88,7 +88,7 @@ the [Whitted recursive
 algorithm](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.156.1534)
 (Figure 2).
 
-![Figure 2: Operation diagram of a recursive ray tracer](omp-c-ray.png)
+![Figure 2: Operation diagram of a recursive ray tracer](omp-c-ray.svg)
 
 The scene is represented by a set of geometric primitives (spheres, in
 our case). We generate a _primary ray_ (_V_) from the observer towards
