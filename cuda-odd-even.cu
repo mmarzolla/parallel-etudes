@@ -35,7 +35,7 @@ positions are compared with the next element and swapped if not in the
 correct order. During odd steps, elements in odd position are compared
 (and possibly swapped) with their successors. See Figure 1.
 
-![Figure 1: Odd-Even Sort](cuda-odd-even.png)
+![Figure 1: Odd-Even Sort](cuda-odd-even.svg)
 
 The file [cuda-odd-even.cu](cuda-odd-even.cu) contains a serial
 implementation of Odd-Even transposition sort. The purpose of this
