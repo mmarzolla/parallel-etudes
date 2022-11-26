@@ -32,7 +32,7 @@ sse`, `sse2`,` sse3`, `sse4_1`,` sse4_2`, `avx`,` avx2`.
 
 Compile SIMD programs with:
 
-        gcc -std = c99 -Wall -Wpedantic -O2 -march=native -g -ggdb prog.c -o prog
+        gcc -std=c99 -Wall -Wpedantic -O2 -march=native -g -ggdb prog.c -o prog
 
 where:
 
@@ -52,7 +52,7 @@ emitted. This can be done with the command:
 To know which compiler flags are enabled when `-march=native` is
 passed to GCC, use the following command:
 
-        gcc -march = native -Q --help=target
+        gcc -march=native -Q --help=target
 
 ## Scalar product
 
@@ -73,9 +73,8 @@ The goal of this exercise is to employ SIMD parallelism in function
 auto-vectorization of the `scalar_dot()` function. Compile the program
 as follows:
 
-        gcc -O2 -march=native -ftree-vectorize -fopt-info-vec-optimized \
-          -fopt-info-vec-missed simd-dot.c -o simd-dot -lm 2> & 1 | \
-          grep "loop vectorized"
+        gcc -O2 -march=native -ftree-vectorize -fopt-info-vec \
+          -o simd-dot -lm 2>&1 | grep "loop vectorized"
 
 The `-fopt-info-vec-XXX` flags print some "informative" messages (so
 to speak) on standard error indicating which loops have been
@@ -84,19 +83,23 @@ standard output, and searches for the string _loop vectorized_ which
 should be printed by the compiler when it succesfully vectorizes a
 loop.
 
-Only one such message should be printed: the compiler vectorizes the
-loop in function `fill()`, but not the one in function `serial_dot()`.
+One such message should be printed: the compiler vectorizes the loop
+in function `fill()`, but not the one in function `serial_dot()`.
 
 **2. Auto-vectorization (second attempt).** Examine the diagnostic
-messages of the compiler (remove the strings from `2> & 1` onwards
-from the previous command); there should be a message similar to
-this one:
+messages of the compiler (remove the strings from `2>&1` onwards
+from the previous command). The current version of GCC installed
+on the server (9.4.0) gives a cryptic message:
 
-        simd-dot.c: 168: 5: note: reduction: unsafe fp math optimization: r_17 = _9 + r_20;
+        simd-dot.c:165:5: missed: couldn't vectorize loop
+        simd-dot.c:166:11: missed: not vectorized: relevant stmt not supported: r_17 = _9 + r_20;
 
-Line 168 (in my source version) is the "for" loop of the
-`scalar_dot()` function; the message is the same we discussed during
-the class, and indicates that the instructions:
+Older versions of GCC gave a more meaningful message:
+
+        simd-dot.c: 165: 5: note: reduction: unsafe fp math optimization: r_17 = _9 + r_20;
+
+Both refer to the "for" loop of the `scalar_dot()` function. The
+latter message reports that the instructions:
 
         r += x[i] * y[i];
 
@@ -106,13 +109,13 @@ commutative property, the compiler does not vectorize in order not to
 alter the order of the sums. To ignore the problem, recompile the
 program with the `-funsafe-math-optimizations` flag:
 
-        gcc -O2 -march = native -ftree-vectorize -fopt-info-vec-optimized \
-          -fopt-info-vec-missed -funsafe-math-optimizations simd-dot.c \
-          -o simd-dot -lm 2> & 1 | grep "loop vectorized"
+        gcc -O2 -march=native -ftree-vectorize -fopt-info-vec \
+          -funsafe-math-optimizations \
+          simd-dot.c -o simd-dot -lm 2>&1 | grep "loop vectorized"
 
 The following message should now appear:
 
-        simd-dot.c: 168: 5: note: loop vectorized
+        simd-dot.c:165:5: optimized: loop vectorized using 32 byte vectors
 
 indicating that the cycle has been vectorized.
 
@@ -144,7 +147,8 @@ Example:
 
  ***/
 
-/* The following #define is required by posix_memalign() */
+/* The following #define is required by posix_memalign() and MUST
+   appear before including any system header */
 #define _XOPEN_SOURCE 600
 
 #include "hpc.h"
