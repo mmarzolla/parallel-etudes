@@ -29,7 +29,7 @@ da una molla di costante elastica $k$ e lunghezza a riposo $L$. Il
 primo e l'ultimo punto (quelli in posizione $x_0$ e $x_{n-1}$ occupano
 una posizione fissa e non possono muoversi.
 
-![Figura 1: Oscillatori accoppiati](cuda-coupled-oscillators.png)
+![Figura 1: Oscillatori accoppiati](cuda-coupled-oscillators.svg)
 
 Se all'istante iniziale una delle molle non è a riposo, si innescano
 delle oscillazioni che, in mancanza di attrito, proseguiranno
