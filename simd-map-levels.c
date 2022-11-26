@@ -21,7 +21,7 @@
 /***
 % HPC - Mappatura livelli di grigio
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Ultimo aggiornamento: 2022-03-21
+% Ultimo aggiornamento: 2022-11-26
 
 Consideriamo una immagine bitmap a toni di grigio di $M$ righe e $N$
 colonne, in cui il colore di ogni pixel sia codificata con un intero
@@ -46,7 +46,7 @@ La Figura 1 mostra un esempio ottenuto con il comando
 
         ./simd-map-levels 100 255 < Yellow_palace_Winter.pgm > out.pgm
 
-![Figura 1: Mappatura di livelli di gridio (_low_ = 100, _high_ = 255)](simd-map-levels.png)
+![Figura 1: Mappatura di livelli di grigio (_low_ = 100, _high_ = 255)](simd-map-levels.png)
 
 Come caso di studio reale, viene fornita l'immagine
 [C1648109](C1648109.pgm) ripresa dalla sonda [Voyager

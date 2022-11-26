@@ -48,7 +48,7 @@ The transformation corresponds to a linear "stretching" of the image,
 that is then broken down into triangles that are rearranged as shown
 in Figure 1.
 
-![Figura 1: Arnold's cat map](cat-map.png)
+![Figura 1: Arnold's cat map](cat-map.svg)
 
 Arnold's cat map has interesting properties. Let $C^k(x, y)$ be the
 result of iterating $k$ times the function $C$, i.e.:

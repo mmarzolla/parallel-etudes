@@ -100,7 +100,7 @@ on the state of a cell and the state of the two neighbors. Be careful,
 since in this exercise we are assuming a cyclic domain, whereas in the
 stencil computation discussed in the class we did not.
 
-![Figure 3: Using shared memory](cuda-rule30.png)
+![Figure 3: Using shared memory](cuda-rule30.svg)
 
 Looking at Figure 2, you might proceed as follows:
 
