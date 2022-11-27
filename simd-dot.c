@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * simd-dot,c - Dot product
+ * simd-dot.c - Dot product
  *
  * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
@@ -21,14 +21,14 @@
 /***
 % HPC - Dot product
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-11-26
+% Last updated: 2022-11-27
 
 ## Environment setup
 
-Check which SIMD extensions are supported by the CPU by examining the
-output of the `cat /proc/cpuinfo` command or the command `lscpu`. Look
-in the _flags_ field for the presence of the abbreviations `mmx`,`
-sse`, `sse2`,` sse3`, `sse4_1`,` sse4_2`, `avx`,` avx2`.
+To see which SIMD extensions are supported by the CPU you can examine
+the output of `cat /proc/cpuinfo` or `lscpu`. Look at the _flags_
+field for the presence of the abbreviations `mmx`,` sse`, `sse2`,`
+sse3`, `sse4_1`,` sse4_2`, `avx`,` avx2`.
 
 Compile SIMD programs with:
 
@@ -43,31 +43,25 @@ where:
   showing the source code along with the corresponding assembly code
   (see below).
 
-It night be useful to analyze the assembly code produced by the
+It is sometimes useful to analyze the assembly code produced by the
 compiler, e.g., to see if SIMD instructions have actually been
 emitted. This can be done with the command:
 
         objdump -dS executable_name
 
-To know which compiler flags are enabled when `-march=native` is
-passed to GCC, use the following command:
+Use the following command to see which compiler flags are enabled by
+`-march=native`:
 
         gcc -march=native -Q --help=target
 
 ## Scalar product
 
 [simd-dot.c](simd-dot.c) contains a function that computes the scalar
-product of two `float` arrays.
-
-The program prints the average execution times of the parallel and
-serial versions (the goal of this exercise is to develop the SIMD
-version). The dot product is a very simple computation that completes
-in a very short time even with large arrays. Therefore, you might not
-observe significant differences between the performance of the serial
-and SIMD versions.
-
-The goal of this exercise is to employ SIMD parallelism in function
-`simd_dot()`, according with the following steps:
+product of two arrays. The program prints the mean execution times of
+the serial and SIMD versions (the goal of this exercise is to develop
+the SIMD version). The dot product is a very simple computation that
+requires little time even with large arrays. Therefore, you might not
+observe a significant spèeedup of the SIMD program.
 
 **1. Auto-vectorization.** Check the effectiveness of compiler
 auto-vectorization of the `scalar_dot()` function. Compile the program
@@ -76,20 +70,15 @@ as follows:
         gcc -O2 -march=native -ftree-vectorize -fopt-info-vec \
           -o simd-dot -lm 2>&1 | grep "loop vectorized"
 
-The `-fopt-info-vec-XXX` flags print some "informative" messages (so
-to speak) on standard error indicating which loops have been
-vectorized, if any. The command line above redirects standard error to
-standard output, and searches for the string _loop vectorized_ which
-should be printed by the compiler when it succesfully vectorizes a
-loop.
-
-One such message should be printed: the compiler vectorizes the loop
-in function `fill()`, but not the one in function `serial_dot()`.
+The `-fopt-info-vec` flag prints some "informative" messages (so to
+speak) on standard error to show which loops have been vectorized.
+One message should be printed: the compiler vectorizes the loop in
+function `fill()`, but not the one in function `serial_dot()`.
 
 **2. Auto-vectorization (second attempt).** Examine the diagnostic
-messages of the compiler (remove the strings from `2>&1` onwards
-from the previous command). The current version of GCC installed
-on the server (9.4.0) gives a cryptic message:
+messages of the compiler (remove the strings from `2>&1` onwards from
+the previous command). The currently installed version of GCC (9.4.0)
+gives a cryptic message:
 
         simd-dot.c:165:5: missed: couldn't vectorize loop
         simd-dot.c:166:11: missed: not vectorized: relevant stmt not supported: r_17 = _9 + r_20;
@@ -116,8 +105,6 @@ program with the `-funsafe-math-optimizations` flag:
 The following message should now appear:
 
         simd-dot.c:165:5: optimized: loop vectorized using 32 byte vectors
-
-indicating that the cycle has been vectorized.
 
 **3. Vectorize the code manually.** Implement the function
 `simd_dot()` using the _vector datatype_ of the GCC compiler. The
