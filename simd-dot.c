@@ -67,38 +67,41 @@ observe a significant spèeedup of the SIMD program.
 auto-vectorization of the `scalar_dot()` function. Compile the program
 as follows:
 
-        gcc -O2 -march=native -ftree-vectorize -fopt-info-vec \
-          -o simd-dot -lm 2>&1 | grep "loop vectorized"
+        gcc -O2 -march=native -ftree-vectorize -fopt-info-vec-all \
+          simd-dot.c -o simd-dot -lm 2>&1 | grep "loop vectorized"
 
-The `-fopt-info-vec` flag prints some "informative" messages (so to
+The `-ftree-vectorize` enables auto-vectorization;
+`-fopt-info-vec-all` flag prints some "informative" messages (so to
 speak) on standard error to show which loops have been vectorized.
-One message should be printed: the compiler vectorizes the loop in
-function `fill()`, but not the one in function `serial_dot()`.
 
-**2. Auto-vectorization (second attempt).** Examine the diagnostic
+Recent versions of GCC (e.g., 9.4.0) correctly vectorize the
+`serial_dot()` function. Older versions did vectorize the loop in the
+`fill()` function, but not that in `serial_dot()`.
+
+**2. Auto-vectorization (second attempt).** If you have a recent
+version of GCC, you can examine the assembly code to verify that SIMD
+instructions have indeed been emitted:
+
+        gcc -S -c -march=native -O2 -ftree-vectorize simd-dot.c -o simd-dot.s
+
+Examine the diagnostic
 messages of the compiler (remove the strings from `2>&1` onwards from
-the previous command). The currently installed version of GCC (9.4.0)
-gives a cryptic message:
+the previous command). Older versions of GCC gave the message:
 
-        simd-dot.c:165:5: missed: couldn't vectorize loop
-        simd-dot.c:166:11: missed: not vectorized: relevant stmt not supported: r_17 = _9 + r_20;
+        simd-dot.c:157:5: note: reduction: unsafe fp math optimization: r_17 = _9 + r_20;
 
-Older versions of GCC gave a more meaningful message:
-
-        simd-dot.c: 165: 5: note: reduction: unsafe fp math optimization: r_17 = _9 + r_20;
-
-Both refer to the "for" loop of the `scalar_dot()` function. The
-latter message reports that the instructions:
+that refers to the "for" loop of the `scalar_dot()` function. The
+message reports that the instructions:
 
         r += x[i] * y[i];
 
 are part of a reduction operation involving operands of type
-`float`. Since floating-point arithmetic does not enjoy the
-commutative property, the compiler does not vectorize in order not to
-alter the order of the sums. To ignore the problem, recompile the
-program with the `-funsafe-math-optimizations` flag:
+`float`. Since floating-point arithmetic is not commutative, the
+compiler did not vectorize in order not to alter the order of the
+sums. To ignore the problem, recompile the program with the
+`-funsafe-math-optimizations` flag:
 
-        gcc -O2 -march=native -ftree-vectorize -fopt-info-vec \
+        gcc -O2 -march=native -ftree-vectorize -fopt-info-vec-all \
           -funsafe-math-optimizations \
           simd-dot.c -o simd-dot -lm 2>&1 | grep "loop vectorized"
 
@@ -118,6 +121,10 @@ are always correctly aligned.
 Compile with:
 
         gcc -std=c99 -Wall -Wpedantic -O2 -march=native -g -ggdb simd-dot.c -o simd-dot -lm
+
+(do _not_ use `-ftree-vectorize`, since we want to compare the
+execution time of the pure scalar version with the hand-tuned SIMD
+implementation).
 
 Run with:
 
