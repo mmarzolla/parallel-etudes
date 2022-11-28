@@ -84,9 +84,9 @@ instructions have indeed been emitted:
 
         gcc -S -c -march=native -O2 -ftree-vectorize simd-dot.c -o simd-dot.s
 
-Examine the diagnostic
-messages of the compiler (remove the strings from `2>&1` onwards from
-the previous command). Older versions of GCC gave the message:
+If you have an older version of GCC, examine the diagnostic messages
+of the compiler (remove the strings from `2>&1` onwards from the
+previous command); you should see something like:
 
         simd-dot.c:157:5: note: reduction: unsafe fp math optimization: r_17 = _9 + r_20;
 
@@ -111,12 +111,11 @@ The following message should now appear:
 
 **3. Vectorize the code manually.** Implement the function
 `simd_dot()` using the _vector datatype_ of the GCC compiler. The
-function is very similar to the function for computring the
-sum-reduction of an array that we have seen in the class (refer to
-`simd-vsum-vector.c` in the examples archive). Function `simd_dot()`
-should work correctly for any length $n$ of the input arrays, which is
-not required to be a multiple of the SIMD array widths. Input arrays
-are always correctly aligned.
+function should be very similar to the one computing the sum-reduction
+(refer to `simd-vsum-vector.c` in the examples archive). The function
+`simd_dot()` should work correctly for any length $n$ of the input
+arrays, which is therefore not required to be a multiple of the SIMD
+array lenght. Input arrays are always correctly aligned.
 
 Compile with:
 
