@@ -53,7 +53,7 @@ nodes may be undefined.
                   Set d[n] ← d[n] + d[n.next].
                   Set n.next ← n.next.next.
 
-![Figure 1: List ranking algorithm](omp-list-ranking.png)
+![Figure 1: List ranking algorithm](omp-list-ranking.svg)
 
 Compile with:
 

@@ -53,7 +53,7 @@ processes; arrows are messages whose content is the number shown
 above). There are $K = 2$ "turns" of the ring; at the end, process 0
 receives and prints the value 8.
 
-![Figure 1: Ring communication](mpi-ring.png)
+![Figure 1: Ring communication](mpi-ring.svg)
 
 To compile:
 
