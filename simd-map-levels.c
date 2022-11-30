@@ -144,6 +144,7 @@ Esempio:
 ## File
 
 - [simd-map-levels.c](simd-map-levels.c)
+- [hpc.h](hpc.h)
 - Immagini di esempio: [Yellow palace Winter](Yellow_palace_Winter.pgm), [C1648109.pgm](C1648109.pgm)
 
 ***/
