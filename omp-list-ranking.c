@@ -55,16 +55,18 @@ nodes may be undefined.
 
 ![Figure 1: List ranking algorithm](omp-list-ranking.svg)
 
-Compile with:
+To compile:
 
         gcc -std=c99 -fopenmp -Wall -Wpedantic omp-list-ranking.c -o omp-list-ranking
 
-Run with:
+To execute:
 
         ./omp-list-ranking [n]
 
-where `n` is the length of the list. For example, to execute with
-$P=4$ OpenMP threads and $n = 1000$ nodes:
+where `n` is the length of the list.
+
+For example, to execute with $P=4$ OpenMP threads and $n = 1000$
+nodes:
 
         OMP_NUM_THREADS=4 ./omp-list-ranking 1000
 

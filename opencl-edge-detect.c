@@ -42,11 +42,11 @@ Sobel operator using OpenCL; this can be achieved by writing a kernel
 that computes the edge at each pixel, and invoke the kernel from the
 `edge_detect()` function.
 
-Compile with:
+To compile:
 
         cc opencl-edge-detect.c simpleCl.c -o opencl-edge-detect -lOpenCL
 
-Execute with:
+To execute:
 
         ./opencl-edge-detect [threshold] < input > output
 

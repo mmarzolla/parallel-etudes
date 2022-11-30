@@ -47,11 +47,11 @@ master take care of any excess data. Another possibility is to use
 `MPI_Scatterv()` to distribute the input unevenly across the
 processes.
 
-Compile with:
+To compile:
 
         mpicc -std=c99 -Wall -Wpedantic mpi-dot.c -o mpi-dot -lm
 
-Execute with:
+To execute:
 
         mpirun -n P ./mpi-dot [n]
 

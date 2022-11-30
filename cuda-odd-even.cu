@@ -73,8 +73,7 @@ Table 1 illustrates the correspondence between the "linear" index
 `idx` of each thread, computed using the expression in the above code
 snipped, and the index pair it needs to manage.
 
-:Table 1: Correspondence between "linear" thread index and array index
-pairs.
+:Table 1: Mapping thread index to array index pairs.
 
 Thread index       Even phases   Odd phases
 -----------------  ------------  --------------
@@ -86,11 +85,11 @@ Thread index       Even phases   Odd phases
 ...                ...           ...
 -----------------  ------------  --------------
 
-Compile with:
+To compile:
 
         nvcc cuda-odd-even.cu -o cuda-odd-even
 
-Execute with:
+To execute:
 
         ./cuda-odd-even [len]
 

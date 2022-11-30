@@ -108,11 +108,11 @@ Once you have a working parallel version, you can take the easier
 route to use the `omp parallel for` directive and let the compiler
 partition the iteration range for you.
 
-Compile with:
+To compile:
 
         gcc -std=c99 -Wall -Wpedantic -fopenmp omp-sieve.c -o omp-sieve
 
-Execute with:
+To execute:
 
         ./omp-sieve [n]
 
