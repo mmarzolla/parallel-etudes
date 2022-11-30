@@ -31,18 +31,18 @@ only divisors are 1 and $p$ itself (2 is prime).
 To illustrate how the sieve of Eratosthenes works, let us consider the
 case $n=20$. We start by listing all integers $2, \ldots n$:
 
-![](omp-sieve1.png)
+![](omp-sieve1.svg)
 
 The first value in the list (2) is prime; we mark all its multiples
 and get:
 
-![](omp-sieve2.png)
+![](omp-sieve2.svg)
 
 The next unmarked value (3) is again prime. We mark all its multiples
 starting from $3 \times 3$ (indeed, $3 \times 2$ has been
 marked at the previous step because it is a multiple of 2). We get:
 
-![](omp-sieve3.png)
+![](omp-sieve3.svg)
 
 The next unmarked value (5) is prime. The smaller unmarked multiple of
 5 is $5 \times 5$, because $5 \times 2$, $5 \times 3$ and $5 \times 4$
@@ -50,7 +50,7 @@ have all been marked since they are multiples of 2 and 3. However,
 since $5 \times 5 > 20$ is outside the upper bound of the interval,
 the algorithm terminates and all unmarked numbers are prime:
 
-![](omp-sieve4.png)
+![](omp-sieve4.svg)
 
 The file [omp-sieve.c](omp-sieve.c) contains a serial program that,
 given an integer $n \geq 2$, computes the number $\pi(n)$ of primes in
@@ -120,10 +120,11 @@ Example:
 
         OMP_NUM_THREADS=2 ./omp-sieve 1000
 
-As a reference, Table 1 shows the values of $\pi(n)$ for some
-$n$. Use the table to check the correctness of your implementation
+Table 1 shows the values of the prime-counting function $\pi(n)$ for
+some $n$. Use the table to check the correctness of your
+implementation.
 
-:Table 1: some values of the prime-counting function $\pi(n)$
+:Table 1
 
           $n$                             $\pi(n)$
 -------------  -----------------------------------
@@ -137,7 +138,6 @@ $n$. Use the table to check the correctness of your implementation
      10000000                               664579
     100000000                              5761455
    1000000000                             50847534
-  10000000000  **Do not try on the server**: uses >10GB of RAM!!
 -------------  -----------------------------------
 
 ## Files
