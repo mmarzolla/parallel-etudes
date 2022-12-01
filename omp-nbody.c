@@ -133,7 +133,6 @@ Example:
 #include <stdlib.h>
 #include <math.h> /* for sqrtf() */
 #include <assert.h>
-#include "simpleCL.h"
 
 const float EPSILON = 1.0e-9f;
 /* const float G = 6.67e-11; */
