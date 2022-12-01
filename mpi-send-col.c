@@ -42,17 +42,17 @@ work with any value.
 
 Process 0 and 1 initialize their local matrices as follows.
 
-![](mpi-send-col1.png)
+![](mpi-send-col1.svg)
 
 Process 0 must send the _rightmost_ column to process 1, where it is
 inserted into the _leftmost_ ghost area:
 
-![](mpi-send-col2.png)
+![](mpi-send-col2.svg)
 
 Similarly, process 1 must send the _leftmost_ column to process 0,
 where it is placed into the _rightmost_ ghost area.
 
-![](mpi-send-col3.png)
+![](mpi-send-col3.svg)
 
 You should define a suitable datatype to represent a matrix column,
 and use two `MPI_Sendrecv()` operations to exchange the data.
