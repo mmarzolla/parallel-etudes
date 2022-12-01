@@ -32,8 +32,8 @@ on. You should write two versions of the program:
    assume that `in[]` and `out[]` are mapped to different,
    non-overlapping memory blocks.
 
-2. The second version reverses an array `in[]` "in place" using at
-   most $O(1)$ additional storage.
+2. The second version reverses an array `in[]` "in place" using $O(1)$
+   additional storage.
 
 The file [cuda-reverse.cu](cuda-reverse.cu) provides a CPU-based
 implementation of `reverse()` and `inplace_reverse()`.  Modify the

@@ -23,7 +23,7 @@
 % Moreno Marzolla <moreno.marzolla@unibo.it>
 % Last updated: 2022-11-26
 
-![The Mandelbrot set](mandelbrot-set.png)
+![](mandelbrot-set.png)
 
 The file [mpi-mandelbrot.c](mpi-mandelbrot.c) contains the skeleton of
 an MPI program that computes the Mandelbrot set; it is not a parallel

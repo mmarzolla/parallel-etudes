@@ -23,7 +23,7 @@
 % Moreno Marzolla <moreno.marzolla@unibo.it>
 % Last updated: 2022-11-23
 
-![Arnold's cat map](cat-map.png)
+![](cat-map.png)
 
 [Arnold's cat map](https://en.wikipedia.org/wiki/Arnold%27s_cat_map)
 is a continuous chaotic function that has been studied in the '60s by

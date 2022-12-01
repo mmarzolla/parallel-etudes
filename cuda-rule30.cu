@@ -34,7 +34,7 @@ assume cyclic boundary conditions, so that the neighbors of $x[0]$ are
 $x[N-1]$ and $x[1]$ and the neighbors of $x[N-1]$ are $x[N-2]$ and
 $x[0]$ (Figure 1).
 
-![Figure 1: Rule 30 CA](mpi-rule30-fig1.png)
+![Figure 1: Rule 30 CA](mpi-rule30-fig1.svg)
 
 Given the current values $pqr$ of three adjacent cells, the new value
 $q'$ of the middle cell is computed according to Table 1.
@@ -70,7 +70,7 @@ on the [Conus textile](https://en.wikipedia.org/wiki/Conus_textile)
 shell, a highly poisonous marine mollusk which can be found in
 tropical seas (Figure 3).
 
-![Figura 3: Conus Textile by Richard Ling - Own work; Location: Cod
+![Figure 3: Conus Textile by Richard Ling - Own work; Location: Cod
 Hole, Great Barrier Reef, Australia, CC BY-SA 3.0,
 <https://commons.wikimedia.org/w/index.php?curid=293495>](conus-textile.jpg)
 
@@ -88,10 +88,12 @@ Since each domain cell is read three times by three different threads
 within the same block, the computation _might_ benefit from the use of
 shared memory.
 
-> **Note:** On modern GPUs the use of shared memory could make very
-> little different; it might even make the program _slower_ than the
-> version that uses global memory only).  The use of shared memory
-> here should be considered as an exercise to see how it can be done.
+> **Note:** The use shared memory could produce minor improvements on
+> modern GPUs, or even make the program _slower_. The reason is that
+> there is little data reuse, and modern GPUs are equipped with caches
+> that work reasonably well in these kind of
+> computations. Nevertheless, it is useful to practice with shared
+> memory, so this exercise should be considered as it is: an exercise.
 
 To use shared memory, refer to the simple example of 1D stencil
 computation that we have seen during the class; in this case, the

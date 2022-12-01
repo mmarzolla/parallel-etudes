@@ -23,14 +23,14 @@
 % Moreno Marzolla <moreno.marzolla@unibo.it>
 % Last updated: 2022-10-18
 
-![Arnold's cat map](cat-map.png)
+![](cat-map.png)
 
 [Arnold's cat map](https://en.wikipedia.org/wiki/Arnold%27s_cat_map)
 is a continuous chaotic function that has been studied in the '60s by
 the Russian mathematician [Vladimir Igorevich
 Arnold](https://en.wikipedia.org/wiki/Vladimir_Arnold). In its
 discrete version, the function can be understood as a transformation
-of a bitmapped image $P$ of size $N \times N$ into a new image $P'$ of
+of a bitmap image $P$ of size $N \times N$ into a new image $P'$ of
 the same size. For each $0 \leq x, y < N$, the pixel of coordinates
 $(x,y)$ in $P$ is mapped into a new position $C(x, y) = (x', y')$ in
 $P'$ where

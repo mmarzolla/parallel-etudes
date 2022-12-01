@@ -23,6 +23,8 @@
 % Moreno Marzolla <moreno.marzolla@unibo.it>
 % Ultimo aggiornamento: 2021-11-18
 
+![](coupled_metronomes.jpg)
+
 Consideriamo $n$ punti di massa $m$ disposti lungo una retta alle
 coordinate $x_0, x_1, \ldots, x_{n-1}$. Masse adiacenti sono collegate
 da una molla di costante elastica $k$ e lunghezza a riposo $L$. Il
@@ -63,7 +65,7 @@ $i$-esima al tempo $t + \Delta t$, $0 \le i < n$, date le posizioni
    (F_i / m) \Delta t$. Le masse 0 e $n-1$ restano fisse, quindi la
    loro velocità sarà sempre zero.
 
-3. Per ogni $i = 1, \ldots, n-2$ si calcola la nuova posizione $x'i$
+3. Per ogni $i = 1, \ldots, n-2$ si calcola la nuova posizione $x'_i$
    della massa $i$-esima al tempo $t + \Delta t$ come $x'_i := x_i +
    v'_i \Delta t$. Le masse 0 e $n-1$ restano ferme quindi la loro
    posizione al tempo $t + \Delta t$ sarà uguale a quella al tempo
