@@ -71,7 +71,7 @@ on the [Conus textile](https://en.wikipedia.org/wiki/Conus_textile)
 shell, a highly poisonous marine mollusk which can be found in
 tropical seas (Figure 3).
 
-![Figura 3: Conus Textile by Richard Ling - Own work; Location: Cod
+![Figure 3: Conus Textile by Richard Ling - Own work; Location: Cod
 Hole, Great Barrier Reef, Australia, CC BY-SA 3.0,
 <https://commons.wikimedia.org/w/index.php?curid=293495>](conus-textile.jpg)
 
