@@ -313,18 +313,16 @@ void cat_map( PGM_image* img, int k )
 
 #ifndef SERIAL
 /**
- * We can interchange the loops to move the parallelization to the
- * outer loop, as explained in the text. To analyze the result, I have
- * executed the program on the systems below. The program has been
- * compiled by the Makefile (OpenMP enabled, default compiler
- * settings) and the command line was:
+ * We can interchange the loops to parallelize the outer loop. The
+ * results are shown in the table below, that shows
+ * the execution time of the command:
  *
  * ./omp-cat-map 684 < cat1368.pgm > /dev/null
  *
- * using all logical cores (default behavior of OpenMP). Running times
- * were computed by averaging 5 runs. "N+N cores" means that the
- * processor has N physical cores with hyperthreading, that are seen
- * by the OS as N+N "virtual" cores.
+ * using all available logical cores (default behavior of
+ * OpenMP). Running times were computed by averaging 5 independent
+ * runs. "N+N cores" means that the processor has N physical cores
+ * with hyperthreading.
  *
  *                                cat_map()   cat_map_interchange()
  * ----------------------------------------------------------------
@@ -338,9 +336,10 @@ void cat_map( PGM_image* img, int k )
  *
  * cat_map_interchange() is faster on all platforms with the notable
  * exception of the Xeon processors where it was almost two times
- * _slower_ than cat_map(). However, there are differences depending
- * on the number of OpenMP threads (e.g., for different values of P
- * one version might be faster or slower than the other).
+ * _slower_ than cat_map(). Currently I don't have any plausible
+ * explanation for this. The programs were compiled with default
+ * compiler settings and debugging information; it might be possible
+ * that enabling optimization (`-O2` or higher) changes something.
  */
 void cat_map_interchange( PGM_image* img, int k )
 {
@@ -379,10 +378,11 @@ int main( int argc, char* argv[] )
 {
     PGM_image img;
     int niter;
-    double tstart, elapsed;
+    double elapsed;
+    const int NTESTS = 5; /* number of replications */
 
     if ( argc != 2 ) {
-        fprintf(stderr, "Usage: %s niter\n", argv[0]);
+        fprintf(stderr, "Usage: %s niter < input > output\n", argv[0]);
         return EXIT_FAILURE;
     }
     niter = atoi(argv[1]);
@@ -393,30 +393,43 @@ int main( int argc, char* argv[] )
         return EXIT_FAILURE;
     }
 
-    tstart = omp_get_wtime();
-    cat_map(&img, niter);
-    elapsed = omp_get_wtime() - tstart;
+    elapsed = 0.0;
+    for (int i=0; i<NTESTS; i++) {
+        fprintf(stderr, "Run %d of %d\n", i, NTESTS);
+        const double tstart = omp_get_wtime();
+        cat_map(&img, niter);
+        elapsed += omp_get_wtime() - tstart;
+        if (i==0)
+            write_pgm(stdout, &img, "produced by omp-cat-map.c");
+    }
+    elapsed /= NTESTS;
+
     fprintf(stderr, "\n=== Without loop interchange ===\n");
     fprintf(stderr, "  OpenMP threads : %d\n", omp_get_max_threads());
     fprintf(stderr, "      Iterations : %d\n", niter);
     fprintf(stderr, "    width,height : %d,%d\n", img.width, img.height);
     fprintf(stderr, "     Mpixels/sec : %f\n", 1.0e-6 * img.width * img.height * niter / elapsed);
-    fprintf(stderr, "Elapsed time (s) : %f\n", elapsed);
-    write_pgm(stdout, &img, "produced by omp-cat-map.c");
+    fprintf(stderr, "Elapsed time (s) : %f\n\n", elapsed);
 
 #ifndef SERIAL
     /**
      ** Second version (with loop interchange)
      **/
-    tstart = omp_get_wtime();
-    cat_map_interchange(&img, niter);
-    elapsed = omp_get_wtime() - tstart;
+    elapsed = 0.0;
+    for (int i=0; i<NTESTS; i++) {
+        fprintf(stderr, "Run %d of %d\n", i, NTESTS);
+        const double tstart = omp_get_wtime();
+        cat_map_interchange(&img, niter);
+        elapsed += omp_get_wtime() - tstart;
+    }
+    elapsed /= NTESTS;
+
     fprintf(stderr, "\n=== With loop interchange ===\n");
     fprintf(stderr, "  OpenMP threads : %d\n", omp_get_max_threads());
     fprintf(stderr, "      Iterations : %d\n", niter);
     fprintf(stderr, "    width,height : %d,%d\n", img.width, img.height);
     fprintf(stderr, "     Mpixels/sec : %f\n", 1.0e-6 * img.width * img.height * niter / elapsed);
-    fprintf(stderr, "Elapsed time (s) : %f\n", elapsed);
+    fprintf(stderr, "Elapsed time (s) : %f\n\n", elapsed);
 #endif
     free_pgm( &img );
     return EXIT_SUCCESS;
