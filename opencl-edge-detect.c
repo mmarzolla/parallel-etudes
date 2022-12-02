@@ -44,7 +44,7 @@ that computes the edge at each pixel, and invoke the kernel from the
 
 To compile:
 
-        cc opencl-edge-detect.c simpleCl.c -o opencl-edge-detect -lOpenCL
+        cc opencl-edge-detect.c simpleCL.c -o opencl-edge-detect -lOpenCL
 
 To execute:
 
