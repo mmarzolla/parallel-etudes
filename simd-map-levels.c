@@ -71,8 +71,7 @@ grigio. Scopo di questo esercizio è svilupparne una versione SIMD
 utilizzando i _vector datatype_ del compilatore GCC. Ogni pixel
 dell'immagine è codificato da un valore di tipo `int` per evitare
 problemi di _overflow_ durante le operazioni aritmetiche. Definiamo un
-tipo `v4i` per rappresentare un vettore SIMD composto da 4 `int`
-(pixel):
+tipo `v4i` per rappresentare un vettore SIMD composto da 4 `int`:
 
 ```C
 typedef int v4i __attribute__((vector_size(16)));
@@ -123,7 +122,7 @@ Per funzionare correttamente la versione SIMD richiede che:
    multiplo di 16;
 
 2. La larghezza dell'immagine sia multipla dell'ampiezza di un
-   registro SIMD (16, nel nostro caso)
+   registro SIMD (4, se usiamo il tipo `v4i`)
 
 Entrambe le condizioni sono soddisfatte nel programma e nelle immagini fornite.
 
