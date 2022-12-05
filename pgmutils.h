@@ -68,9 +68,8 @@ void read_pgm( FILE *f, PGM_image* img )
 #if _XOPEN_SOURCE < 600
     img->bmap = (unsigned char*)malloc((img->width)*(img->height)*sizeof(unsigned char));
 #else
-    /* The pointer img->bmap must be properly aligned to allow SIMD
-       instructions, because the compiler emits SIMD instructions for
-       aligned load/stores only. */
+    /* The pointer img->bmap must be properly aligned to allow aligned
+       SIMD load/stores to work. */
     int ret = posix_memalign((void**)&(img->bmap), __BIGGEST_ALIGNMENT__, (img->width)*(img->height));
     assert( 0 == ret );
 #endif

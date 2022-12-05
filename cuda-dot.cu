@@ -76,7 +76,7 @@ algorithm works as follows:
 4. When the kernel terminates, the CPU transfers `tmp[]` back to host
    memory and performs a sum-reduction to compute the final result.
 
-![Figure 1](cuda-dot.png)
+![Figure 1](cuda-dot.svg)
 
 Your program must work correctly for any value of $n$, even if it is
 not a multiple of _BLKDIM_.

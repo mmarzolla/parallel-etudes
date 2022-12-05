@@ -21,22 +21,21 @@
 /***
 % HPC - ANNEAL cellular automaton
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-11-22
+% Last updated: 2022-11-24
 
-The _ANNEAL_ callular automaton (also known as _twisted majority
-rule_) is a simple two-dimensional, binary CA defined on a grid of
-size $W \times H$. Cyclic boundary conditions are assumed, so that
-each cell has eight adjacent neighbors. Two cells are adjacent if they
-share a side or a corner.
+The ANNEAL Callular Automaton (also known as _twisted majority rule_)
+is a simple two-dimensional, binary CA defined on a grid of size $W
+\times H$. Cyclic boundary conditions are assumed, so that each cell
+has eight neighbors. Two cells are adjacent if they share a side or a
+corner.
 
-The automaton evolves at discrete time steps $t = 0, 1, 2,
-\ldots$. The state of a cell $x$ at time $t + 1$ depends on its state
-at time $t$, and on the state of its neighbors at time
-$t$. Specifically, let $B_x$ be the number of cells in state 1 within
-the neighborhood of size $3 \times 3$ centered on $x$ (including $x$,
-so you will always have $0 \leq B_x \leq 9$). If $B_x = 4$ or $B_x
-\geq 6$, then the new state of $x$ is 1, otherwise the new state is
-0. See Figure 1.
+The automaton evolves at discrete time steps $t = 0, 1, \ldots$. The
+state of a cell $x$ at time $t + 1$ depends on its state at time $t$,
+and on the state of its neighbors at time $t$. Specifically, let $B_x$
+be the number of cells in state 1 within the neighborhood of size $3
+\times 3$ centered on $x$ (including $x$). Then, if $B_x = 4$ or $B_x
+\geq 6$ the new state of $x$ is 1, otherwise the new state of $x$ is
+0. See Figure 1 for some examples.
 
 ![Figure 1: Computation of the new state of the central cell of a
  block of size $3 \times 3$](cuda-anneal1.svg)
@@ -44,74 +43,73 @@ so you will always have $0 \leq B_x \leq 9$). If $B_x = 4$ or $B_x
 To simulate synchrnonous, concurrent updates of all cells, two domains
 must be used. The state of a cell is read from the "current" domain,
 and new values are written to the "next" domain. "Current" and "next"
-domains are exchanged at the end of each step.
+are exchanged at the end of each step.
 
 The initial states are chosen at random with uniform
 probability. Figure 2 shows the evolution of a grid of size $256
 \times 256$ after 10, 100 and 1024 steps. We observe the emergence of
-"blobs" that grow over time, with the exception of small "specks". I
-made [a short YouTube video to show the evolution of the
-automaton](https://youtu.be/TSHWSjICCxs) over time.
+"blobs" that grow over time, with the exception of small "specks". 
 
-![Figure 2: Evolution of the _ANNEAL_ CA ([YouTube video](https://youtu.be/UNpl2iUyz3Q))](anneal-demo.png)
+![Figure 2: Evolution of the _ANNEAL_ CA](anneal-demo.png)
 
-The file [cuda-anneal.cu](cuda-anneal.cu) contains a serial program
-that computes the evolution of the _ANNEAL_ CA after $K$
-iterations. The final state is written to a file. The goal of this
-exercise is to modify the program to use the GPU to update the domain.
+I made a short YouTube video to show the evolution of the automaton
+over time:
+
+<iframe style="display:block; margin:0 auto" width="560" height="315" src="https://www.youtube-nocookie.com/embed/TSHWSjICCxs" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+The program [cuda-anneal.cu](cuda-anneal.cu) computes the evolution of
+the _ANNEAL_ CA after $K$ iterations. The final state is written to a
+file. The goal of this exercise is to modify the program to use the
+GPU to update the domain.
 
 Some suggestions:
 
-- Start by developing a version that does _not_ use shared
-  memory. Transform the `copy_top_bottom()`, `copy_left_right()` and
-  `step()` functions into kernels. Note that the size of the thread
-  block that copies the sides of the domain will be different from the
-  size of the domain that computes the evolution of the automaton (see
-  the following points).
+- Start writing a version that does _not_ use shared memory. Transform
+  the `copy_top_bottom()`, `copy_left_right()` and `step()` functions
+  into kernels. The size of the thread blocks that copy the sides of
+  the domain will be different from the size of the domain that
+  computes the evolution of the automaton (see the next points).
 
-- To copy the ghost cells, use a 1D array of threads. So, to run
-  `copy_top_bottom()` you need $(W + 2)$ threads, and to run
-  `copy_left_right()` you need $(H + 2)$ threads.
+- Use a 1D array of threads to copy the ghost cells.
+  `copy_top_bottom()` requires $(W + 2)$ threads, and
+  `copy_left_right()` requires $(H + 2)$ threads.
 
-- Since the domain is two-dimensional, it is convenient to organize
-  the threads in two-dimensional blocksof size $32 \times 32$.
+- To compute new states, organize the threads in two-dimensional
+  blocks of size $32 \times 32$.
 
-- In the `step()` kernel, each thrad computes the new state of a
-  coordinate cell $(i, j)$. Remember that you are working on a
-  "extended" domain with two more rows and two columns, hence the
-  "true" (non-ghost) cells are those with coordinates $1 \leq i \leq
-  H$, $1 \leq j \leq W$.  Therefore, each thread will compute $i, j$
-  as:
+- In the `step()` kernel, each thread computes the new state of a cell
+  $(i, j)$. We are working with an extended domain with ghost
+  rows/columns, hence the "true" (non-ghost) cells are those with
+  coordinates $1 \leq i \leq H$, $1 \leq j \leq W$.  Therefore, each
+  thread will compute $i, j$ as:
 ```C
   const int i = 1 + threadIdx.y + blockIdx.y * blockDim.y;
   const int j = 1 + threadIdx.x + blockIdx.x * blockDim.x;
 ```
-  In this way the threads will be associated with the coordinate cells
-  from $(1, 1)$ onward. Before making any computation, each threa must
-  verify that $1 \leq i \leq H$, $1 \leq j \leq W$, so that all excess
-  threads are deactivated.
+  Before making any computation, each thread must verify that $1 \leq i
+  \leq H$, $1 \leq j \leq W$, so that excess threads are
+  deactivated.
 
 ## Using local memory
 
-This program might benefit from the use of shared memory, since each
-cell is read 9 times by 9 different thrads. However, no performance
-improvement is likely to be observed on the server, since the GPUs
-there have on-board caches. Despite this, it is a useful exercise to
+This program _might_ benefit from the use of shared memory, since each
+cell is read 9 times by 9 different threads in the same
+block. However, you might observe no improvement on modern GPUs, since
+they have on-board caches. In fact, you might actually observe that
+using shared memory _decreases_ the performance of the computation,
+since there is not enough data reuse to compensate for the overhead of
+managing the shared memory.  Despite this, it is a useful exercise to
 use local memory anyway, to see how it can be done.
 
 Let us assume that thead blocks have size $\mathit{BLKDIM} \times
-\mathit{BLKDIM}$ where _BLKDIM = 32_ divides $W$ and $H$. Each
-workgroup copies the elements of the domain portion of its own
-competence in a local buffer `buf[BLKDIM+2][BLKDIM+2]` which includes
-two ghost rows and columns, and computes the new state of the cells
-using the data in the local buffer instead of accessing global memory.
+\mathit{BLKDIM}$, where _BLKDIM = 32_ divides $W$ and $H$. Each block
+uses a local buffer `buf[BLKDIM+2][BLKDIM+2]` which includes a ghost
+area. The buffer is filled with data from the current domain, and the
+new cell states are computed using the data from the buffer.
 
-Here it is useful to use two pairs of indexes $(gi, gj)$ to indicate
-the positions of the cells in the global array and $(li, lj)$ for the
-cell positions in the local buffer. The idea is that the coordinate
-cell $(gi, gj)$ in the global matrix matches the one of coordinates
-$(li, lj)$ in the local buffer. Using ghost cell both globally and
-locally the calculation of coordinates can be done as follows:
+Each thread is mapped to cell $(gi, gj)$ in the global domain, and to
+a copy of the same cell at coordinates $(li, lj)$ in the local
+buffer. The coordinates can be computes as follows:
 
 ```C
     const int gi = 1 + threadIdx.y + blockIdx.y * blockDim.y;
@@ -122,10 +120,14 @@ locally the calculation of coordinates can be done as follows:
 
 ![Figure 3: Copying data from global to shared memory](cuda-anneal3.svg)
 
-The hardest part is copying the data from the global grid to the
-shared buffer. Using blocks of size $\mathit{BLKDIM} \times
-\mathit{BLKDIM}$, the copy of the central part (i.e., everything
-excluding the hatched area of Figure 3) is carried out with:
+There are several ways to fill the ghost area, all of them rather
+cumbersome and potentially inefficient. The solution proposed below is
+one of them; other possibilities exist.
+
+We use blocks of size $\mathit{BLKDIM} \times
+\mathit{BLKDIM}$. Filling the central part of the local domain (i.e.,
+everything excluding the ghost area) is done with a single instruction
+executed by all threads:
 
 ```C
     buf[li][lj] = *IDX(cur, ext_width, gi, gj);
@@ -136,21 +138,21 @@ ghost area.
 
 ![Figure 4: Active threads while filling the shared memory](cuda-anneal4.svg)
 
-To initialize the ghost area you might proceed as follows (Figure 4):
+Filling the ghost area can be done as follows (see Figure 4):
 
-1. The upper and lower ghost area is delegated to the threads of the
-   first row (i.e., those with $li = 1$);
+1. The upper and lower rows are delegated to the threads of the first
+   row (i.e., those with $li = 1$);
 
-2. The left and right ghost area is delegated to the threads of the
+2. The left and right columns are delegated to the threads of the
    first column (i.e., those with $lj = 1$);
 
 3. The corners are delegated to the top left thread with $(li, lj) =
    (1, 1)$.
 
-(You might be tempted to collapse steps 1 and 2 into a single step
-that is carried out, e.g., by the threads of the first row; this would
-be correct, but it would be difficult to generalize the program to
-domains whose sides are not multiple of $\mathit{BLKDIM}$).
+You might be tempted to collapse steps 1 and 2 into a single step that
+is carried out, e.g., by the threads of the first row. This could
+work, but it would be difficult to generalize the program to domains
+whose sides $W, H$ are not multiple of _BLKDIM_.
 
 In practice, you may use the following schema:
 
@@ -169,10 +171,9 @@ In practice, you may use the following schema:
     }
 ```
 
-Those who want to try an even harder version can modify the code to
-handle domains whose sides are not multiple of _BLKDIM_. Deactivating
-threads outside the domain is not enough: you need to modify the code
-that fills the ghost area.
+Handling the ghost area is more difficult if $W, H$ are not multiple
+of _BLKDIM_. Deactivating threads outside the domain is not enough:
+you need to modify the code that fills the ghost area.
 
 To compile without using shared memory:
 
@@ -311,8 +312,8 @@ __global__ void copy_top_bottom(cell_t *grid, int ext_width, int ext_height)
   function copies the left and right ext_height elements to the
   opposite halo (see figure below).
 
-   LEFT_GHOST=0     RIGHT=ext_n-2
-   | LEFT=1         | RIGHT_GHOST=ext_n-1
+   LEFT_GHOST=0     RIGHT=ext_width-2
+   | LEFT=1         | RIGHT_GHOST=ext_width-1
    | |              | |
    v v              v v
   +-+----------------+-+
@@ -323,9 +324,9 @@ __global__ void copy_top_bottom(cell_t *grid, int ext_width, int ext_height)
   |X|Y              X|Y|
   |X|Y              X|Y|
   |X|Y              X|Y|
-  |X|Y              X|Y| <- BOTTOM=ext_n - 2
+  |X|Y              X|Y| <- BOTTOM=ext_height - 2
   +-+----------------+-+
-  |X|Y              X|Y| <- BOTTOM_GHOST=ext_n - 1
+  |X|Y              X|Y| <- BOTTOM_GHOST=ext_height - 1
   +-+----------------+-+
 
  */

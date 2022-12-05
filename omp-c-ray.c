@@ -36,7 +36,7 @@ produce the images shown in Figure 1.
 
 ![Figure 1: Some images produced by the program; the input files are,
 from left to right: [sphfract.small.in](sphfract.small.in),
-[spheres.in](spheres.in), [dna.in](dna.in)](omp-c-ray-images.png)
+[spheres.in](spheres.in), [dna.in](dna.in)](omp-c-ray-images.jpg)
 
 Table 1 shows the approximate time (in seconds) needed on my PC
 (i7-4790 3.60GHz) to render each file using one core. The server is
@@ -88,7 +88,7 @@ the [Whitted recursive
 algorithm](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.156.1534)
 (Figure 2).
 
-![Figure 2: Operation diagram of a recursive ray tracer](omp-c-ray.png)
+![Figure 2: Operation diagram of a recursive ray tracer](omp-c-ray.svg)
 
 The scene is represented by a set of geometric primitives (spheres, in
 our case). We generate a _primary ray_ (_V_) from the observer towards

@@ -31,7 +31,7 @@ true parallel program. Modify the program so that all processes
 contribute to the computation according to the following steps (see
 Figure 1).
 
-![Figure 1: Computing the sum-reduction using MPI](mpi-sum.png)
+![Figure 1: Computing the sum-reduction using MPI](mpi-sum.svg)
 
 1. The master process (rank 0) creates and initializes the input array
    `master_array[]`.

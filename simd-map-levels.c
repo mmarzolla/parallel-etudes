@@ -21,7 +21,7 @@
 /***
 % HPC - Mappatura livelli di grigio
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Ultimo aggiornamento: 2022-03-21
+% Ultimo aggiornamento: 2022-11-26
 
 Consideriamo una immagine bitmap a toni di grigio di $M$ righe e $N$
 colonne, in cui il colore di ogni pixel sia codificata con un intero
@@ -46,7 +46,7 @@ La Figura 1 mostra un esempio ottenuto con il comando
 
         ./simd-map-levels 100 255 < Yellow_palace_Winter.pgm > out.pgm
 
-![Figura 1: Mappatura di livelli di gridio (_low_ = 100, _high_ = 255)](simd-map-levels.png)
+![Figura 1: Mappatura di livelli di grigio (_low_ = 100, _high_ = 255)](simd-map-levels.png)
 
 Come caso di studio reale, viene fornita l'immagine
 [C1648109](C1648109.pgm) ripresa dalla sonda [Voyager
@@ -71,8 +71,7 @@ grigio. Scopo di questo esercizio è svilupparne una versione SIMD
 utilizzando i _vector datatype_ del compilatore GCC. Ogni pixel
 dell'immagine è codificato da un valore di tipo `int` per evitare
 problemi di _overflow_ durante le operazioni aritmetiche. Definiamo un
-tipo `v4i` per rappresentare un vettore SIMD composto da 4 `int`
-(pixel):
+tipo `v4i` per rappresentare un vettore SIMD composto da 4 `int`:
 
 ```C
 typedef int v4i __attribute__((vector_size(16)));
@@ -123,7 +122,7 @@ Per funzionare correttamente la versione SIMD richiede che:
    multiplo di 16;
 
 2. La larghezza dell'immagine sia multipla dell'ampiezza di un
-   registro SIMD (16, nel nostro caso)
+   registro SIMD (4, se usiamo il tipo `v4i`)
 
 Entrambe le condizioni sono soddisfatte nel programma e nelle immagini fornite.
 
@@ -144,6 +143,7 @@ Esempio:
 ## File
 
 - [simd-map-levels.c](simd-map-levels.c)
+- [hpc.h](hpc.h)
 - Immagini di esempio: [Yellow palace Winter](Yellow_palace_Winter.pgm), [C1648109.pgm](C1648109.pgm)
 
 ***/

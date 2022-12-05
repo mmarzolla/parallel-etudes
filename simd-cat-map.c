@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * simd-cat-map.c - Arnold's cat map using SIMD vector datatypes
+ * simd-cat-map.c - Arnold's cat map
  *
- * Copyright (C) 2016--2021 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2016--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,11 @@
  ****************************************************************************/
 
 /***
-% HPC - La mappa del gatto di Arnold versione SIMD
+% HPC - La mappa del gatto di Arnold
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Ultimo aggiornamento: 2021-05-14
+% Ultimo aggiornamento: 2022-11-26
+
+![](cat-map.png)
 
 Scopo di questo esercizio è sviluppare una versione SIMD di una
 funzione che calcola l'iterata della _mappa del gatto di Arnold_, una
@@ -44,7 +46,7 @@ a destra, in modo da poter indicizzare l'immagine come se fosse una
 matrice in linguaggio C. La Figura 1 mostra graficamente la
 trasformazione.
 
-![Figura 1: La mappa del gatto di Arnold](cat-map.png)
+![Figura 1: La mappa del gatto di Arnold](cat-map.svg)
 
 La mappa del gatto ha proprietà sorprendenti. Applicata ad una
 immagine ne produce una versione molto distorta. Applicata nuovamente

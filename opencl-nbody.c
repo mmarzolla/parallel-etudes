@@ -170,7 +170,7 @@ Example:
 #include <assert.h>
 #include "simpleCL.h"
 
-const float EPSILON = 1.0e-9f;
+const float EPSILON = 1.0e-5f;
 /* const float G = 6.67e-11; */
 
 /**
@@ -215,7 +215,7 @@ void compute_force(const float *x, const float *y, const float *z,
             const float dy = y[j] - y[i];
             const float dz = z[j] - z[i];
             const float distSqr = dx*dx + dy*dy + dz*dz + EPSILON;
-            const float invDist = 1.0f / sqrtf(distSqr);
+            const float invDist = 1.0f / sqrtff(distSqr);
             const float invDist3 = invDist * invDist * invDist;
 
             Fx += dx * invDist3;
@@ -243,14 +243,16 @@ void integrate_positions(float *x, float *y, float *z,
     }
 }
 
+#endif
 /**
  * Compute the total energy of the system as the sum of kinetic and
  * potential energy.
  */
 float energy(const float *x, const float *y, const float *z,
-             const float *vx, const float *vy, const float *vz, int n)
+             const float *vx, const float *vy, const float *vz,
+             int n)
 {
-    float energy = 0.0;
+    float e = 0.0f;
     /* The kinetic energy of an n-body system is:
 
        K = (1/2) * sum_i [m_i * (vx_i^2 + vy_i^2 + vz_i^2)]
@@ -258,7 +260,7 @@ float energy(const float *x, const float *y, const float *z,
     */
 
     for (int i=0; i<n; i++) {
-        energy += 0.5 * ((vx[i] * vx[i]) + (vy[i] * vy[i]) + (vz[i] * vz[i]));
+        e += 0.5f * (vx[i]*vx[i] + vy[i]*vy[i] + vz[i]*vz[i]);
         /* Accumulate potential energy, defined as
 
            sum_{i<j} - m[j] * m[j] / d_ij
@@ -268,13 +270,12 @@ float energy(const float *x, const float *y, const float *z,
             const float dx = x[i] - x[j];
             const float dy = y[i] - y[j];
             const float dz = z[i] - z[j];
-            const float distance = sqrt(dx*dx + dy*dy + dz*dz);
-            energy -= 1.0f / distance;
+            const float distance = sqrtf(dx*dx + dy*dy + dz*dz);
+            e -= 1.0f / distance;
         }
     }
-    return energy;
+    return e;
 }
-#endif
 
 int main(int argc, char* argv[])
 {
@@ -282,7 +283,7 @@ int main(int argc, char* argv[])
     const int MAXBODIES = 50000;
     int nsteps = 10;
     const float DT = 1e-6f; /* time step */
-    float *x, *y, *z, *vx, *vy, *vz, energy;
+    float *x, *y, *z, *vx, *vy, *vz, en;
 #ifndef SERIAL
     cl_mem d_x, d_y, d_z, d_vx, d_vy, d_vz, d_energies;
 #endif
@@ -316,7 +317,7 @@ int main(int argc, char* argv[])
 #endif
 #endif
 
-    const size_t size = N*sizeof(float);
+    const size_t size = N*sizeof(*x);
     x = (float*)malloc(size); assert(x != NULL);
     y = (float*)malloc(size); assert(y != NULL);
     z = (float*)malloc(size); assert(z != NULL);
@@ -348,8 +349,19 @@ int main(int argc, char* argv[])
     d_vy = sclMallocCopy(size, vy, CL_MEM_READ_WRITE);
     d_vz = sclMallocCopy(size, vz, CL_MEM_READ_WRITE);
 
-    float energies[N_OF_BLOCKS];
-    d_energies = sclMalloc(sizeof(energies), CL_MEM_WRITE_ONLY);
+    /* There are problems if you define the energies[]
+       array as:
+
+       float energies[N_OF_BLOCKS];
+
+       Indeed, the program seems to work on the GPU, but not non the
+       CPU (energies are computed as NaNs). The problem might be that
+       N_OF_BLOCKS might be too large for variable-length arrays.
+    */
+    float *energies;
+    const size_t size_energies = N_OF_BLOCKS * sizeof(*energies);
+    energies = (float*)malloc(size_energies); assert(energies != NULL);
+    d_energies = sclMalloc(size_energies, CL_MEM_WRITE_ONLY);
 
     double total_time = 0.0;
     for (int step = 1; step <= nsteps; step++) {
@@ -357,6 +369,7 @@ int main(int argc, char* argv[])
 #ifdef SERIAL
         compute_force(x, y, z, vx, vy, vz, DT, N);
         integrate_positions(x, y, z, vx, vy, vz, DT, N);
+        en = energy(x, y, z, vx, vy, vz, N);
 #else
         sclSetArgsEnqueueKernel(compute_force_kernel,
                                 GRID, BLOCK,
@@ -366,42 +379,44 @@ int main(int argc, char* argv[])
                                 GRID, BLOCK,
                                 ":b :b :b :b :b :b :f :d",
                                 d_x, d_y, d_z, d_vx, d_vy, d_vz, DT, N);
-#endif
-        const double elapsed = hpc_gettime() - tstart;
-        total_time += elapsed;
-#ifndef SERIAL
-        /* The following copy is required to compute the energy on the
-           CPU. To do so, we perform a two-step reduction: the first
-           step is done on the device, while the second (final)
-           reduction is done on the host. Other implementations are
-           possible. */
         sclSetArgsEnqueueKernel(energy_kernel,
                                 GRID, BLOCK,
                                 ":b :b :b :b :b :b :d :b",
                                 d_x, d_y, d_z,
                                 d_vx, d_vy, d_vz,
                                 N, d_energies);
-        sclMemcpyDeviceToHost(energies, d_energies, sizeof(energies));
-        energy = 0.0f;
+        sclMemcpyDeviceToHost(energies, d_energies, size_energies);
+        en = 0.0f;
         for (int i=0; i<N_OF_BLOCKS; i++) {
-            energy += energies[i];
+            en += energies[i];
         }
-#else
-        energy = energy(x, y, z, vx, vy, vz, N);
 #endif
-        printf("Iteration %3d/%3d : E=%f, %.3f seconds\n", step, nsteps, energy, elapsed);
+        const double elapsed = hpc_gettime() - tstart;
+        total_time += elapsed;
+
+        printf("Iteration %3d/%3d : energy=%f, %.3f seconds\n", step, nsteps, en, elapsed);
         fflush(stdout);
     }
     const double avg_time = total_time / nsteps;
 
     printf("Average %0.3f Billion Interactions / second\n", 1e-9 * N * N / avg_time);
 
-    free(x); free(y); free(z);
-    free(vx); free(vy); free(vz);
+    free(x);
+    free(y);
+    free(z);
+    free(vx);
+    free(vy);
+    free(vz);
 #ifndef SERIAL
-    sclFree(d_x); sclFree(d_y); sclFree(d_z);
-    sclFree(d_vx); sclFree(d_vy); sclFree(d_vz);
+    free(energies);
+    sclFree(d_x);
+    sclFree(d_y);
+    sclFree(d_z);
+    sclFree(d_vx);
+    sclFree(d_vy);
+    sclFree(d_vz);
     sclFree(d_energies);
+    sclFinalize();
 #endif
     return EXIT_SUCCESS;
 }

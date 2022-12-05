@@ -35,7 +35,7 @@ assume cyclic boundary conditions, so that the neighbors of $x[0]$ are
 $x[N-1]$ and $x[1]$ and the neighbors of $x[N-1]$ are $x[N-2]$ and
 $x[0]$ (Figure 1).
 
-![Figure 1: Rule 30 CA](mpi-rule30-fig1.png)
+![Figure 1: Rule 30 CA](mpi-rule30-fig1.svg)
 
 Given the current values $pqr$ of three adjacent cells, the new value
 $q'$ of the middle cell is computed according to Table 1.
@@ -71,7 +71,7 @@ on the [Conus textile](https://en.wikipedia.org/wiki/Conus_textile)
 shell, a highly poisonous marine mollusk which can be found in
 tropical seas (Figure 3).
 
-![Figura 3: Conus Textile by Richard Ling - Own work; Location: Cod
+![Figure 3: Conus Textile by Richard Ling - Own work; Location: Cod
 Hole, Great Barrier Reef, Australia, CC BY-SA 3.0,
 <https://commons.wikimedia.org/w/index.php?curid=293495>](conus-textile.jpg)
 
@@ -79,7 +79,7 @@ The goal of this exercise is to parallelize the serial program using
 MPI, so that the computation of each step is distributed across the
 MPI processes. The program should operate as follows (see Figure 4):
 
-![Figure 4: Parallelization of the Rule 30 CA](mpi-rule30-fig4.png)
+![Figure 4: Parallelization of the Rule 30 CA](mpi-rule30-fig4.svg)
 
 1. The domain is distributed across the $P$ MPI processes using
    `MPI_Scatter()` (assume that $N$ is a multiple of $P$). Each
@@ -126,7 +126,7 @@ MPI_Scatter( &cur[LEFT],        \/\* sendbuf    \*\/
 (the symbols `LEFT` and `LOCAL_LEFT` are defined in the source code to
 improve readability).
 
-![Figure 5: Using `MPI_Sendrecv()` to exchange ghost cells](mpi-rule30-fig5.png)
+![Figure 5: Using `MPI_Sendrecv()` to exchange ghost cells](mpi-rule30-fig5.svg)
 
 Filling the ghost cells is a bit tricky and requires two calls to
 `MPI_Sendrecv()` (see Figure 5). First, each process sends the value

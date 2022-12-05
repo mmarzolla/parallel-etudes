@@ -28,7 +28,7 @@ the approximate value of $\pi$ using a Monte Carlo algorithm. Monte
 Carlo algorithms use pseudorandom numbers to compute an approximation
 of some quantity of interest.
 
-![Figure 1: Monte Carlo computation of the value of $\pi$](pi_Monte_Carlo.png)
+![Figure 1: Monte Carlo computation of the value of $\pi$](pi_Monte_Carlo.svg)
 
 The idea is quite simple (see Figure 1). We generate $N$ random points
 uniformly distributed inside the square with corners at $(-1, -1)$ and

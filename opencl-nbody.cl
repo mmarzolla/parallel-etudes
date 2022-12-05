@@ -18,7 +18,7 @@
  *
  ****************************************************************************/
 
-#define EPSILON 1.0e-9f
+#define EPSILON 1.0e-5f
 
 __kernel void
 compute_force_kernel_local(__global const float *x,
@@ -95,11 +95,12 @@ compute_force_kernel(__global const float *x,
 {
     /* This version does not use local memory */
     const int i = get_global_id(0);
-    float Fx = 0.0f;
-    float Fy = 0.0f;
-    float Fz = 0.0f;
 
     if (i<n) {
+        float Fx = 0.0f;
+        float Fy = 0.0f;
+        float Fz = 0.0f;
+
         for (int j = 0; j < n; j++) {
             const float dx = x[j] - x[i];
             const float dy = y[j] - y[i];
@@ -155,7 +156,7 @@ energy_kernel(__global const float *x,
     temp[li] = 0.0f;
 
     if (gi < n) {
-        temp[li] = 0.5 * (vx[gi]*vx[gi] + vy[gi]*vy[gi] + vz[gi]*vz[gi]);
+        temp[li] = 0.5f * (vx[gi]*vx[gi] + vy[gi]*vy[gi] + vz[gi]*vz[gi]);
         for (int gj=gi+1; gj<n; gj++) {
             const float dx = x[gi] - x[gj];
             const float dy = y[gi] - y[gj];

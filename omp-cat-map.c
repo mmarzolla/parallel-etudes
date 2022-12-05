@@ -23,14 +23,14 @@
 % Moreno Marzolla <moreno.marzolla@unibo.it>
 % Last updated: 2022-10-18
 
-![Vladimir Igorevich Arnold (1937--2010). By Svetlana Tretyakova - <http://www.mccme.ru/arnold/pool/original/VI_Arnold-05.jpg>, CC BY-SA 3.0](Vladimir_Arnold.jpg)
+![](cat-map.png)
 
 [Arnold's cat map](https://en.wikipedia.org/wiki/Arnold%27s_cat_map)
 is a continuous chaotic function that has been studied in the '60s by
 the Russian mathematician [Vladimir Igorevich
 Arnold](https://en.wikipedia.org/wiki/Vladimir_Arnold). In its
 discrete version, the function can be understood as a transformation
-of a bitmapped image $P$ of size $N \times N$ into a new image $P'$ of
+of a bitmap image $P$ of size $N \times N$ into a new image $P'$ of
 the same size. For each $0 \leq x, y < N$, the pixel of coordinates
 $(x,y)$ in $P$ is mapped into a new position $C(x, y) = (x', y')$ in
 $P'$ where
@@ -48,7 +48,7 @@ The transformation corresponds to a linear "stretching" of the image,
 that is then broken down into triangles that are rearranged as shown
 in Figure 1.
 
-![Figura 1: Arnold's cat map](cat-map.png)
+![Figure 1: Arnold's cat map](cat-map.svg)
 
 Arnold's cat map has interesting properties. Let $C^k(x, y)$ be the
 result of iterating $k$ times the function $C$, i.e.:
@@ -70,7 +70,7 @@ image is no longer discernible. However, after a certain number of
 iterations that depend on $N$ and has been proved to never exceed
 $3N$, we get back the original image! (Figure 2).
 
-![Figura 2: Some iterations of the cat map](cat-map-demo.png)
+![Figure 2: Some iterations of the cat map](cat-map-demo.png)
 
 The _minimum recurrence time_ for an image is the minimum positive
 integer $k \geq 1$ such that $C^k(x, y) = (x, y)$ for all $(x, y)$. In
@@ -163,7 +163,7 @@ code above as follows:
 ```C
 for (y=0; y<N; y++) {
         for (x=0; x<N; x++) {
-                xcur= x; ycur = y;
+                xcur = x; ycur = y;
                 for (i=0; i<k; i++) {
                         (xnext, ynext) = C(xcur, ycur);
                         xcur = xnext;
@@ -190,7 +190,43 @@ c. Parallelize the two outermost loops with the `collapse(2)` directive.
 
 (I suggest to try option c).
 
-Which is more efficient in your system: option 3 above, or option c?
+Intuitively, we might expect that (c) performs better than (3), because:
+
+- the loop granularity is higher, and
+
+- there are fewer writes to memory.
+
+Interestingly, this does not appear to be the case (at least, not on
+every processor). Table 1 shows the execution time of the two versions
+of the `cat_map()` function ("Noi loop interchange" refers to option
+(3) above; "Loop interchange" refers to option (c)). The program has
+been compiled with:
+
+        gcc -O0 -fopenmp omp-cat-map.c -o omp-cat-map
+
+(`-O0` prevents the compiler to make code transformations that might
+alter significantly our functions) and executed with the command line:
+
+        ./omp-cat-map 2048 < cat1368.pgm > /dev/null
+
+Each measurement is the average of five independent executions.
+
+:Table 1: Execution time (in seconds) of different implementations.
+
+Processor type      Cores   GHz  GCC version  No loop interchange   Loop interchange
+------------------ ------ ----- ------------ -------------------- ------------------
+Intel Xeon E3-1220      4   3.5        7.5.0                 7.10              12.94
+Intel Xeon E5-2603     12   1.7        9.4.0                 5.94               7.53
+Intel i7-4790         4+4   3.6        7.5.0                 6.01               5.92
+Intel i5-11320H       4+4   4.5        9.4.0                 3.94               4.01
+Intel Atom N570       2+2   1.6        7.5.0               128.69              92.47
+Raspberry Pi 4          4   1.5        8.3.0                27.10              27.24
+
+On some platforms (Intel i5, i7 and Raspberry Pi 4) there is
+essentially no difference between the two versions. Loop interchange
+provides a significant performance boost on the very old Atom N570. On
+the other hand, loop interchange provides worse performance on the
+Xeon processors.
 
 ## To probe further
 
@@ -228,9 +264,9 @@ two positive integers is provided therein. Complete the program and
 then produce a parallel version using the appropriate OpenMP
 directives.
 
-Table 1 shows the minimum recurrence time for some $N$.
+Table 2 shows the minimum recurrence time for some $N$.
 
-:Tabella 1: Minimum recurrence time for some image sizes $N$
+:Table 2: Minimum recurrence time for some image sizes $N$
 
     $N$   Minimum recurrence time
 ------- -------------------------
@@ -245,7 +281,7 @@ Figure 3 shows the minimum recurrence time as a function of
 $N$. Despite the fact that the values "jump" from size to size, we see
 that they tend to align along straight lines.
 
-![Figura 3: Minimum recurrence time as a function of the image size $N$](cat-map-rectime.png)
+![Figure 3: Minimum recurrence time as a function of the image size $N$](cat-map-rectime.png)
 
 ## Files
 
@@ -255,6 +291,7 @@ that they tend to align along straight lines.
 - [cat1368.pgm](cat1368.pgm) (verify that the minimum recurrence time of this image is 36)
 
 ***/
+#include "hpc.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -284,9 +321,7 @@ void cat_map( PGM_image* img, int k )
     assert(next != NULL);
     assert(img->width == img->height);
 
-#ifdef SERIAL
     /* [TODO] Which of the following loop(s) can be parallelized? */
-#endif
     for (i=0; i<k; i++) {
 #ifndef SERIAL
 #if __GNUC__ < 9
@@ -299,7 +334,7 @@ void cat_map( PGM_image* img, int k )
             for (x=0; x<N; x++) {
                 const int xnext = (2*x+y) % N;
                 const int ynext = (x + y) % N;
-                next[xnext + ynext*N] = cur[x+y*N];
+                next[ynext*N + xnext] = cur[x+y*N];
             }
         }
         /* Swap old and new */
@@ -311,37 +346,6 @@ void cat_map( PGM_image* img, int k )
     free(next);
 }
 
-#ifndef SERIAL
-/**
- * We can interchange the loops to move the parallelization to the
- * outer loop, as explained in the text. To analyze the result, I have
- * executed the program on the systems below. The program has been
- * compiled by the Makefile (OpenMP enabled, default compiler
- * settings) and the command line was:
- *
- * ./omp-cat-map 684 < cat1368.pgm > /dev/null
- *
- * using all logical cores (default behavior of OpenMP). Running times
- * were computed by averaging 5 runs. "N+N cores" means that the
- * processor has N physical cores with hyperthreading, that are seen
- * by the OS as N+N "virtual" cores.
- *
- *                                cat_map()   cat_map_interchange()
- * ----------------------------------------------------------------
- * Intel Xeon E3-1220 (4 cores)      2.64               4.44
- * Intel i7-5820K (6+6 cores)        4.60               1.71
- * Intel i7-2600 (4+4 cores)         2.77               2.46
- * Intel i7-4790 (4+4 cores)         2.25               2.05
- * Intel Atom N570 (2+2 cores)      48.25              34.42
- * Raspberry PI 3 (4 cores)         36.69              27.07
- * Intel Xeon E5-2603 (12 cores)     1.79               2.34
- *
- * cat_map_interchange() is faster on all platforms with the notable
- * exception of the Xeon processors where it was almost two times
- * _slower_ than cat_map(). However, there are differences depending
- * on the number of OpenMP threads (e.g., for different values of P
- * one version might be faster or slower than the other).
- */
 void cat_map_interchange( PGM_image* img, int k )
 {
     int i, x, y;
@@ -352,37 +356,40 @@ void cat_map_interchange( PGM_image* img, int k )
     assert(next != NULL);
     assert(img->width == img->height);
 
+    /* [TODO] Which of the following loop(s) can be parallelized? */
+#ifndef SERIAL
 #if __GNUC__ < 9
 #pragma omp parallel for collapse(2) default(none) shared(cur,next,k) private(i)
 #else
 #pragma omp parallel for collapse(2) default(none) shared(N,cur,next,k) private(i)
 #endif
+#endif
     for (y=0; y<N; y++) {
         for (x=0; x<N; x++) {
             /* Compute the k-th iterate of pixel (x, y) */
-            int xcur = x, ycur = y, xnext = x, ynext = x;
+            int xcur = x, ycur = y;
             for (i=0; i<k; i++) {
-                xnext = (2*xcur+ycur) % N;
-                ynext = (xcur + ycur) % N;
+                const int xnext = (2*xcur+ycur) % N;
+                const int ynext = (xcur + ycur) % N;
                 xcur = xnext;
                 ycur = ynext;
             }
-            next[ynext*N+xnext] = cur[y*N+x];
+            next[ycur*N+xcur] = cur[y*N+x];
         }
     }
     img->bmap = next;
     free(cur);
 }
-#endif
 
 int main( int argc, char* argv[] )
 {
     PGM_image img;
     int niter;
-    double tstart, elapsed;
+    double elapsed;
+    const int NTESTS = 5; /* number of replications */
 
     if ( argc != 2 ) {
-        fprintf(stderr, "Usage: %s niter\n", argv[0]);
+        fprintf(stderr, "Usage: %s niter < input > output\n", argv[0]);
         return EXIT_FAILURE;
     }
     niter = atoi(argv[1]);
@@ -393,31 +400,54 @@ int main( int argc, char* argv[] )
         return EXIT_FAILURE;
     }
 
-    tstart = omp_get_wtime();
-    cat_map(&img, niter);
-    elapsed = omp_get_wtime() - tstart;
-    fprintf(stderr, "\n=== Without loop interchange ===\n");
-    fprintf(stderr, "  OpenMP threads : %d\n", omp_get_max_threads());
-    fprintf(stderr, "      Iterations : %d\n", niter);
-    fprintf(stderr, "    width,height : %d,%d\n", img.width, img.height);
-    fprintf(stderr, "     Mpixels/sec : %f\n", 1.0e-6 * img.width * img.height * niter / elapsed);
-    fprintf(stderr, "Elapsed time (s) : %f\n", elapsed);
-    write_pgm(stdout, &img, "produced by omp-cat-map.c");
-
-#ifndef SERIAL
     /**
-     ** Second version (with loop interchange)
+     ** WITHOUT loop interchange
      **/
-    tstart = omp_get_wtime();
-    cat_map_interchange(&img, niter);
-    elapsed = omp_get_wtime() - tstart;
-    fprintf(stderr, "\n=== With loop interchange ===\n");
+    elapsed = 0.0;
+    for (int i=0; i<NTESTS; i++) {
+        fprintf(stderr, "Run %d of %d\n", i, NTESTS);
+        const double tstart = hpc_gettime();
+        cat_map(&img, niter);
+        elapsed += hpc_gettime() - tstart;
+        if (i==0)
+            write_pgm(stdout, &img, "produced by omp-cat-map.c");
+    }
+    elapsed /= NTESTS;
+
+    fprintf(stderr, "\n=== Without loop interchange ===\n");
+#if defined(_OPENMP)
     fprintf(stderr, "  OpenMP threads : %d\n", omp_get_max_threads());
+#else
+    fprintf(stderr, "  OpenMP disabled\n");
+#endif
     fprintf(stderr, "      Iterations : %d\n", niter);
     fprintf(stderr, "    width,height : %d,%d\n", img.width, img.height);
     fprintf(stderr, "     Mpixels/sec : %f\n", 1.0e-6 * img.width * img.height * niter / elapsed);
-    fprintf(stderr, "Elapsed time (s) : %f\n", elapsed);
+    fprintf(stderr, "Elapsed time (s) : %f\n\n", elapsed);
+
+    /**
+     ** WITH loop interchange
+     **/
+    elapsed = 0.0;
+    for (int i=0; i<NTESTS; i++) {
+        fprintf(stderr, "Run %d of %d\n", i, NTESTS);
+        const double tstart = hpc_gettime();
+        cat_map_interchange(&img, niter);
+        elapsed += hpc_gettime() - tstart;
+    }
+    elapsed /= NTESTS;
+
+    fprintf(stderr, "\n=== With loop interchange ===\n");
+#if defined(_OPENMP)
+    fprintf(stderr, "  OpenMP threads : %d\n", omp_get_max_threads());
+#else
+    fprintf(stderr, "  OpenMP disabled\n");
 #endif
+    fprintf(stderr, "      Iterations : %d\n", niter);
+    fprintf(stderr, "    width,height : %d,%d\n", img.width, img.height);
+    fprintf(stderr, "     Mpixels/sec : %f\n", 1.0e-6 * img.width * img.height * niter / elapsed);
+    fprintf(stderr, "Elapsed time (s) : %f\n\n", elapsed);
+
     free_pgm( &img );
     return EXIT_SUCCESS;
 }

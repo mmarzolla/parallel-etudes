@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * simd-dot,c - Dot product
+ * simd-dot.c - Dot product
  *
- * Copyright (C) 2017--2021 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,18 +21,18 @@
 /***
 % HPC - Dot product
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-08-24
+% Last updated: 2022-11-27
 
 ## Environment setup
 
-Check which SIMD extensions are supported by the CPU by examining the
-output of the `cat /proc/cpuinfo` command or the command `lscpu`. Look
-in the _flags_ field for the presence of the abbreviations `mmx`,`
-sse`, `sse2`,` sse3`, `sse4_1`,` sse4_2`, `avx`,` avx2`.
+To see which SIMD extensions are supported by the CPU you can examine
+the output of `cat /proc/cpuinfo` or `lscpu`. Look at the _flags_
+field for the presence of the abbreviations `mmx`,` sse`, `sse2`,`
+sse3`, `sse4_1`,` sse4_2`, `avx`,` avx2`.
 
 Compile SIMD programs with:
 
-        gcc -std = c99 -Wall -Wpedantic -O2 -march=native -g -ggdb prog.c -o prog
+        gcc -std=c99 -Wall -Wpedantic -O2 -march=native -g -ggdb prog.c -o prog
 
 where:
 
@@ -43,91 +43,87 @@ where:
   showing the source code along with the corresponding assembly code
   (see below).
 
-It night be useful to analyze the assembly code produced by the
+It is sometimes useful to analyze the assembly code produced by the
 compiler, e.g., to see if SIMD instructions have actually been
 emitted. This can be done with the command:
 
         objdump -dS executable_name
 
-To know which compiler flags are enabled when `-march=native` is
-passed to GCC, use the following command:
+Use the following command to see which compiler flags are enabled by
+`-march=native`:
 
-        gcc -march = native -Q --help=target
+        gcc -march=native -Q --help=target
 
 ## Scalar product
 
 [simd-dot.c](simd-dot.c) contains a function that computes the scalar
-product of two `float` arrays.
-
-The program prints the average execution times of the parallel and
-serial versions (the goal of this exercise is to develop the SIMD
-version). The dot product is a very simple computation that completes
-in a very short time even with large arrays. Therefore, you might not
-observe significant differences between the performance of the serial
-and SIMD versions.
-
-The goal of this exercise is to employ SIMD parallelism in function
-`simd_dot()`, according with the following steps:
+product of two arrays. The program prints the mean execution times of
+the serial and SIMD versions (the goal of this exercise is to develop
+the SIMD version). The dot product is a very simple computation that
+requires little time even with large arrays. Therefore, you might not
+observe a significant spèeedup of the SIMD program.
 
 **1. Auto-vectorization.** Check the effectiveness of compiler
 auto-vectorization of the `scalar_dot()` function. Compile the program
 as follows:
 
-        gcc -O2 -march=native -ftree-vectorize -fopt-info-vec-optimized \
-          -fopt-info-vec-missed simd-dot.c -o simd-dot -lm 2> & 1 | \
-          grep "loop vectorized"
+        gcc -O2 -march=native -ftree-vectorize -fopt-info-vec-all \
+          simd-dot.c -o simd-dot -lm 2>&1 | grep "loop vectorized"
 
-The `-fopt-info-vec-XXX` flags print some "informative" messages (so
-to speak) on standard error indicating which loops have been
-vectorized, if any. The command line above redirects standard error to
-standard output, and searches for the string _loop vectorized_ which
-should be printed by the compiler when it succesfully vectorizes a
-loop.
+The `-ftree-vectorize` enables auto-vectorization;
+`-fopt-info-vec-all` flag prints some "informative" messages (so to
+speak) on standard error to show which loops have been vectorized.
 
-Only one such message should be printed: the compiler vectorizes the
-loop in function `fill()`, but not the one in function `serial_dot()`.
+Recent versions of GCC (e.g., 9.4.0) correctly vectorize the
+`serial_dot()` function. Older versions did vectorize the loop in the
+`fill()` function, but not that in `serial_dot()`.
 
-**2. Auto-vectorization (second attempt).** Examine the diagnostic
-messages of the compiler (remove the strings from `2> & 1` onwards
-from the previous command); there should be a message similar to
-this one:
+**2. Auto-vectorization (second attempt).** If you have a recent
+version of GCC, you can examine the assembly code to verify that SIMD
+instructions have indeed been emitted:
 
-        simd-dot.c: 168: 5: note: reduction: unsafe fp math optimization: r_17 = _9 + r_20;
+        gcc -S -c -march=native -O2 -ftree-vectorize simd-dot.c -o simd-dot.s
 
-Line 168 (in my source version) is the "for" loop of the
-`scalar_dot()` function; the message is the same we discussed during
-the class, and indicates that the instructions:
+If you have an older version of GCC, examine the diagnostic messages
+of the compiler (remove the strings from `2>&1` onwards from the
+previous command); you should see something like:
+
+        simd-dot.c:157:5: note: reduction: unsafe fp math optimization: r_17 = _9 + r_20;
+
+that refers to the "for" loop of the `scalar_dot()` function. The
+message reports that the instructions:
 
         r += x[i] * y[i];
 
 are part of a reduction operation involving operands of type
-`float`. Since floating-point arithmetic does not enjoy the
-commutative property, the compiler does not vectorize in order not to
-alter the order of the sums. To ignore the problem, recompile the
-program with the `-funsafe-math-optimizations` flag:
+`float`. Since floating-point arithmetic is not commutative, the
+compiler did not vectorize in order not to alter the order of the
+sums. To ignore the problem, recompile the program with the
+`-funsafe-math-optimizations` flag:
 
-        gcc -O2 -march = native -ftree-vectorize -fopt-info-vec-optimized \
-          -fopt-info-vec-missed -funsafe-math-optimizations simd-dot.c \
-          -o simd-dot -lm 2> & 1 | grep "loop vectorized"
+        gcc -O2 -march=native -ftree-vectorize -fopt-info-vec-all \
+          -funsafe-math-optimizations \
+          simd-dot.c -o simd-dot -lm 2>&1 | grep "loop vectorized"
 
 The following message should now appear:
 
-        simd-dot.c: 168: 5: note: loop vectorized
-
-indicating that the cycle has been vectorized.
+        simd-dot.c:165:5: optimized: loop vectorized using 32 byte vectors
 
 **3. Vectorize the code manually.** Implement the function
 `simd_dot()` using the _vector datatype_ of the GCC compiler. The
-function is very similar to the function for computring the
-sum-reduction of an array that we have seen in the class (refer to
-`simd-vsum-vector.c` in the examples archive). Function `simd_dot()`
-should work correctly for any length $n$ of the input arrays, which is
-not required to be a multiple of the SIMD array widths. Input arrays
-are always correctly aligned.
+function should be very similar to the one computing the sum-reduction
+(refer to `simd-vsum-vector.c` in the examples archive). The function
+`simd_dot()` should work correctly for any length $n$ of the input
+arrays, which is therefore not required to be a multiple of the SIMD
+array lenght. Input arrays are always correctly aligned.
 
 Compile with:
 
         gcc -std=c99 -Wall -Wpedantic -O2 -march=native -g -ggdb simd-dot.c -o simd-dot -lm
+
+(do _not_ use `-ftree-vectorize`, since we want to compare the
+execution time of the pure scalar version with the hand-tuned SIMD
+implementation).
 
 Run with:
 
@@ -144,7 +140,8 @@ Example:
 
  ***/
 
-/* The following #define is required by posix_memalign() */
+/* The following #define is required by posix_memalign() and MUST
+   appear before including any system header */
 #define _XOPEN_SOURCE 600
 
 #include "hpc.h"

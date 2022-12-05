@@ -17,7 +17,7 @@
  * limitations under the License.
  *
  ****************************************************************************/
-#define EPSILON 1.0e-9f
+#define EPSILON 1.0e-5f
 
 __kernel void
 compute_force_kernel(__global const float3 *x,
@@ -26,13 +26,13 @@ compute_force_kernel(__global const float3 *x,
                      int n)
 {
     const int i = get_global_id(0);
-    float3 F = (float3)(0.0f, 0.0f, 0.0f);
 
     if (i<n) {
+        float3 F = (float3)(0.0f, 0.0f, 0.0f);
+
         for (int j = 0; j < n; j++) {
             const float3 dx = x[j] - x[i];
-            const float distSqr = dot(dx,dx) + EPSILON;
-            const float invDist = 1.0f / sqrt(distSqr);
+            const float invDist = 1.0f / (distance(x[j], x[i]) + EPSILON);
             const float invDist3 = invDist * invDist * invDist;
 
             F += dx * invDist3;
@@ -54,9 +54,10 @@ integrate_positions_kernel(__global float3 *x,
 }
 
 __kernel void
-kinetic_energy_kernel(__global const float3 *v,
-                      int n,
-                      __global float *results)
+energy_kernel(__global const float3 *x,
+              __global const float3 *v,
+              int n,
+              __global float *results)
 {
     __local float temp[SCL_DEFAULT_WG_SIZE];
 
@@ -64,28 +65,28 @@ kinetic_energy_kernel(__global const float3 *v,
     const int li = get_local_id(0);
     const int gid = get_group_id(0);
 
-    int bsize = get_local_size(0) / 2;
+    temp[li] = 0.0f;
 
-    if (gi < n)
-        temp[li] = dot(v[gi],v[gi]);
-    else {
-        temp[li] = 0.0f;
+    if (gi < n) {
+        temp[li] =  0.5f*dot(v[gi], v[gi]);
+        for (int gj= gi+1; gj<n; gj++) {
+            temp[li] -= 1.0f / distance(x[gi], x[gj]);
+        }
     }
     /* wait for all work-items to finish the copy operation */
     barrier(CLK_LOCAL_MEM_FENCE);
 
     /* All work-items cooperate to compute the local sum */
-    while ( bsize > 0 ) {
+    for (int bsize = get_local_size(0)/2; bsize > 0; bsize /= 2) {
         if ( li < bsize ) {
             temp[li] += temp[li + bsize];
         }
-        bsize = bsize / 2;
         /* threads must synchronize before performing the next
            reduction step */
         barrier(CLK_LOCAL_MEM_FENCE);
     }
 
     if ( 0 == li ) {
-        results[gid] = 0.5f*temp[0];
+        results[gid] = temp[0];
     }
 }

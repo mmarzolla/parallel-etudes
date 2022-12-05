@@ -5,7 +5,7 @@
  * N-body simulation with CUDA (from https://github.com/harrism/mini-nbody)
  *
  * Copyright (C) Mark Harris
- * Modified in 2020 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Modified in 2020--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,7 @@
 /***
 % HPC - N-Body simulation
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-09-07
-
+% Last updated: 2022-11-26
 
 ![A frame of the Bolshoi simulation (source: <http://hipacc.ucsc.edu/Bolshoi/Images.html>)](bolshoi.png)
 
@@ -120,7 +119,7 @@ memory $N$ times; indeed, each of the $N$ CUDA threads scans the
 entire `p[]` array, so each element of `p[]` is accessed $N$ times
 by $N$ different threads.
 
-![Figure 1: Using _shared memory_](cuda-nbody.png)
+![Figure 1: Using _shared memory_](cuda-nbody.svg)
 
 In situations like this, it can be useful to try to use use shared
 memory to reduce access to the device memory (Figure 1). To do this:
@@ -333,20 +332,31 @@ __global__ void integrate_positions(float3 *x, const float3 *v, float dt, int n)
 }
 #endif
 
-float kinetic_energy(const float3 *v, int n)
+float energy(const float3 *x, const float3 *v, int n)
 {
-    float K = 0.0;
-    int i;
+    float energy = 0.0;
     /* The kinetic energy of an n-body system is:
 
        K = (1/2) * sum_i [m_i * (vx_i^2 + vy_i^2 + vz_i^2)]
 
     */
 
-    for (i=0; i<n; i++) {
-        K += (v[i].x * v[i].x) + (v[i].y * v[i].y) + (v[i].z * v[i].z);
+    for (int i=0; i<n; i++) {
+        energy += 0.5*(v[i].x * v[i].x + v[i].y * v[i].y + v[i].z * v[i].z);
+        /* Accumulate potential energy, defined as
+
+           sum_{i<j} - m[j] * m[j] / d_ij
+
+         */
+        for (int j=i+1; j<n; j++) {
+            const float dx = x[i].x - x[j].x;
+            const float dy = x[i].y - x[j].y;
+            const float dz = x[i].z - x[j].z;
+            const float distance = sqrt(dx*dx + dy*dy + dz*dz);
+            energy -= 1.0f / distance;
+        }
     }
-    return 0.5 * K;
+    return energy;
 }
 
 int main(int argc, char* argv[])
@@ -377,6 +387,8 @@ int main(int argc, char* argv[])
     if (argc > 2) {
         nIters = atoi(argv[2]);
     }
+
+    srand(1234);
 
     printf("%d particles, %d steps\n", nBodies, nIters);
 #ifndef SERIAL
@@ -420,13 +432,13 @@ int main(int argc, char* argv[])
         const double elapsed = hpc_gettime() - tstart;
         totalTime += elapsed;
 #ifndef SERIAL
-        /* The following copy is required to compute the kinetic
-           energy on the CPU. It would be possible to compute the
-           energy on the GPU, so that this copy operation would not be
-           required */
+        /* The following copy is required to compute the energy on the
+           CPU. It would be possible to compute the energy on the GPU,
+           so that this copy operation would not be required */
+        cudaSafeCall( cudaMemcpy(x, d_x, size, cudaMemcpyDeviceToHost) );
         cudaSafeCall( cudaMemcpy(v, d_v, size, cudaMemcpyDeviceToHost) );
 #endif
-        printf("Iteration %3d/%3d : K=%f, %.3f seconds\n", iter, nIters, kinetic_energy(v, nBodies), elapsed);
+        printf("Iteration %3d/%3d : energy=%f, %.3f seconds\n", iter, nIters, energy(x, v, nBodies), elapsed);
         fflush(stdout);
     }
     const double avgTime = totalTime / nIters;

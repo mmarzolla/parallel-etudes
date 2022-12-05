@@ -12,9 +12,9 @@ OUTFILES :=
 HANDOUTS_SRC := ${SRC:%.c=handouts/%.c} ${SRC:%.cu=handouts/%.cu} ${SRC:%.cl=handouts/%.cl} ${INC:%.h=handouts/%.h}
 SOLUTIONS_SRC := ${SRC:%.c=solutions/%.c} ${SRC:%.cu=solutions/%.cu} ${SRC:%.cl=solutions/%.cl} ${INC:%.h=solutions/%.h}
 HTML := ${SRC:%.c=handouts/%.html} ${SRC:%.cu=handouts/%.html} handouts/exercises-list.html
-EXTRAS += lab.css labhpc.include $(wildcard *.png *.svg *.jpg *.pgm *.ppm *.md *,sh) mpi-rule30.pdf
-IMGS := omp-c-ray-images.png denoise.png simd-map-levels.png edge-detect.png cat-map-demo.png anneal-demo.png
-CFLAGS += -std=c99 -Wall -Wpedantic -Werror -g -ggdb
+EXTRAS += lab.css $(wildcard *.png *.svg *.jpg *.pgm *.ppm *.md *,sh) mpi-rule30.pdf
+IMGS := omp-c-ray-images.jpg denoise.png simd-map-levels.png edge-detect.png cat-map-demo.png anneal-demo.png
+CFLAGS += -std=c99 -Wall -Wpedantic -g -ggdb
 LDLIBS +=
 PANDOC_EXTRA_OPTS += -V lang=en-US --mathjax="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
 NVCC ?= nvcc
@@ -123,7 +123,7 @@ spheres.in: genspheres
 dna.in: gendna
 	./gendna > $@
 
-omp-c-ray-images.png: omp-c-ray sphfract.small.in spheres.in dna.in
+omp-c-ray-images.jpg: omp-c-ray sphfract.small.in spheres.in dna.in
 	./omp-c-ray < sphfract.small.in > c-ray1.tmp.ppm
 	./omp-c-ray < spheres.in > c-ray2.tmp.ppm
 	./omp-c-ray < dna.in > c-ray3.tmp.ppm
@@ -139,12 +139,20 @@ edge-detect.png: omp-edge-detect BWstop-sign.pgm
 	./omp-edge-detect < BWstop-sign.pgm > BWstop-sign-edges.pgm
 	montage BWstop-sign.pgm BWstop-sign-edges.pgm -tile 2x1 -geometry +0+0 -resize 400x $@
 
+cat-map.png: omp-cat-map
+	for niter in 0 1 2 5 10 36; do \
+	  ./omp-cat-map "$${niter}" < cat1368.pgm > `printf "cat-map-demo-%02d.pgm" $${niter}` ; \
+	done
+	montage "cat-map-demo-[0-9]*.pgm" -scale x600 -tile 6x1 -geometry +0+0 $@
+	\rm -f "cat-map-demo-[0-9]*.pgm"
+
 cat-map-demo.png: omp-cat-map
 	for niter in 0 1 2 5 10 36; do \
 	  ./omp-cat-map "$${niter}" < cat1368.pgm > "cat-map-demo-$${niter}.pgm" ; \
 	  convert "cat-map-demo-$${niter}.pgm" -resize 128 -pointsize 18 -background white label:"K = $$niter" -gravity Center -append `printf "cat-map-demo-%02d.png" $${niter}` ; \
 	done
 	montage "cat-map-demo-[0-9]*.png" -tile 6x1 -geometry +5+5 $@
+	\rm -f "cat-map-demo-[0-9]*.pgm" "cat-map-demo-[0-9]*.png"
 
 anneal-demo.png: opencl-anneal
 	for niter in 0 10 100 1000; do \
@@ -153,6 +161,7 @@ anneal-demo.png: opencl-anneal
 	  convert "$${FILENAME}" -resize 256 -pointsize 18 -background white label:"$$niter Iterations" -gravity Center -append `printf "anneal-demo-%06d.png" $${niter}` ; \
 	done
 	montage "anneal-demo-[0-9]*.png" -tile 4x1 -geometry +5+5 $@
+	\rm -f "opencl-anneal-[0-9]*.pbm" "anneal-demo-[0-9]*.png"
 
 valve-noise.ppm: valve.png
 	convert $< -attenuate 0.2 +noise impulse -format ppm $@

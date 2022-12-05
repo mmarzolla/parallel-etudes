@@ -40,11 +40,11 @@ can specify an optional threshold on the command line.
 The goal of this exercise is to parallelize the two nested loops in
 the `edge_detect()` function using suitable OpenMP directives.
 
-Compile with:
+To compile:
 
         gcc -std=c99 -Wall -Wpedantic -fopenmp omp-edge-detect.c -o omp-edge-detect
 
-Execute with:
+To execute:
 
         ./omp-edge-detect [threshold] < input > output
 
