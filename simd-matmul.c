@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * simd-matmul.c - Dense matrix-matrix multiply using vector datatypes
+ * simd-matmul.c - Dense matrix-matrix multiply
  *
  * Copyright (C) 2017--2021 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
@@ -19,19 +19,19 @@
  ****************************************************************************/
 
 /***
-% HPC - Prodotto matrice-matrice SIMD
+% HPC - Dense matrix-matrix multiply
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Ultimo aggiornamento: 2021-05-15
+% Last updated: 2022-12-16
 
-Il file [simd-matmul.c](simd-matmul.c) contiene la versione seriale
-del prodotto matrice-matrice $r=p \times q$, sia nella versione
-normale che nella versione _cache-efficient_ che traspone la matrice
-$q$ per sfruttare al meglio la cache (ne abbiamo parlato a lezione).
+The file [simd-matmul.c](simd-matmul.c) contains a serial
+implementation of the matrix-matrix product algorithm that computes
+$r=p \times q$, where $p$ and $q$ are two square matrices of equal
+size. The serial algorithm is cache-efficient, and is based on the
+idea of transposing $q$ into $q^T$ so that the dot products of rows of
+$p$ and columns of $q$ become dot products of rows of $p$ and $q^T$
 
-La versione cache-efficient può essere usata per trarre vantaggio
-dalle estensioni SIMD del processore, in quanto il prodotto
-riga-colonna diventa un prodotto riga-riga. Osserviamo che il corpo
-della funzione `scalar_matmul_tr()`
+The cache-efficient version can be used to take advantage of SIMD
+instructions. Indeed, the body of the `scalar_matmul_tr()` function
 
 ```C
 for (i=0; i<n; i++) {
@@ -45,42 +45,39 @@ for (i=0; i<n; i++) {
 }
 ```
 
-calcola il prodotto scalare di due vettori di $n$ elementi memorizzati
-a partire dagli indirizzi di memoria $(p + i \times n)$ e
-$(\mathit{qT} + j \times n)$. Sfruttando il calcolo SIMD del prodotto
-scalare, realizzare la funzione `simd_matmul_tr()` in cui il prodotto
-scalare di cui sopra viene calcolato usando i _vector datatype_ del
-compilatore. Si garantisce che le dimensioni delle matrici siano
-multiple della lunghezza dei vettori SIMD.
+computes the dot product of two vectors of length $n$ beginning at the
+memory addresses $(p + i \times n)$ and $(\mathit{qT} + j \times n)$,
+respectively. The goal of this exercise is to implement the function
+`simd_matmul_tr()` that realizes the matrix-matrix product using SIMD
+instructions leveraging the _vector datatypes_ compiler
+extensions. The matrix size $n$ is guaranteed to be an integer
+multiples of the SIMD vector length.
 
-Si presti attenzione che in questo esercizio si usa il tipo `double`;
-è pertanto necessario definire un tipo vettoriale `v2d`, di ampiezza
-16 Byte e composto da due valori `double`, utilizzando una
-dichiarazione simile a quella vista a lezione:
+We use the `double` datatype, so it is necessary to define a vector
+datatype type `v2d` made of `double` values, using the statements
 
 ```C
 typedef double v2d __attribute__((vector_size(16)));
 #define VLEN (sizeof(v2d)/sizeof(double))
 ```
 
-Il server usato per le esercitazioni supporta le estensioni SIMD di
-Intel fino ad AVX2, e quindi dispone di registri SIMD di ampiezza 256
-bit = 32 Byte. Si provi a modificare la propria implementazione per
-sfruttare un tipo vettoriale `v4d` contenente quattro valori `double`.
+The server used in the lab supports AVX2 instructions, and therefore
+SIMD registers up to 256 bits (32 bytes) can be used. You may try to
+use a wider vector datatype `v4d` containing four doubles.
 
-Compilare con:
+To compile:
 
         gcc -march=native -O2 -std=c99 -Wall -Wpedantic -D_XOPEN_SOURCE=600 simd-matmul.c -o simd-matmul
 
-Eseguire con
+To execute:
 
         ./simd-matmul [matrix size]
 
-Esempio:
+Example:
 
         ./simd-matmul 1024
 
-## File
+## Files
 
 - [simd-matmul.c](simd-matmul.c)
 - [hpc.h](hpc.h)
