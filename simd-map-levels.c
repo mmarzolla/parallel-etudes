@@ -19,67 +19,66 @@
  ****************************************************************************/
 
 /***
-% HPC - Mappatura livelli di grigio
+% HPC - Map gray levels on image
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Ultimo aggiornamento: 2022-11-26
+% Last updated: 2022-12-16
 
-Consideriamo una immagine bitmap a toni di grigio di $M$ righe e $N$
-colonne, in cui il colore di ogni pixel sia codificata con un intero
-da 0 (nero) a 255 (bianco). Dati due valori interi _low, high_ con $0
-\leq \mathit{low} < \mathit{high} \leq 255$, la funzione
-`map_levels(img, low, high)` modifica l'immagine `img` rendendo neri
-tutti i pixel il cui livello di grigio è minore di _low_, bianchi
-tutti quelli il cui livello di grigio è maggiore di _high_, e mappando
-i rimanenti nell'intervallo $[0, 255]$. Più in dettaglio, detto $p$ il
-livello di grigio di un pixel, la funzione deve calcolare il nuovo
-livello $p'$ come:
+Let us consider a grayscale bitmap with $M$ lines and $N$ columns,
+where the color of each pixel is encoded by an integer from 0 (black)
+to 255 (white). Given two values _low, high_, $0 \leq \mathit{low} <
+\mathit{high} \leq 255$, the function `map_levels(img, low, high)`
+modifies `img` so that pixels whose gray level is less than _low_
+become black, those whose gray level is greater than _high_ become
+white, and those whose gray level is between _low_ and _high_
+(inclusive) are linearly mapped to the range $[0, 255]$.
+
+Specifically, if $p$ is the gray level of a pixel, the function
+computes the new gray level $p'$ as:
 
 $$
 p' = \begin{cases}
-0 & \text{se}\ p < \mathit{low}\\
-\displaystyle\frac{255 \times (p - \mathit{low})}{\mathit{high} - \mathit{low}} & \text{se}\ \mathit{low} \leq p \leq \mathit{high}\\
-255 & \text{se}\ p > \mathit{high}
+0 & \text{if}\ p < \mathit{low}\\
+\displaystyle\frac{255 \times (p - \mathit{low})}{\mathit{high} - \mathit{low}} & \text{if}\ \mathit{low} \leq p \leq \mathit{high}\\
+255 & \text{is}\ p > \mathit{high}
 \end{cases}
 $$
 
-La Figura 1 mostra un esempio ottenuto con il comando
+Figure 1 shows the image produced by the command
 
         ./simd-map-levels 100 255 < Yellow_palace_Winter.pgm > out.pgm
 
-![Figura 1: Mappatura di livelli di grigio (_low_ = 100, _high_ = 255)](simd-map-levels.png)
+![Figure 1: Example of gray level mapping (_low_ = 100, _high_ = 255)](simd-map-levels.png)
 
-Come caso di studio reale, viene fornita l'immagine
-[C1648109](C1648109.pgm) ripresa dalla sonda [Voyager
-1](https://voyager.jpl.nasa.gov/) l'8 marzo 1979, che mostra Io, uno
-dei quattro [satelliti
-Galileiani](https://en.wikipedia.org/wiki/Galilean_moons) di
-Giove. L'ingegnera di volo [Linda
-Morabito](https://it.wikipedia.org/wiki/Linda_Morabito) era
-interessata ad evidenziare le stelle sullo sfondo per ottenere la
-posizione precisa della sonda. A tale scopo ha rimappato i livello di
-grigio, facendo una delle scoperte più importanti della
-missione. Provate ad applicare il programma
-[simd-map-levels.c](simd-map-levels.c) all'immagine ponendo _low_ = 10
-e _high_ = 30, e osservate cosa compare a ore dieci accanto al disco
-di Io...
+As an interesting practical application we provide the image
+[C1648109](C1648109.pgm) taken by the [Voyager
+1](https://voyager.jpl.nasa.gov/) probe on March 8, 1979. The image
+shows Io, one of the four [Galilean moons of planet
+Jupiter](https://en.wikipedia.org/wiki/Galilean_moons). The Flight
+Engineer [Linda
+Morabito](https://en.wikipedia.org/wiki/Linda_A._Morabito) was using
+this image to uncover the background stars to determine the precise
+location of the probe. To this aim, she needed to remap the gray
+levels so that the faint stars would be visible. This lead to one of
+the most important discoveries of modern planetary sciences: see by
+yourself by running the program [simd-map-levels.c](simd-map-levels.c)
+on the image [C1648109](C1648109.pgm) with _low_ = 10 and _high_ = 30,
+and look at what appears next to the disc of Io at ten o'clock...
 
-![Figura 2: Immagine C1648109 di Io ripresa da Voyager 1 ([fonte](https://opus.pds-rings.seti.org/#/mission=Voyager&target=Io&cols=opusid,instrument,planet,target,time1,observationduration&widgets=mission,planet,target&order=time1,opusid&view=detail&browse=gallery&cart_browse=gallery&startobs=481&cart_startobs=1&detail=vg-iss-1-j-c1648109))](C1648109.png)
+![Figure 2: Image C1648109 taken by Voyager 1 ([source](https://opus.pds-rings.seti.org/#/mission=Voyager&target=Io&cols=opusid,instrument,planet,target,time1,observationduration&widgets=mission,planet,target&order=time1,opusid&view=detail&browse=gallery&cart_browse=gallery&startobs=481&cart_startobs=1&detail=vg-iss-1-j-c1648109))](C1648109.png)
 
-Il file [simd-map-levels.c](simd-map-levels.c) contiene una
-implementazione seriale dell'operatore per rimappare i livelli di
-grigio. Scopo di questo esercizio è svilupparne una versione SIMD
-utilizzando i _vector datatype_ del compilatore GCC. Ogni pixel
-dell'immagine è codificato da un valore di tipo `int` per evitare
-problemi di _overflow_ durante le operazioni aritmetiche. Definiamo un
-tipo `v4i` per rappresentare un vettore SIMD composto da 4 `int`:
+The file [simd-map-levels.c](simd-map-levels.c) contains a serial
+implementation of the function `map_levels()` above. The goal of this
+exercise is to develop a SIMD version using GCC _vector datatypes_.
+We start by defining a vector datatype `v4i` that represents four
+integers:
 
 ```C
 typedef int v4i __attribute__((vector_size(16)));
 #define VLEN (sizeof(v4i)/sizeof(int))
 ```
 
-L'idea è di elaborare l'immagine a blocchi di 4 pixel adiacenti. Per
-vettorizzare il codice seriale
+Then, the idea is to process the image four pixels at a time. However,
+the serial code
 
 ```C
 int *pixel = bmap + i*width + j;
@@ -91,12 +90,17 @@ else
     *pixel = (255 * (*pixel - low)) / (high - low);
 ```
 
-occorre eliminare le strutture condizionali "if".  Definiamo una
-variabile `pixels` come puntatore ad un array SIMD. L'espressione
-`mask_black = (*pixels < low)` produce come risultato un nuovo array
-SIMD i cui elementi valgono -1 in corrispondenza dei pixel con valore
-minore alla soglia, e 0 per gli altri pixel. Il codice sopra può
-quindi essere riscritto come:
+is problematic because it contains conditional statements that can not
+be directly vectorized. To address this issue we use the _selection
+and masking_ technique described in class.
+
+Let `pixels` be a pointer to a `v4i` SIMD array. Then, the expression
+`mask_black = (*pixels < low)` produces a SIMD array of integers whose
+elements are -1 for those pixels whose gray level is less than _low_,
+0 otherwise. `mask_black` can therefore be used as a bit mask to
+assign the correct values to these pixels.
+
+Using the idea above, we can rewrite the code as follows:
 
 ```C
 v4i *pixels = (v4i*)(bmap + i*width + j);
@@ -108,43 +112,42 @@ const v4i mask_map = ??? ;
             ( ??? ) );
 ```
 
-Si noti che `BLACK` e `WHITE` vengono automaticamente promossi dal
-compilatore ad array SIMD i cui elementi valgono tutti `BLACK` e
-`WHITE`, rispettivamente.
+Note that the compiler automatically promotes `BLACK` and `WHITE` to
+SIMD vectors whose elements are all `BLACK` or `WHITE`,
+respectively. (The code above can be further simplified since
+`(mask_black & BLACK)` always produces a SIMD array whose elements are
+all zeros: why?).
 
-Il frammento di codice precedente può essere semplificato perché
-l'espressione `(mask_black & BLACK)` produce sempre un array SIMD i
-cui elementi sono tutti zero (perché?).
+The SIMD version requires that
 
-Per funzionare correttamente la versione SIMD richiede che:
+1. The bitmap is aligned in memory at a memory address that is
+   multiple of 16;
 
-1. La bitmap sia allocata a partire da un indirizzo di memoria
-   multiplo di 16;
+2. The image width is an integer multiple of the `v4i` SIMD vector
+   width, i.e., an integer multiple of 4.
 
-2. La larghezza dell'immagine sia multipla dell'ampiezza di un
-   registro SIMD (4, se usiamo il tipo `v4i`)
+Both conditions above are satisfied by the sequential code and the
+input images.
 
-Entrambe le condizioni sono soddisfatte nel programma e nelle immagini fornite.
-
-Compilare con:
+To compile:
 
         gcc -std=c99 -Wall -Wpedantic -O2 -march=native simd-map-levels.c -o simd-map-levels
 
-Eseguire con:
+To execute:
 
         ./simd-map-levels low high < input_file > output_file
 
 dove $0 \leq \mathit{low} < \mathit{high} \leq 255$.
 
-Esempio:
+Example:
 
         ./simd-map-levels 10 30 < C1648109.pgm > C1648109-map.pgm
 
-## File
+## Files
 
 - [simd-map-levels.c](simd-map-levels.c)
 - [hpc.h](hpc.h)
-- Immagini di esempio: [Yellow palace Winter](Yellow_palace_Winter.pgm), [C1648109.pgm](C1648109.pgm)
+- Some input images: [Yellow palace Winter](Yellow_palace_Winter.pgm), [C1648109.pgm](C1648109.pgm)
 
 ***/
 

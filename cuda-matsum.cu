@@ -23,12 +23,12 @@
 % Moreno Marzolla <moreno.marzolla@unibo.it>
 % Last updated: 2022-11-23
 
-The oeifeN [cuda-matsum.cu](cuda-matsum.cu) computes the sum of two
+The program [cuda-matsum.cu](cuda-matsum.cu) computes the sum of two
 square matrices of size $N \times N$ using the CPU. Modify the program
-to use the GPU; in particular, you must modify the function `matsum()`
-in such a way that the new version is transparent to the caller, i.e.,
-the caller is not aware whether the computation happens on the CPU or
-the GPU. To this aim, function `matsum()` should:
+to use the GPU; you must modify the function `matsum()` in such a way
+that the new version is transparent to the caller, i.e., the caller is
+not aware whether the computation happens on the CPU or the GPU. To
+this aim, function `matsum()` should:
 
 - allocate memory on the device to store copies of $p, q, r$;
 
