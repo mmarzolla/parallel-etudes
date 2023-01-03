@@ -164,6 +164,7 @@ char *gen_encrypt( const char *msg, char *key, int keylen )
 int main( int argc, char *argv[] )
 {
     const int KEY_LEN = 8;
+    const int BLKLEN = 1024;
     /* encrypted message */
     const char enc[] = {
         4, 1, 0, 1, 0, 1, 4, 1,
@@ -177,15 +178,13 @@ int main( int argc, char *argv[] )
     };
     
     int my_rank, comm_sz;
-    MPI_Request req;
     /* There is some redundant code that has been used by me to
        generate the encrypted message */
     const char *msg = "0123456789A strange game. The only winning move is not to play."; /* plaintext message */
     const int msglen = strlen(msg)+1; /* length of the encrypted message, including the trailing \0 */
     char enc_key[] = "40224426"; /* encryption key */
     const int n = 100000000;    /* total number of possible keys */
-    const int samples = 5;
-    int found = 0;
+    int found = 0, local_found = 0;
     const char check[] = "0123456789"; /* the decrypted message starts with this string */
     const int CHECK_LEN = strlen(check);
     
@@ -210,32 +209,19 @@ int main( int argc, char *argv[] )
 	   variable `found`; however, the race condition is benign
 	   because in the worst case it forces the other threads to
 	   execute one more iteration than necessary. */
-	for ( int i=my_start; i<my_end && !found; i++) {
-		if (i >= n) {
-			break;
-		}
-		
-		if ( i%(n/comm_sz/samples) == 0 ) {
-			MPI_Irecv( &found,
-					   1,
-					   MPI_INT,
-					   MPI_ANY_SOURCE,
-					   my_rank,
-					   MPI_COMM_WORLD,
-					   &req
-					 );
-					 
-			int flag;
-			MPI_Status status;
+	for ( int i=my_start; i<my_end && !found && i<n; i++) {
+				
+		if ( i%BLKLEN == 0 ) {
 			
-			MPI_Test(&req, &flag, &status);
+			// MPI_Barrier(MPI_COMM_WORLD); // Could be usefull before the use of collectives on some supercomputers
 			
-			if(flag != 0) printf("%d\n", found);
-		}
-
-		if (found == 1) {
-			printf("My rank: %d, another process has found the key - EXITING\n", my_rank);
-			break;
+			MPI_Allreduce( &local_found, 	/* sendbuf      	*/
+						   &found,			/* recvbuf      	*/
+						   1,				/* count 			*/
+						   MPI_INT,			/* sent datatype 	*/
+						   MPI_SUM,			/* operation 		*/
+						   MPI_COMM_WORLD   /* communicator		*/
+						 );
 		}
 		
 		sprintf(key, "%08d", i);
@@ -243,25 +229,22 @@ int main( int argc, char *argv[] )
 		if ( 0 == memcmp(buf, check, CHECK_LEN)) {
 			printf("Key found: %s, by rank: %d\n", key, my_rank);
 			printf("Decrypted message: %s\n", buf);
-			found = 1;
+			local_found = 1;
 			
 			const double elapsed = hpc_gettime() - tstart;
 			printf("Rank: %d, elapsed time: %f\n", my_rank, elapsed);
 			
 			printf("Broadcasting that the key has been found\n");
-			
-			for (int j=0;j<comm_sz;j++) {
-				if ( j != my_rank ) {
-					MPI_Send( &found,
-							  1,
-							  MPI_INT,
-							  j,
-							  j,
-							  MPI_COMM_WORLD
-							);
-				}
-			}
 		}
+	}
+	
+	if ( found > 1 ) {
+		fprintf(stderr, "More than one key found - ERROR\n");
+        return EXIT_FAILURE;
+	}
+	
+	if ( !local_found && found ) {
+		printf("My rank: %d, another process has found the key - EXITING\n", my_rank);
 	}
 	
 	free(buf);
