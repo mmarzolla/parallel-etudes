@@ -133,7 +133,6 @@ Example:
 #include <stdlib.h>
 #include <math.h> /* for sqrtf() */
 #include <assert.h>
-#include "simpleCL.h"
 #include <mpi.h>
 
 const float EPSILON = 1.0e-9f;
@@ -151,29 +150,27 @@ float randab( float a, float b )
  * Randomly initialize positions and velocities of the `n` particles
  * stored in `p`.
  */
-void init(float *points[],
-          float *vpoints[],
-          const int DIMENSIONS, int n)
+void init(float *x, float *y, float *z,
+          float *vx, float *vy, float *vz,
+          int n)
 {
-	for (int i = 0; i < DIMENSIONS; i++) {
-		for (int j = 0; j < n; j++) {
-			points[i][j] = randab(-1, 1);
-			vpoints[i][j] = randab(-1, 1);
-		}
+    for (int i = 0; i < n; i++) {
+        x[i] = randab(-1, 1);
+        y[i] = randab(-1, 1);
+        z[i] = randab(-1, 1);
+        vx[i] = randab(-1, 1);
+        vy[i] = randab(-1, 1);
+        vz[i] = randab(-1, 1);
     }
 }
 
 /**
  * Compute the new velocities of all particles in `p`
  */
-void compute_force(float *points[],
-                   float *vpoints[],
-                   float dt,
-                   const int DIMENSIONS, int n)
+void compute_force(const float *x, const float *y, const float *z,
+                   float *vx, float *vy, float *vz,
+                   float dt, int n)
 {
-	
-	const float *x = points[0], *y = points[1], *z = points[2];
-	
     for (int i = 0; i < n; i++) {
         float Fx = 0.0f, Fy = 0.0f, Fz = 0.0f;
 
@@ -189,10 +186,9 @@ void compute_force(float *points[],
             Fy += dy * invDist3;
             Fz += dz * invDist3;
         }
-        
-		vpoints[0][i] += dt*Fx;
-		vpoints[1][i] += dt*Fy;
-		vpoints[2][i] += dt*Fz;
+        vx[i] += dt*Fx;
+        vy[i] += dt*Fy;
+        vz[i] += dt*Fz;
     }
 }
 
@@ -200,39 +196,32 @@ void compute_force(float *points[],
  * Update the positions of all particles in p using the updated
  * velocities.
  */
-void integrate_positions(float *points[],
-						 float *vpoints[],
-                         float dt,
-                         const int DIMENSIONS, int n)
+void integrate_positions(float *x, float *y, float *z,
+                         const float *vx, const float *vy, const float *vz,
+                         float dt, int n)
 {
-	for (int i = 0; i < DIMENSIONS; i++) {	 
-    for (int j = 0; j < n; j++) {
-        points[i][j] += vpoints[i][j]*dt;
-        points[i][j] += vpoints[i][j]*dt;
-        points[i][j] += vpoints[i][j]*dt;
+    for (int i = 0 ; i < n; i++) {
+        x[i] += vx[i]*dt;
+        y[i] += vy[i]*dt;
+        z[i] += vz[i]*dt;
     }
-	}
 }
 
 /**
  * Compute the total energy of the system as the sum of kinetic and
  * potential energy.
  */
-float energy(float *points[],
-             float *vpoints[],
-             const int DIMENSIONS, int n)
+float energy(const float *x, const float *y, const float *z,
+             const float *vx, const float *vy, const float *vz, int n)
 {
     float e = 0.0;
-    
-    const float *x = points[0], *y = points[1], *z = points[2];
-    const float *vx = vpoints[0], *vy = vpoints[1], *vz = vpoints[2];
     /* The kinetic energy of an n-body system is:
 
        K = (1/2) * sum_i [m_i * (vx_i^2 + vy_i^2 + vz_i^2)]
 
     */
     for (int i=0; i<n; i++) {
-        e += 0.5 * (vx[i] * vx[i] + vy[i] * vy[i] + vz[i] * vz[i]);
+        e += 0.5 * (vx[i] * vx[i]) + (vy[i] * vy[i]) + (vz[i] * vz[i]);
         /* Accumulate potential energy, defined as
 
            sum_{i<j} - m[j] * m[j] / d_ij
@@ -252,130 +241,204 @@ float energy(float *points[],
 int main(int argc, char* argv[])
 {
 	int my_rank, comm_sz;
-    int N = 10000;
-    const int MAX_BODIES = 50000;
-    int nsteps = 10;
+    int nBodies = 10000;
+    const int MAXBODIES = 50000;
+    int nIters = 10;
     const float DT = 1e-6f; /* time step */
-    const int DIMENSIONS = 3;
-    float *points[DIMENSIONS], *vpoints[DIMENSIONS];
-    float *my_points[DIMENSIONS], *my_vpoints[DIMENSIONS];
-    double total_time = 0.0, my_time = 0.0;
+    float *x, *y, *z, *vx, *vy, *vz;
+    float *my_x, *my_y, *my_z, *my_vx, *my_vy, *my_vz;
     
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
-	
 
-    if ( argc > 3 ) {
+    if (argc > 3) {
         fprintf(stderr, "Usage: %s [nbodies [niter]]\n", argv[0]);
         return EXIT_FAILURE;
     }
 
-    if ( argc > 1 ) {
-        N = atoi(argv[1]);
+    if (argc > 1) {
+        nBodies = atoi(argv[1]);
     }
 
-    if ( N > MAX_BODIES ) {
+    if (nBodies > MAXBODIES) {
         fprintf(stderr, "FATAL: too many bodies\n");
         return EXIT_FAILURE;
     }
 
-    if ( argc > 2 ) {
-        nsteps = atoi(argv[2]);
+    if (argc > 2) {
+        nIters = atoi(argv[2]);
     }
 
     srand(1234);
     
-    const size_t size = N*sizeof(float);
-    const size_t my_size = size/comm_sz;
-    
-    const int my_N = N/comm_sz;
+	if ( 0 == my_rank ) {
+		printf("%d particles, %d steps\n", nBodies, nIters);
+	}
 
-    printf("%d particles, %d steps\n", N, nsteps);
+    const size_t size = nBodies*sizeof(float);
+    const size_t my_size = size / comm_sz;
+    const long my_nBodies = nBodies / comm_sz;
+    x = (float*)malloc(size); assert(x != NULL);
+    y = (float*)malloc(size); assert(y != NULL);
+    z = (float*)malloc(size); assert(z != NULL);
+    vx = (float*)malloc(size); assert(vx != NULL);
+    vy = (float*)malloc(size); assert(vy != NULL);
+    vz = (float*)malloc(size); assert(vz != NULL);
     
-    for (int i=0;i<DIMENSIONS;i++) {
-			my_points[i] = (float*)malloc(my_size);
-			assert(my_points[i] != NULL);
-			for(int j=0;j<my_N;j++) {
-				my_points[i][j] = 0.0;
-			}
-			
-			my_vpoints[i] = (float*)malloc(my_size);
-			assert(my_vpoints[i] != NULL);
-			for(int j=0;j<my_N;j++) {
-				my_vpoints[i][j] = 0.0;
-			}
-		}
-    
-    if ( 1 == my_rank ) {		
-		for (int i=0;i<DIMENSIONS;i++) {
-			points[i] = (float*)malloc(size);
-			assert(points[i] != NULL);
-			
-			vpoints[i] = (float*)malloc(size);
-			assert(vpoints[i] != NULL);
-		}
+    my_x = (float*)malloc(my_size); assert(my_x != NULL);
+    my_y = (float*)malloc(my_size); assert(my_y != NULL);
+    my_z = (float*)malloc(my_size); assert(my_z != NULL);
+    my_vx = (float*)malloc(my_size); assert(my_vx != NULL);
+    my_vy = (float*)malloc(my_size); assert(my_vy != NULL);
+    my_vz = (float*)malloc(my_size); assert(my_vz != NULL);
 
-		init(points,vpoints,DIMENSIONS,N); /* Init pos / vel data */
+	if ( 0 == my_rank ) {
+		init(x, y, z, vx, vy, vz, nBodies); /* Init pos / vel data */
 	}
 	
-	for(int i=0;i<DIMENSIONS;i++) {
-		MPI_Scatter( points[i],		/* sendbuf      	 	 */
-					 my_N,			/* count; how many elements to send to _each_ destination */
-					 MPI_FLOAT,		/* sent datatype 	 	 */
-					 my_points[i],	/* recvbuf      	 	 */
-					 my_N,			/* recvcount    	 	 */
-					 MPI_FLOAT,		/* received datatype 	 */
-					 1,				/* source       	 	 */
-					 MPI_COMM_WORLD /* communicator 	 	 */
-					 );
-		
-		MPI_Scatter( vpoints[i],	/* sendbuf      	 	 */
-					 my_N,			/* count; how many elements to send to _each_ destination */
-					 MPI_FLOAT,		/* sent datatype 	 	 */
-					 my_vpoints[i],	/* recvbuf      	 	 */
-					 my_N,			/* recvcount    	 	 */
-					 MPI_FLOAT,		/* received datatype 	 */
-					 1,				/* source       	 	 */
-					 MPI_COMM_WORLD /* communicator 	 	 */
-					 );
-	}
+	float totalTime = 0.0;
+	
+	MPI_Scatter( x,				/* sendbuf      	 	 */
+				 my_nBodies,	/* count; how many elements to send to _each_ destination */
+				 MPI_FLOAT,		/* sent datatype 	 	 */
+				 my_x,			/* recvbuf      	 	 */
+				 my_nBodies,	/* recvcount    	 	 */
+				 MPI_FLOAT,		/* received datatype 	 */
+				 0,				/* source       	 	 */
+				 MPI_COMM_WORLD /* communicator 	 	 */
+				 );
+	MPI_Scatter( y,				/* sendbuf      	 	 */
+				 my_nBodies,	/* count; how many elements to send to _each_ destination */
+				 MPI_FLOAT,		/* sent datatype 	 	 */
+				 my_y,			/* recvbuf      	 	 */
+				 my_nBodies,	/* recvcount    	 	 */
+				 MPI_FLOAT,		/* received datatype 	 */
+				 0,				/* source       	 	 */
+				 MPI_COMM_WORLD /* communicator 	 	 */
+				 );
+	MPI_Scatter( z,				/* sendbuf      	 	 */
+				 my_nBodies,	/* count; how many elements to send to _each_ destination */
+				 MPI_FLOAT,		/* sent datatype 	 	 */
+				 my_z,			/* recvbuf      	 	 */
+				 my_nBodies,	/* recvcount    	 	 */
+				 MPI_FLOAT,		/* received datatype 	 */
+				 0,				/* source       	 	 */
+				 MPI_COMM_WORLD /* communicator 	 	 */
+				 );
+				 
+	MPI_Scatter( vx,			/* sendbuf      	 	 */
+				 my_nBodies,	/* count; how many elements to send to _each_ destination */
+				 MPI_FLOAT,		/* sent datatype 	 	 */
+				 my_vx,			/* recvbuf      	 	 */
+				 my_nBodies,	/* recvcount    	 	 */
+				 MPI_FLOAT,		/* received datatype 	 */
+				 0,				/* source       	 	 */
+				 MPI_COMM_WORLD /* communicator 	 	 */
+				 );
+	MPI_Scatter( vy,			/* sendbuf      	 	 */
+				 my_nBodies,	/* count; how many elements to send to _each_ destination */
+				 MPI_FLOAT,		/* sent datatype 	 	 */
+				 my_vy,			/* recvbuf      	 	 */
+				 my_nBodies,	/* recvcount    	 	 */
+				 MPI_FLOAT,		/* received datatype 	 */
+				 0,				/* source       	 	 */
+				 MPI_COMM_WORLD /* communicator 	 	 */
+				 );
+	MPI_Scatter( vz,			/* sendbuf      	 	 */
+				 my_nBodies,	/* count; how many elements to send to _each_ destination */
+				 MPI_FLOAT,		/* sent datatype 	 	 */
+				 my_vz,			/* recvbuf      	 	 */
+				 my_nBodies,	/* recvcount    	 	 */
+				 MPI_FLOAT,		/* received datatype 	 */
+				 0,				/* source       	 	 */
+				 MPI_COMM_WORLD /* communicator 	 	 */
+				 );
+	
+    for (int iter = 1; iter <= nIters; iter++) {
 
-    for (int step = 1; step <= nsteps; step++) {
         const double tstart = hpc_gettime();
-        compute_force(my_points,my_vpoints, DT, DIMENSIONS, my_N);
-        integrate_positions(my_points,my_vpoints, DT, DIMENSIONS, my_N);
-        const float e = energy(my_points,my_vpoints, DIMENSIONS, my_N);
+        compute_force(my_x, my_y, my_z, my_vx, my_vy, my_vz, DT, my_nBodies);
+        integrate_positions(my_x, my_y, my_z, my_vx, my_vy, my_vz, DT, my_nBodies);
         const double elapsed = hpc_gettime() - tstart;
-        my_time += elapsed;
-        printf("My rank: %d, Iteration %3d/%3d : E=%f, %.3f seconds\n", my_rank, step, nsteps, e, elapsed);
-        fflush(stdout);
+        totalTime += elapsed;
+        
+        MPI_Gather( my_x,			/* sendbuf      	 	 */
+					my_nBodies,		/* count; how many elements to send to _each_ destination */
+					MPI_FLOAT,		/* sent datatype 	 	 */
+					x,				/* recvbuf      	 	 */
+					my_nBodies,		/* recvcount    	 	 */
+					MPI_FLOAT,		/* received datatype 	 */
+					0,				/* source       	 	 */
+					MPI_COMM_WORLD	/* communicator 	 	 */
+					);
+		MPI_Gather( my_y,			/* sendbuf      	 	 */
+					my_nBodies,		/* count; how many elements to send to _each_ destination */
+					MPI_FLOAT,		/* sent datatype 	 	 */
+					y,				/* recvbuf      	 	 */
+					my_nBodies,		/* recvcount    	 	 */
+					MPI_FLOAT,		/* received datatype 	 */
+					0,				/* source       	 	 */
+					MPI_COMM_WORLD	/* communicator 	 	 */
+					);
+		MPI_Gather( my_z,			/* sendbuf      	 	 */
+					my_nBodies,		/* count; how many elements to send to _each_ destination */
+					MPI_FLOAT,		/* sent datatype 	 	 */
+					z,				/* recvbuf      	 	 */
+					my_nBodies,		/* recvcount    	 	 */
+					MPI_FLOAT,		/* received datatype 	 */
+					0,				/* source       	 	 */
+					MPI_COMM_WORLD	/* communicator 	 	 */
+					);
+		
+		MPI_Gather( my_vx,			/* sendbuf      	 	 */
+					my_nBodies,		/* count; how many elements to send to _each_ destination */
+					MPI_FLOAT,		/* sent datatype 	 	 */
+					vx,				/* recvbuf      	 	 */
+					my_nBodies,		/* recvcount    	 	 */
+					MPI_FLOAT,		/* received datatype 	 */
+					0,				/* source       	 	 */
+					MPI_COMM_WORLD	/* communicator 	 	 */
+					);
+		MPI_Gather( my_vy,			/* sendbuf      	 	 */
+					my_nBodies,		/* count; how many elements to send to _each_ destination */
+					MPI_FLOAT,		/* sent datatype 	 	 */
+					vy,				/* recvbuf      	 	 */
+					my_nBodies,		/* recvcount    	 	 */
+					MPI_FLOAT,		/* received datatype 	 */
+					0,				/* source       	 	 */
+					MPI_COMM_WORLD	/* communicator 	 	 */
+					);
+		MPI_Gather( my_vz,			/* sendbuf      	 	 */
+					my_nBodies,		/* count; how many elements to send to _each_ destination */
+					MPI_FLOAT,		/* sent datatype 	 	 */
+					vz,				/* recvbuf      	 	 */
+					my_nBodies,		/* recvcount    	 	 */
+					MPI_FLOAT,		/* received datatype 	 */
+					0,				/* source       	 	 */
+					MPI_COMM_WORLD	/* communicator 	 	 */
+					);
+        
+        if ( 0 == my_rank ) {
+
+			const float e = energy(x, y, z, vx, vy, vz, nBodies);
+			printf("Iteration %3d/%3d : E=%f, %.3f seconds\n", iter, nIters, e, elapsed);
+			fflush(stdout);
+		}
     }
     
-    MPI_Reduce( &my_time,  		/* send buffer           */
-                &total_time,    /* receive buffer        */
-                1,              /* count                 */
-                MPI_DOUBLE,    	/* datatype              */
-                MPI_SUM,        /* operation             */
-                0,              /* destination           */
-                MPI_COMM_WORLD  /* communicator          */
-                );
-    
-    if ( 0 == my_rank ) {
-		const double avg_time = total_time / nsteps;
+    if ( 0 == my_rank ) {		
+		const double avgTime = totalTime / nIters;
 
-		printf("Average %0.3f Billion Interactions / second\n", 1e-9 * N * N / avg_time);
+		printf("%d Bodies: average %0.3f Billion Interactions / second\n", nBodies, 1e-9 * nBodies * nBodies / avgTime);
 	}
-
-	for (int i=0;i<DIMENSIONS;i++) {
-		if ( 1 == my_rank ) {
-			free(points[i]);
-			free(vpoints[i]);
-		}
-		free(my_points[i]);
-		free(my_vpoints[i]);
-	}
+	
+    free(x); free(y); free(z);
+    free(my_x); free(my_y); free(my_z);
+    free(vx); free(vy); free(vz);
+    free(my_vx); free(my_vy); free(my_vz);
     
     MPI_Finalize();
+    
     return EXIT_SUCCESS;
 }
