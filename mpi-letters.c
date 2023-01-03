@@ -18,12 +18,74 @@
  *
  ****************************************************************************/
 
+// TO DO! Changes needed to the context of the exercise
+	/***
+	% HPC - Frequenza di caratteri
+	% Moreno Marzolla <moreno.marzolla@unibo.it>
+	% Last updated: 2022-08-09
+
+	![By Willi Heidelbach, CC BY 2.5, <https://commons.wikimedia.org/w/index.php?curid=1181525>](letters.jpg)
+
+	The file [mpi-letters.c](mpi-letters.c) contains a serial program that
+	computes the number of occurrences of each lowercase letter in an
+	ASCII file read from standard input. The program is case-insensitive,
+	meaning that uppercase characters are treated as if they were
+	lowercase; non-letter characters are ignored. We provide some
+	substantial ASCII documents to experiment with, that have been made
+	available by the [Project Gutenberg](https://www.gutenberg.org/);
+	despite the fact that these documents have been written by different
+	authors, the frequencies of characters are quite similar. Indeed, it
+	is well known that the relative frequencies of characters are
+	language-dependent and more or less author-independent. You may
+	experiment with other free books in other languages that are available
+	on [Project Gutenberg Web site](https://www.gutenberg.org/).
+
+	In this exercise you are required to modify the function
+	`make_hist(text, hist)` to make use of shared-memory parallelism using
+	OpenMP. The function takes as parameter a pointer `text` to the whole
+	text, represented as a zero-terminated C string, and an array
+	`hist[26]` of counts. The array `hist` is not initialized. At the end,
+	`hist[0]` contains the occurrences of the letter `a` in the text,
+	`hist[1]` the occurrences of the letter `b`, up to `hist[25]` that
+	represents the occurrences of the letter `z`.
+
+	To create a parallel version, you may want to create a
+	two-dimensional, shared array `local_hist[num_threads][26]`, where
+	`num_threads` is the number of OpenMP threads that are
+	used. Initially, the array contains all zeros; then, each OpenMP
+	thread $p$ operates on a different portion of the text and updates the
+	occurrences on the slice `local_hist[p][]` of the shared array.  When
+	all threads are done, the master computes the results as the sums of
+	the columns of `local_hist`. In other words, the number of occurrences
+	of `a` is
+
+			local_hist[0][0] + local_hist[1][0] + ... + local_hist[num_threads-1][0]
+
+	Compile with:
+
+			gcc -std=c99 -Wall -Wpedantic mpi-letters.c -o mpi-letters
+
+	Run with:
+
+			./mpi-letters < the-war-of-the-worlds.txt
+
+	## Files
+
+	* [mpi-letters.c](mpi-letters.c)
+	* [War and Peace](war-and-peace.txt) by L. Tolstoy
+	* [The Hound of the Baskervilles](the-hound-of-the-baskervilles.txt) by A. C. Doyle
+	* [The War of the Worlds](the-war-of-the-worlds.txt) by H. G. Wells
+
+	***/
+
+#include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
 #include <assert.h>
-#include <mpi.h>
+
+#define ALPHABET 26
 
 /**
  * Count occurrences of letters 'a'..'z' in `text`; uppercase
@@ -31,17 +93,17 @@
  * ignored. `text` must be zero-terminated. `hist` will be filled with
  * the computed counts. Returns the total number of letters found.
  */
-int make_hist( const char *text, int hist[26], int from, int to )
+int make_hist( const char *text, int hist[ALPHABET], int n )
 {
 	int nlet = 0; /* total number of alphabetic characters processed */
     int i, j;
 
     /* Reset the histogram */
-    for (j=0; j<26; j++) {
+    for (j=0; j<ALPHABET; j++) {
         hist[j] = 0;
     }
     /* Count occurrences */
-    for (i=from; i<to; i++) {
+    for (i=0; i<n; i++) {
         const char c = text[i];
         if (isalpha(c)) {
             nlet++;
@@ -55,14 +117,14 @@ int make_hist( const char *text, int hist[26], int from, int to )
 /**
  * Print frequencies
  */
-void print_hist( int hist[26] )
+void print_hist( int hist[ALPHABET] )
 {
     int i;
     int nlet = 0;
-    for (i=0; i<26; i++) {
+    for (i=0; i<ALPHABET; i++) {
         nlet += hist[i];
     }
-    for (i=0; i<26; i++) {
+    for (i=0; i<ALPHABET; i++) {
         printf("%c : %8d (%6.2f%%)\n", 'a'+i, hist[i], 100.0*hist[i]/nlet);
     }
     printf("    %8d total\n", nlet);
@@ -70,92 +132,54 @@ void print_hist( int hist[26] )
 
 int main( int argc, char *argv[] )
 {
-	char *text;
+	char *text, *my_text;
 	int my_rank, comm_sz;
-	int hist[26], my_hist[26];
-	long my_from, my_to, my_len;
-	
-	const size_t size = 5*1024*1024; /* maximum text size: 5 MB */
+	int hist[ALPHABET], my_hist[ALPHABET];
+	long my_len;
 	
 	MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
-	
+    
+	const size_t size = 5*1024*1024; /* maximum text size: 5 MB */
 	text = (char*)malloc(size); assert(text != NULL);
 	
 	if ( 0 == my_rank ) {
 		const size_t len = fread(text, 1, size-1, stdin);
 		text[len] = '\0'; /* put a termination mark at the end of the text */
-
 		my_len = (len+comm_sz-1) / comm_sz;
-		
-		MPI_Send( text,				/* data			*/
-				  size,				/* count		*/
-				  MPI_BYTE,			/* datatype		*/
-				  my_rank+1,		/* destination	*/
-				  my_rank+1,		/* tag			*/
-				  MPI_COMM_WORLD	/* communicator	*/
-				  );
-
-		MPI_Send( &my_len,			/* data			*/
-				  1,				/* count		*/
-				  MPI_LONG,			/* datatype		*/
-				  my_rank+1,		/* destination	*/
-				  my_rank+1,		/* tag			*/
-				  MPI_COMM_WORLD	/* communicator	*/
-				  );
 	}
 	
-	if ( 1 == my_rank ) {
-		MPI_Recv( text,				/* data			*/
-				  size,				/* count		*/
-				  MPI_BYTE,			/* datatype		*/
-				  my_rank-1,		/* root			*/
-				  my_rank,			/* tag			*/
-				  MPI_COMM_WORLD,	/* communicator	*/
-				  MPI_STATUS_IGNORE /* status 		*/
-				  );
-
-		MPI_Recv( &my_len,			/* data			*/
-				  1,				/* count		*/
-				  MPI_LONG,			/* datatype		*/
-				  my_rank-1,		/* root			*/
-				  my_rank,			/* tag			*/
-				  MPI_COMM_WORLD,	/* communicator	*/
-				  MPI_STATUS_IGNORE	/* status 		*/
-				  );
-	}
-
-	MPI_Bcast( text,					/* data			*/
-			   size,					/* count		*/
-			   MPI_BYTE,				/* datatype		*/
-			   1,						/* root			*/
-			   MPI_COMM_WORLD			/* communicator	*/
+	MPI_Bcast( &my_len,			/* buffer     		*/	
+			   1,				/* count        	*/
+			   MPI_LONG,		/* datatype         */
+			   0,				/* root             */
+		       MPI_COMM_WORLD	/* communicator     */
+			 );
+	
+	my_text = (char*)malloc(my_len); assert(my_text != NULL);
+	
+	MPI_Scatter( text,				/* send buffer    	*/	
+				 my_len,			/* send count       */
+				 MPI_BYTE,			/* datatype         */
+				 my_text,			/* receive buffer   */
+				 my_len,			/* receive count    */
+				 MPI_BYTE,			/* datatype         */
+				 0,					/* root             */
+				 MPI_COMM_WORLD		/* communicator     */
 			   );
-	
-	MPI_Bcast( &my_len,					/* data			*/
-			   1,						/* count		*/
-			   MPI_LONG,				/* datatype		*/
-			   1,						/* root			*/
-			   MPI_COMM_WORLD			/* communicator	*/
-			   );
-	
-	
-	
-    my_from = my_len*my_rank;
-    my_to = my_from+my_len;
     
     const double tstart = MPI_Wtime();
-    make_hist(text, my_hist, my_from, my_to);
+	make_hist(my_text, my_hist, my_len);
     const double elapsed = MPI_Wtime() - tstart;
     
-    MPI_Reduce( my_hist,  		/* send buffer           */
-                hist,        	/* receive buffer        */
-                26,             /* count                 */
-                MPI_INT,     	/* datatype              */
-                MPI_SUM,        /* operation             */
-                0,              /* destination           */
-                MPI_COMM_WORLD  /* communicator          */
+    MPI_Reduce( my_hist,  		/* send buffer   	*/
+                hist,        	/* receive buffer   */
+                ALPHABET,       /* count            */
+                MPI_INT,     	/* datatype         */
+                MPI_SUM,        /* operation        */
+                0,              /* destination      */
+                MPI_COMM_WORLD  /* communicator     */
 				);
     
     if ( 0 == my_rank ) {
