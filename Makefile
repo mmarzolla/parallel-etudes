@@ -93,6 +93,8 @@ mpi-dot: LDLIBS+=-lm
 
 mpi-bbox: LDLIBS+=-lm
 
+mpi-nbody: LDLIBS+=-lm
+
 mpi-c-ray: LDLIBS+=-lm
 
 gendna: LDLIBS+=-lm
