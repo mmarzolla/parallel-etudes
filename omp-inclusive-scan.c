@@ -36,7 +36,7 @@ class, which is more appropriate for GPUs. Therefore, we use a
 different strategy, called _blocked scan_ (refer to Figure 1, where $P
 = 4$ OpenMP threads are assumed).
 
-![Figure 1: Inclusive scan scheme](omp-inclusive-scan.svg)
+![Figure 1: Blocked inclusive scan](omp-inclusive-scan.svg)
 
 Each thread operates on portions of `v[]` and `s[]` whose endpoints are
 determined appropriately.
