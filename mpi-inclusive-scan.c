@@ -1,8 +1,8 @@
-/****************************************************************************
+/*****************************************************************************
  *
- * mpi-inclusive-scan.c - Inclusive Scan
+ * mpi-scan.c - MPI_Scan demo
  *
- * Copyright (C) 2016--2021 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2018 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,31 +16,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
+ * --------------------------------------------------------------------------
+ *
+ * This solution uses the naive approach: node 0 (the master) collects
+ * all partial results, and computes the final value without using the
+ * reduction primitive.
+ *
+ * Compile with:
+ * mpicc -std=c99 -Wall -Wpedantic mpi-scan.c -o mpi-scan
+ *
+ * Run with:
+ * mpirun -n 4 ./mpi-scan
+ *
  ****************************************************************************/
-
-/***
-% HPC - Inclusive Scan
-% Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-11-21
-The file [mpi-inclusive-scan.c](mpi-inclusive-scan.c) contains a MPI program
-with two solutions to an inclusive scan.
-The first one is a naive approach: node 0 (the master) collects all partial
-results, and computes the final value without using the reduction primitive.
-The second one uses the MPI_Scan directive, used to perform an inclusive
-prefix reduction on data distributed across the calling processes. The operation
-returns, in the `recvbuf` of the process with rank `i`, the reduction of the
-values in the `sendbufs` of processses with ranks 0, ..., i.
-To use the naive implementation, compile with:
-        mpicc -DNAIVE -std=c99 -Wall -Wpedantic mpi-inclusive-scan.c -o mpi-inclusive-scan -lm 
-To use the MPI_Scan directive, compile with:
-        mpicc -std=c99 -Wall -Wpedantic mpi-inclusive-scan.c -o mpi-inclusive-scan -lm
-Execute with:
-        mpirun -n P ./mpi-inclusive-scan
-Example:
-        mpirun -n 4 ./mpi-inclusive-scan
-## Files
-- [mpi-inclusive-scan.c](mpi-inclusive-scan.c)
-***/
 
 #include "hpc.h"
 #include <stdio.h>
@@ -78,12 +66,28 @@ void clean(int* scan, int n) {
 	}
 }
 
-void sum(int* local, int* scan, int n) {
-	int i;
+/* Compute the inclusive scan of the n-elements array v[], and store
+   the result in s[]. */
+void inclusive_scan(int *v, int *s, int n)
+{
+	s[0] = v[0];
+	for (int i=1;i<n;i++) {
+		s[i] = s[i-1] + v[i];
+	}
+}
+
+void exclusive_scan(int *v, int *s, int n) {
+
+	s[0] = 0;
+	for (int i=1; i<n; i++) {
+		s[i] = s[i-1] + v[i-1];
+	}
+}
+
+void process_internal_sum(int *v, int *s, int rank, int n) {
 	
-	scan[0] = local[0];
-	for(i = 1; i < n; i++) {
-		scan[i] = scan[i-1] + local[i];
+	for (int i=0; i<n; i++) {
+		s[i] += v[rank];
 	}
 }
 
@@ -92,68 +96,80 @@ int main(int argc, char *argv[])
     int my_rank, comm_sz;
     int *my_local, *my_scan;
     int *scan;
-    int end_value = 0;
     int len = 100000, my_len;
-    MPI_Status status;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
     
-    my_len = (len+comm_sz-1)/comm_sz;
+    int sendcounts[comm_sz];
+    int displs[comm_sz];
+    for (int i=0; i<comm_sz; i++) {
+		const int rank_start = (len * i) / comm_sz;
+		const int rank_end = len * (i + 1) / comm_sz;
+        sendcounts[i] = rank_end - rank_start;
+        displs[i] = rank_start;
+    }
+    
+    const int my_size = (len+comm_sz-1)/comm_sz;
+    my_len = sendcounts[my_rank];
 
-    my_local = (int *)malloc(my_len * sizeof(*my_local));
-    my_scan = (int *)malloc(my_len * sizeof(*my_scan));
+    my_local = (int *)malloc(my_size * sizeof(*my_local));
+    my_scan = (int *)malloc(my_size * sizeof(*my_scan));
     
     if ( 0 == my_rank ) {
-		scan = (int *)malloc((len+comm_sz) * sizeof(*scan));
+		scan = (int *)malloc(len * sizeof(*scan));
 	}
     
 	fill(my_local, my_len);
 	clean(my_scan, my_len);
 	
-	if ( my_rank > 0 ) {
-		MPI_Recv( &end_value,		/* buffer     		*/
-				  1,				/* count        	*/
-				  MPI_INT,			/* datatype         */
-				  my_rank-1,		/* source           */
-				  my_rank,			/* tag              */
-				  MPI_COMM_WORLD,	/* communicator     */
-				  &status			/* status	        */
-		);
+	int process_sum;
+    int blksum[comm_sz];
+    int blksum_s[comm_sz];
 
-		my_local[0] += end_value;
+	/* Each process performs an inclusive scan of its portion of array */
+	inclusive_scan(my_local,my_scan,my_len);
+	process_sum = my_scan[my_len-1];
+
+    MPI_Gather ( &process_sum,
+				 1,
+				 MPI_INT,
+				 blksum,
+				 1,
+				 MPI_INT,
+				 0,
+				 MPI_COMM_WORLD
+				 );
+
+	/* The master performs an exclusive scan on blksum_s[] */
+    if ( 0 == my_rank ) {
+		exclusive_scan(blksum,blksum_s,comm_sz);
 	}
-	
-	sum(my_local, my_scan, my_len);
     
-    if ( my_rank < comm_sz - 1 ) {
-		end_value = my_scan[my_len-1];
-		
-		MPI_Send( &end_value,		/* buffer     		*/
-				  1,				/* count        	*/
-				  MPI_INT,			/* datatype         */
-				  my_rank+1,		/* dest             */
-				  my_rank+1,		/* tag              */
-				  MPI_COMM_WORLD	/* communicator     */
-		);
-	}
+    MPI_Bcast ( blksum_s,
+				comm_sz,
+				MPI_INT,
+				0,
+				MPI_COMM_WORLD
+				);
 	
-	MPI_Gather( my_scan,			/* sendbuf      		*/
-				my_len,				/* count		    	*/
-				MPI_INT,			/* sent datatype 		*/
-				scan,				/* recvbuf      	 	*/
-				my_len,				/* recvcount    	 	*/
-				MPI_INT,			/* received datatype 	*/
-				0,					/* source       	 	*/
-				MPI_COMM_WORLD		/* communicator 	 	*/
-			    );
+	/* Each process increments all values of its portion of the array */
+	process_internal_sum(blksum_s,my_scan,my_rank,my_len);
+	
+	MPI_Gatherv( my_scan,			/* sendbuf      		*/
+				 my_len,			/* count		    	*/
+				 MPI_INT,			/* sent datatype 		*/
+				 scan,				/* recvbuf      	 	*/
+				 sendcounts,    	/* recvcount (equal to sendcounts, in this case) */
+                 displs,        	/* displacements 		*/
+				 MPI_INT,			/* received datatype 	*/
+				 0,					/* source       	 	*/
+				 MPI_COMM_WORLD		/* communicator 	 	*/
+			     );
 	
 	if ( 0 == my_rank) {
 		check(scan,len,my_rank);
-	}
-    
-    if ( 0 == my_rank ) {
 		free(scan);
 	}
 	
