@@ -109,8 +109,6 @@ that is, when computing the interaction of a particle with itself.
 ***/
 
 /***
-Modify the serial program to make use of OpenMP parallelism.
-
 To compile:
 
 		mpicc -std=c99 -Wall -Wpedantic mpi-nbody.c -o mpi-nbody -lm
@@ -169,9 +167,10 @@ void init(float *x, float *y, float *z,
  */
 void compute_force(const float *x, const float *y, const float *z,
                    float *vx, float *vy, float *vz,
-                   float dt, int n)
+                   float dt, int start, int end, int n)
 {
-    for (int i = 0; i < n; i++) {
+    for (int i = start; i < end; i++) {
+		const int my_pos = i-start;
         float Fx = 0.0f, Fy = 0.0f, Fz = 0.0f;
 
         for (int j = 0; j < n; j++) {
@@ -186,9 +185,9 @@ void compute_force(const float *x, const float *y, const float *z,
             Fy += dy * invDist3;
             Fz += dz * invDist3;
         }
-        vx[i] += dt*Fx;
-        vy[i] += dt*Fy;
-        vz[i] += dt*Fz;
+        vx[my_pos] += dt*Fx;
+        vy[my_pos] += dt*Fy;
+        vz[my_pos] += dt*Fz;
     }
 }
 
@@ -212,7 +211,8 @@ void integrate_positions(float *x, float *y, float *z,
  * potential energy.
  */
 float energy(const float *x, const float *y, const float *z,
-             const float *vx, const float *vy, const float *vz, int n)
+             const float *vx, const float *vy, const float *vz,
+             int start, int end, int n)
 {
     float e = 0.0;
     /* The kinetic energy of an n-body system is:
@@ -220,8 +220,10 @@ float energy(const float *x, const float *y, const float *z,
        K = (1/2) * sum_i [m_i * (vx_i^2 + vy_i^2 + vz_i^2)]
 
     */
-    for (int i=0; i<n; i++) {
-        e += 0.5 * (vx[i] * vx[i]) + (vy[i] * vy[i]) + (vz[i] * vz[i]);
+    for (int i=start; i<end; i++) {
+		const int my_pos = i-start;
+		
+        e += 0.5 * (vx[my_pos] * vx[my_pos] + vy[my_pos] * vy[my_pos] + vz[my_pos] * vz[my_pos]);
         /* Accumulate potential energy, defined as
 
            sum_{i<j} - m[j] * m[j] / d_ij
@@ -271,14 +273,28 @@ int main(int argc, char* argv[])
     }
 
     srand(1234);
-    
+	
 	if ( 0 == my_rank ) {
 		printf("%d particles, %d steps\n", nBodies, nIters);
 	}
 
-    const size_t size = nBodies*sizeof(float);
-    const size_t my_size = size / comm_sz;
-    const long my_nBodies = nBodies / comm_sz;
+	const size_t size = nBodies*sizeof(float);
+    const size_t my_size = ((nBodies+comm_sz-1)/comm_sz)*sizeof(float);
+    
+    const int local_start = (nBodies * my_rank) / comm_sz;
+    const int local_end = nBodies * (my_rank + 1) / comm_sz;
+
+    int sendcounts[comm_sz];
+    int displs[comm_sz];
+    for (int i=0; i<comm_sz; i++) {
+		const int rank_start = (nBodies * i) / comm_sz;
+		const int rank_end = nBodies * (i + 1) / comm_sz;
+        sendcounts[i] = rank_end - rank_start;
+        displs[i] = rank_start;
+    }
+    
+    const int my_nBodies = sendcounts[my_rank];
+    
     x = (float*)malloc(size); assert(x != NULL);
     y = (float*)malloc(size); assert(y != NULL);
     z = (float*)malloc(size); assert(z != NULL);
@@ -296,143 +312,170 @@ int main(int argc, char* argv[])
 	if ( 0 == my_rank ) {
 		init(x, y, z, vx, vy, vz, nBodies); /* Init pos / vel data */
 	}
-	
-	float totalTime = 0.0;
-	
-	MPI_Scatter( x,				/* sendbuf      	 	 */
-				 my_nBodies,	/* count; how many elements to send to _each_ destination */
-				 MPI_FLOAT,		/* sent datatype 	 	 */
-				 my_x,			/* recvbuf      	 	 */
-				 my_nBodies,	/* recvcount    	 	 */
-				 MPI_FLOAT,		/* received datatype 	 */
-				 0,				/* source       	 	 */
-				 MPI_COMM_WORLD /* communicator 	 	 */
-				 );
-	MPI_Scatter( y,				/* sendbuf      	 	 */
-				 my_nBodies,	/* count; how many elements to send to _each_ destination */
-				 MPI_FLOAT,		/* sent datatype 	 	 */
-				 my_y,			/* recvbuf      	 	 */
-				 my_nBodies,	/* recvcount    	 	 */
-				 MPI_FLOAT,		/* received datatype 	 */
-				 0,				/* source       	 	 */
-				 MPI_COMM_WORLD /* communicator 	 	 */
-				 );
-	MPI_Scatter( z,				/* sendbuf      	 	 */
-				 my_nBodies,	/* count; how many elements to send to _each_ destination */
-				 MPI_FLOAT,		/* sent datatype 	 	 */
-				 my_z,			/* recvbuf      	 	 */
-				 my_nBodies,	/* recvcount    	 	 */
-				 MPI_FLOAT,		/* received datatype 	 */
-				 0,				/* source       	 	 */
-				 MPI_COMM_WORLD /* communicator 	 	 */
-				 );
-				 
-	MPI_Scatter( vx,			/* sendbuf      	 	 */
-				 my_nBodies,	/* count; how many elements to send to _each_ destination */
-				 MPI_FLOAT,		/* sent datatype 	 	 */
-				 my_vx,			/* recvbuf      	 	 */
-				 my_nBodies,	/* recvcount    	 	 */
-				 MPI_FLOAT,		/* received datatype 	 */
-				 0,				/* source       	 	 */
-				 MPI_COMM_WORLD /* communicator 	 	 */
-				 );
-	MPI_Scatter( vy,			/* sendbuf      	 	 */
-				 my_nBodies,	/* count; how many elements to send to _each_ destination */
-				 MPI_FLOAT,		/* sent datatype 	 	 */
-				 my_vy,			/* recvbuf      	 	 */
-				 my_nBodies,	/* recvcount    	 	 */
-				 MPI_FLOAT,		/* received datatype 	 */
-				 0,				/* source       	 	 */
-				 MPI_COMM_WORLD /* communicator 	 	 */
-				 );
-	MPI_Scatter( vz,			/* sendbuf      	 	 */
-				 my_nBodies,	/* count; how many elements to send to _each_ destination */
-				 MPI_FLOAT,		/* sent datatype 	 	 */
-				 my_vz,			/* recvbuf      	 	 */
-				 my_nBodies,	/* recvcount    	 	 */
-				 MPI_FLOAT,		/* received datatype 	 */
-				 0,				/* source       	 	 */
-				 MPI_COMM_WORLD /* communicator 	 	 */
-				 );
-	
-    for (int iter = 1; iter <= nIters; iter++) {
+    
+	MPI_Scatterv( vx,            /* sendbuf 				*/
+                  sendcounts,    /* sendcounts 				*/
+                  displs,        /* displacements 			*/
+                  MPI_FLOAT,     /* sent MPI_Datatype 		*/
+                  my_vx,         /* recvbuf 				*/
+                  my_nBodies,    /* recvcount 				*/
+                  MPI_FLOAT,     /* received MPI_Datatype 	*/
+                  0,             /* root 					*/
+                  MPI_COMM_WORLD /* communicator 			*/
+                  );
+	MPI_Scatterv( vy,            /* sendbuf 				*/
+                  sendcounts,    /* sendcounts 				*/
+                  displs,        /* displacements 			*/
+                  MPI_FLOAT,     /* sent MPI_Datatype 		*/
+                  my_vy,         /* recvbuf 				*/
+                  my_nBodies,    /* recvcount 				*/
+                  MPI_FLOAT,     /* received MPI_Datatype 	*/
+                  0,             /* root 					*/
+                  MPI_COMM_WORLD /* communicator 			*/
+                  );
+	MPI_Scatterv( vz,            /* sendbuf 				*/
+                  sendcounts,    /* sendcounts 				*/
+                  displs,        /* displacements 			*/
+                  MPI_FLOAT,     /* sent MPI_Datatype 		*/
+                  my_vz,         /* recvbuf 				*/
+                  my_nBodies,    /* recvcount 				*/
+                  MPI_FLOAT,     /* received MPI_Datatype 	*/
+                  0,             /* root 					*/
+                  MPI_COMM_WORLD /* communicator 			*/
+                  ); 
 
+    float my_totalTime = 0.0;
+    for (int iter = 1; iter <= nIters; iter++) {
+		
+		MPI_Bcast( x,				/* sendbuf      	 	 */
+				   nBodies,			/* count; how many elements to send to _each_ destination */
+				   MPI_FLOAT,		/* sent datatype 	 	 */
+				   0,				/* root 				 */
+				   MPI_COMM_WORLD 	/* communicator 	 	 */
+				   );
+		MPI_Bcast( y,				/* sendbuf      	 	 */
+				   nBodies,			/* count; how many elements to send to _each_ destination */
+				   MPI_FLOAT,		/* sent datatype 	 	 */
+				   0,				/* root 				 */
+				   MPI_COMM_WORLD 	/* communicator 	 	 */
+				   );
+		MPI_Bcast( z,				/* sendbuf      	 	 */
+				   nBodies,			/* count; how many elements to send to _each_ destination */
+				   MPI_FLOAT,		/* sent datatype 	 	 */
+				   0,				/* root 				 */
+				   MPI_COMM_WORLD 	/* communicator 	 	 */
+				   );
+		
         const double tstart = hpc_gettime();
-        compute_force(my_x, my_y, my_z, my_vx, my_vy, my_vz, DT, my_nBodies);
+        compute_force(x, y, z, my_vx, my_vy, my_vz, DT, local_start, local_end, nBodies);
+		
+		MPI_Scatterv( x,             /* sendbuf 				*/
+					  sendcounts,    /* sendcounts 				*/
+					  displs,        /* displacements 			*/
+					  MPI_FLOAT,     /* sent MPI_Datatype 		*/
+					  my_x,          /* recvbuf 				*/
+					  my_nBodies,    /* recvcount 				*/
+					  MPI_FLOAT,     /* received MPI_Datatype 	*/
+					  0,             /* root 					*/
+					  MPI_COMM_WORLD /* communicator 			*/
+					  );
+		MPI_Scatterv( y,             /* sendbuf 				*/
+					  sendcounts,    /* sendcounts 				*/
+					  displs,        /* displacements 			*/
+					  MPI_FLOAT,     /* sent MPI_Datatype 		*/
+					  my_y,          /* recvbuf 				*/
+					  my_nBodies,    /* recvcount 				*/
+					  MPI_FLOAT,     /* received MPI_Datatype 	*/
+					  0,             /* root 					*/
+					  MPI_COMM_WORLD /* communicator 			*/
+					  );
+		MPI_Scatterv( z,             /* sendbuf 				*/
+					  sendcounts,    /* sendcounts 				*/
+					  displs,        /* displacements 			*/
+					  MPI_FLOAT,     /* sent MPI_Datatype 		*/
+					  my_z,          /* recvbuf 				*/
+					  my_nBodies,    /* recvcount 				*/
+					  MPI_FLOAT,     /* received MPI_Datatype 	*/
+					  0,             /* root 					*/
+					  MPI_COMM_WORLD /* communicator 			*/
+					  );
+		
         integrate_positions(my_x, my_y, my_z, my_vx, my_vy, my_vz, DT, my_nBodies);
-        const double elapsed = hpc_gettime() - tstart;
-        totalTime += elapsed;
         
-        MPI_Gather( my_x,			/* sendbuf      	 	 */
-					my_nBodies,		/* count; how many elements to send to _each_ destination */
-					MPI_FLOAT,		/* sent datatype 	 	 */
-					x,				/* recvbuf      	 	 */
-					my_nBodies,		/* recvcount    	 	 */
-					MPI_FLOAT,		/* received datatype 	 */
-					0,				/* source       	 	 */
-					MPI_COMM_WORLD	/* communicator 	 	 */
-					);
-		MPI_Gather( my_y,			/* sendbuf      	 	 */
-					my_nBodies,		/* count; how many elements to send to _each_ destination */
-					MPI_FLOAT,		/* sent datatype 	 	 */
-					y,				/* recvbuf      	 	 */
-					my_nBodies,		/* recvcount    	 	 */
-					MPI_FLOAT,		/* received datatype 	 */
-					0,				/* source       	 	 */
-					MPI_COMM_WORLD	/* communicator 	 	 */
-					);
-		MPI_Gather( my_z,			/* sendbuf      	 	 */
-					my_nBodies,		/* count; how many elements to send to _each_ destination */
-					MPI_FLOAT,		/* sent datatype 	 	 */
-					z,				/* recvbuf      	 	 */
-					my_nBodies,		/* recvcount    	 	 */
-					MPI_FLOAT,		/* received datatype 	 */
-					0,				/* source       	 	 */
-					MPI_COMM_WORLD	/* communicator 	 	 */
+        MPI_Allgatherv( my_x,			/* sendbuf      	 	 */
+					    my_nBodies,		/* count; how many elements to send to _each_ destination */
+					    MPI_FLOAT,		/* sent datatype 	 	 */
+					    x,				/* recvbuf      	 	 */
+					    sendcounts,		/* recvcount    	 	 */
+					    displs,			/* displacements 		 */
+					    MPI_FLOAT,		/* received datatype 	 */
+					    MPI_COMM_WORLD	/* communicator 	 	 */
+					    );
+		MPI_Allgatherv( my_y,			/* sendbuf      	 	 */
+					    my_nBodies,		/* count; how many elements to send to _each_ destination */
+					    MPI_FLOAT,		/* sent datatype 	 	 */
+					    y,				/* recvbuf      	 	 */
+					    sendcounts,		/* recvcount    	 	 */
+					    displs,			/* displacements 		 */
+					    MPI_FLOAT,		/* received datatype 	 */
+					    MPI_COMM_WORLD	/* communicator 	 	 */
+					    );
+		MPI_Allgatherv( my_z,			/* sendbuf      	 	 */
+					    my_nBodies,		/* count; how many elements to send to _each_ destination */
+					    MPI_FLOAT,		/* sent datatype 	 	 */
+					    z,				/* recvbuf      	 	 */
+					    sendcounts,		/* recvcount    	 	 */
+					    displs,			/* displacements 		 */
+					    MPI_FLOAT,		/* received datatype 	 */
+					    MPI_COMM_WORLD	/* communicator 	 	 */
+					    );
+
+        const double elapsed = hpc_gettime() - tstart;
+        double total_elapsed = 0.0f;
+        my_totalTime += elapsed;
+        const float e = energy(x, y, z, my_vx, my_vy, my_vz, local_start, local_end, nBodies);
+        float total_e = 0.0f;
+        
+        MPI_Reduce( &e,  			/* send buffer   	*/
+					&total_e,       /* receive buffer   */
+					1,       		/* count            */
+					MPI_FLOAT,    	/* datatype         */
+					MPI_SUM,        /* operation        */
+					0,              /* destination      */
+					MPI_COMM_WORLD  /* communicator     */
 					);
 		
-		MPI_Gather( my_vx,			/* sendbuf      	 	 */
-					my_nBodies,		/* count; how many elements to send to _each_ destination */
-					MPI_FLOAT,		/* sent datatype 	 	 */
-					vx,				/* recvbuf      	 	 */
-					my_nBodies,		/* recvcount    	 	 */
-					MPI_FLOAT,		/* received datatype 	 */
-					0,				/* source       	 	 */
-					MPI_COMM_WORLD	/* communicator 	 	 */
-					);
-		MPI_Gather( my_vy,			/* sendbuf      	 	 */
-					my_nBodies,		/* count; how many elements to send to _each_ destination */
-					MPI_FLOAT,		/* sent datatype 	 	 */
-					vy,				/* recvbuf      	 	 */
-					my_nBodies,		/* recvcount    	 	 */
-					MPI_FLOAT,		/* received datatype 	 */
-					0,				/* source       	 	 */
-					MPI_COMM_WORLD	/* communicator 	 	 */
-					);
-		MPI_Gather( my_vz,			/* sendbuf      	 	 */
-					my_nBodies,		/* count; how many elements to send to _each_ destination */
-					MPI_FLOAT,		/* sent datatype 	 	 */
-					vz,				/* recvbuf      	 	 */
-					my_nBodies,		/* recvcount    	 	 */
-					MPI_FLOAT,		/* received datatype 	 */
-					0,				/* source       	 	 */
-					MPI_COMM_WORLD	/* communicator 	 	 */
+		MPI_Reduce( &elapsed,  	    /* send buffer   	*/
+					&total_elapsed, /* receive buffer   */
+					1,       		/* count            */
+					MPI_DOUBLE,    	/* datatype         */
+					MPI_SUM,        /* operation        */
+					0,              /* destination      */
+					MPI_COMM_WORLD  /* communicator     */
 					);
         
         if ( 0 == my_rank ) {
-
-			const float e = energy(x, y, z, vx, vy, vz, nBodies);
-			printf("Iteration %3d/%3d : E=%f, %.3f seconds\n", iter, nIters, e, elapsed);
+			printf("Iteration %3d/%3d : E=%f, %.3f seconds\n", iter, nIters, total_e, total_elapsed);
 			fflush(stdout);
 		}
     }
     
-    if ( 0 == my_rank ) {		
+    float totalTime = 0.0f;
+    MPI_Reduce( &my_totalTime,	/* send buffer   	*/
+				&totalTime,     /* receive buffer   */
+				1,       		/* count            */
+				MPI_FLOAT,    	/* datatype         */
+				MPI_SUM,        /* operation        */
+				0,              /* destination      */
+				MPI_COMM_WORLD  /* communicator     */
+				);
+    
+    if ( 0 == my_rank ) {
 		const double avgTime = totalTime / nIters;
 
 		printf("%d Bodies: average %0.3f Billion Interactions / second\n", nBodies, 1e-9 * nBodies * nBodies / avgTime);
 	}
-	
+
     free(x); free(y); free(z);
     free(my_x); free(my_y); free(my_z);
     free(vx); free(vy); free(vz);
@@ -442,3 +485,4 @@ int main(int argc, char* argv[])
     
     return EXIT_SUCCESS;
 }
+
