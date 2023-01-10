@@ -63,7 +63,7 @@
 
 	Compile with:
 
-			gcc -std=c99 -Wall -Wpedantic mpi-letters.c -o mpi-letters
+			mpicc -std=c99 -Wall -Wpedantic mpi-letters.c -o mpi-letters
 
 	Run with:
 
@@ -135,7 +135,7 @@ int main( int argc, char *argv[] )
 	char *text, *my_text;
 	int my_rank, comm_sz;
 	int hist[ALPHABET], my_hist[ALPHABET];
-	long my_len;
+	long N;
 	
 	MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
@@ -145,33 +145,46 @@ int main( int argc, char *argv[] )
 	text = (char*)malloc(size); assert(text != NULL);
 	
 	if ( 0 == my_rank ) {
-		const size_t len = fread(text, 1, size-1, stdin);
-		text[len] = '\0'; /* put a termination mark at the end of the text */
-		my_len = (len+comm_sz-1) / comm_sz;
+		N = fread(text, 1, size-1, stdin);
+		text[N] = '\0'; /* put a termination mark at the end of the text */
 	}
 	
-	MPI_Bcast( &my_len,			/* buffer     		*/	
+	MPI_Bcast( &N,				/* buffer     		*/
 			   1,				/* count        	*/
 			   MPI_LONG,		/* datatype         */
 			   0,				/* root             */
 		       MPI_COMM_WORLD	/* communicator     */
-			 );
-	
-	my_text = (char*)malloc(my_len); assert(my_text != NULL);
-	
-	MPI_Scatter( text,				/* send buffer    	*/	
-				 my_len,			/* send count       */
-				 MPI_BYTE,			/* datatype         */
-				 my_text,			/* receive buffer   */
-				 my_len,			/* receive count    */
-				 MPI_BYTE,			/* datatype         */
-				 0,					/* root             */
-				 MPI_COMM_WORLD		/* communicator     */
 			   );
+			   
+	int sendcounts[comm_sz];
+    int displs[comm_sz];
+    for (int i=0; i<comm_sz; i++) {
+        const int rank_start = N*i/comm_sz;
+        const int rank_end = N*(i+1)/comm_sz;
+        sendcounts[i] = rank_end - rank_start;
+        displs[i] = rank_start;
+    }
+    
+    const int my_size = (N + comm_sz - 1) / comm_sz;
+    const int my_N = sendcounts[my_rank];
+    
+	my_text = (char*)malloc(my_size); assert(my_text != NULL);
+	
+	MPI_Scatterv( text,				/* send buffer    	*/	
+				  sendcounts,    	/* sendcounts 		*/
+                  displs,        	/* displacements 	*/
+				  MPI_BYTE,			/* datatype         */
+				  my_text,			/* receive buffer   */
+				  my_N,				/* receive count    */
+				  MPI_BYTE,			/* datatype         */
+				  0,				/* root             */
+				  MPI_COMM_WORLD	/* communicator     */
+			      );
     
     const double tstart = MPI_Wtime();
-	make_hist(my_text, my_hist, my_len);
+	make_hist(my_text, my_hist, my_N);
     const double elapsed = MPI_Wtime() - tstart;
+    double total_elapsed = 0.0f;
     
     MPI_Reduce( my_hist,  		/* send buffer   	*/
                 hist,        	/* receive buffer   */
@@ -181,11 +194,20 @@ int main( int argc, char *argv[] )
                 0,              /* destination      */
                 MPI_COMM_WORLD  /* communicator     */
 				);
+	
+	MPI_Reduce( &elapsed,  		/* send buffer   	*/
+                &total_elapsed, /* receive buffer   */
+                1,       		/* count            */
+                MPI_DOUBLE,     /* datatype         */
+                MPI_SUM,        /* operation        */
+                0,              /* destination      */
+                MPI_COMM_WORLD  /* communicator     */
+				);
     
     if ( 0 == my_rank ) {
 		print_hist(hist);
 		
-		fprintf(stderr, "Elapsed time: %f\n", elapsed);
+		fprintf(stderr, "Elapsed time: %f\n", total_elapsed);
 	}
     
     free(text); 
