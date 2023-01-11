@@ -170,6 +170,8 @@ int main( int argc, char *argv[] )
     
 	my_text = (char*)malloc(my_size); assert(my_text != NULL);
 	
+	const double tstart = MPI_Wtime();
+	
 	MPI_Scatterv( text,				/* send buffer    	*/	
 				  sendcounts,    	/* sendcounts 		*/
                   displs,        	/* displacements 	*/
@@ -181,10 +183,7 @@ int main( int argc, char *argv[] )
 				  MPI_COMM_WORLD	/* communicator     */
 			      );
     
-    const double tstart = MPI_Wtime();
 	make_hist(my_text, my_hist, my_N);
-    const double elapsed = MPI_Wtime() - tstart;
-    double total_elapsed = 0.0f;
     
     MPI_Reduce( my_hist,  		/* send buffer   	*/
                 hist,        	/* receive buffer   */
@@ -194,20 +193,13 @@ int main( int argc, char *argv[] )
                 0,              /* destination      */
                 MPI_COMM_WORLD  /* communicator     */
 				);
-	
-	MPI_Reduce( &elapsed,  		/* send buffer   	*/
-                &total_elapsed, /* receive buffer   */
-                1,       		/* count            */
-                MPI_DOUBLE,     /* datatype         */
-                MPI_SUM,        /* operation        */
-                0,              /* destination      */
-                MPI_COMM_WORLD  /* communicator     */
-				);
+				
+	const double elapsed = MPI_Wtime() - tstart;
     
     if ( 0 == my_rank ) {
 		print_hist(hist);
 		
-		fprintf(stderr, "Elapsed time: %f\n", total_elapsed);
+		fprintf(stderr, "Elapsed time: %f\n", elapsed);
 	}
     
     free(text); 
