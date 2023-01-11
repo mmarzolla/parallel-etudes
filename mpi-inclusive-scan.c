@@ -84,10 +84,10 @@ void exclusive_scan(int *v, int *s, int n) {
 	}
 }
 
-void process_internal_sum(int *v, int *s, int rank, int n) {
+void process_internal_sum(int v, int *s, int rank, int n) {
 	
 	for (int i=0; i<n; i++) {
-		s[i] += v[rank];
+		s[i] += v;
 	}
 }
 
@@ -125,8 +125,9 @@ int main(int argc, char *argv[])
 	clean(my_scan, my_len);
 	
 	int process_sum;
-    int blksum[comm_sz];
-    int blksum_s[comm_sz];
+	int blksum[comm_sz];
+	int blksum_s[comm_sz];
+    int my_blksum;
 
 	/* Each process performs an inclusive scan of its portion of array */
 	inclusive_scan(my_local,my_scan,my_len);
@@ -147,15 +148,18 @@ int main(int argc, char *argv[])
 		exclusive_scan(blksum,blksum_s,comm_sz);
 	}
     
-    MPI_Bcast ( blksum_s,
-				comm_sz,
-				MPI_INT,
-				0,
-				MPI_COMM_WORLD
-				);
+    MPI_Scatter( blksum_s,			/* send buffer    	*/
+				 1,					/* send count 	    */
+				 MPI_INT,			/* datatype         */
+				 &my_blksum,		/* receive buffer   */
+				 1,					/* receive count    */
+				 MPI_INT,			/* datatype         */
+				 0,					/* root  			*/
+				 MPI_COMM_WORLD		/* communicator     */
+			     );
 	
 	/* Each process increments all values of its portion of the array */
-	process_internal_sum(blksum_s,my_scan,my_rank,my_len);
+	process_internal_sum(my_blksum,my_scan,my_rank,my_len);
 	
 	MPI_Gatherv( my_scan,			/* sendbuf      		*/
 				 my_len,			/* count		    	*/
