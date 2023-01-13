@@ -33,6 +33,7 @@ Anneal CA                                        X      2D Stencil
 N-body simulation                X               X      Embarrassingly parallel, Load balancing, Reduction
 Knapsack problem                 X               X      Non-uniform 1D stencil
 Edge detection                   X               X      2D Stencil
+Gaussian elimination             X                      Reduction
 ------------------------------ --------- ----- -------- --------------------------
 
 ## OpenMP
@@ -64,6 +65,7 @@ Edge detection                   X               X      2D Stencil
 - [Static and dynamic loop scheduling](omp-schedule.html) (master-worker)
 - [N-body simulation](omp-nbody.html) (embarrassingly parallel, load balancing, reduction)
 - [0/1 knapsack problem](omp-knapsack.html) (2D stencil)
+- [Gaussian elimination](omp-gaussian-elimination.html) (reduction)
 
 ## MPI
 
