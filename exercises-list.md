@@ -1,6 +1,6 @@
 % HPC - List of exercises
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-11-03
+% Last updated: 2023-01-19
 
 
 Kernel                           OpenMP   MPI   OpenCL  Pattern
@@ -11,7 +11,7 @@ Array sum                                  X            Reduction, Scatter/Gathe
 Monte Carlo Pi                   X         X            Embarrassingly parallel, Reduction
 Primes                           X                      Embarrassingly parallel, Reduction
 Character frequencies            X         X            Embarrassingly parallel, Reduction
-Inclusive scan                   X                      Scan
+Inclusive scan                   X         X            Scan
 Dynamic task scheduling          X                      Master-Worker
 MergeSort                        X                      Task-level parallelism
 Ray tracing                      X         X            Embarrassingly parallel, Scatter/Gather
@@ -156,13 +156,13 @@ Gaussian elimination             X                      Reduction
 ## Final projects
 
 Year               Topic
------------------  ---------------------------
+-----------------  ----------------------------------------
 2016/2017          Biham-Middleton-Levine CA
 2017/2018          Larger-than-Life
 2018/2019          Earthquake
 2019/2020          Convex Hull
 2020/2021          Skyline
 2021/2022          Hardy, Pomeau, de Pazzis CA
-2022/2023          ???
------------------  ---------------------------
+2022/2023          Smoothed Particle Hydrodynamics (SPH)
+-----------------  ----------------------------------------
 
