@@ -181,7 +181,7 @@ int main( int argc, char *argv[] )
     const char *msg = "0123456789A strange game. The only winning move is not to play."; /* plaintext message */
     const int msglen = strlen(msg)+1; /* length of the encrypted message, including the trailing \0 */
     char enc_key[] = "40224426"; /* encryption key */
-    const int n = 100000000;    /* total number of possible keys */
+    const int NUM_KEYS = 100000000;    /* total number of possible keys */
     const char check[] = "0123456789"; /* the decrypted message starts with this string */
     const int CHECK_LEN = strlen(check);
 
@@ -191,26 +191,25 @@ int main( int argc, char *argv[] )
 
     char* buf = (char*)malloc(msglen);
     char key[KEY_LEN+1];
-    int my_start = (n*my_rank)/comm_sz;
-    const int my_end = (n*(my_rank+1))/comm_sz;
-    int found = 0, local_found = 0;
+    int my_start = (NUM_KEYS*my_rank)/comm_sz;
+    const int my_end = (NUM_KEYS*(my_rank+1))/comm_sz;
+    int found = -1, local_found = -1;
     int k = my_start;
 
     const double tstart = MPI_Wtime();
     const int BLKLEN = 1024; /* processes synchronize every BLKLEN keys */
-
-    /* FIXME: il codice seguente può fallire nel caso in cui alcuni
-       dei blocchi siano multipli di BLKLEN e alcuni no; in tal caso
-       ci potrebbero essere delle Allreduce che restano "appese"
-       perché non vengono eseguite da tutti i processi .*/
+    const int N_ROUNDS = (NUM_KEYS + BLKLEN + 1)/BLKLEN;
+    int round = 0;
+    
+    /* We must be careful here: each process must perform the same
+       maximum number of rounds. If it does not, then the Allreduce()
+       might block because some processes exited the loop. */
     do {
-        for (k = my_start; k < my_start + BLKLEN && k < my_end && !local_found; k++) {
+        for (k = my_start; k < my_start + BLKLEN && k < my_end && local_found < 0; k++) {
             sprintf(key, "%08d", k);
             xorcrypt(enc, buf, msglen, key, 8);
             if ( 0 == memcmp(buf, check, CHECK_LEN)) {
-                printf("Key found \"%s\" by rank %d\n", key, my_rank);
-                printf("Decrypted message: %s\n", buf);
-                local_found = 1;
+                local_found = k;
             }
         }
 
@@ -220,17 +219,20 @@ int main( int argc, char *argv[] )
                        &found,          /* recvbuf              */
                        1,               /* count                */
                        MPI_INT,         /* sent datatype        */
-                       MPI_LOR,         /* operation            */
+                       MPI_MAX,         /* operation            */
                        MPI_COMM_WORLD   /* communicator         */
                        );
-    } while (!found && k < my_end);
+        round++;
+    } while (found < 0 && round < N_ROUNDS);
 
     const double elapsed = MPI_Wtime() - tstart;
 
     if ( 0 == my_rank ) {
         printf("Elapsed time: %f\n", elapsed);
-        if ( !found )
-            printf("No key found to decrypt the message\n");
+        printf("Key found \"%d\"\n", found);
+        sprintf(key, "%08d", found);
+        xorcrypt(enc, buf, msglen, key, 8);
+        printf("Decrypted message: %s\n", buf);
     }
 
     free(buf);
