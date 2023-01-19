@@ -10,7 +10,7 @@ Dot product                      X         X     X      Reduction, Scatter/Gathe
 Array sum                                  X            Reduction, Scatter/Gather
 Monte Carlo Pi                   X         X            Embarrassingly parallel, Reduction
 Primes                           X                      Embarrassingly parallel, Reduction
-Character frequencies            X                      Embarrassingly parallel, Reduction
+Character frequencies            X         X            Embarrassingly parallel, Reduction
 Inclusive scan                   X                      Scan
 Dynamic task scheduling          X                      Master-Worker
 MergeSort                        X                      Task-level parallelism
