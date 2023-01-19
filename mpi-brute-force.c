@@ -200,7 +200,7 @@ int main( int argc, char *argv[] )
     const int BLKLEN = 1024; /* processes synchronize every BLKLEN keys */
     const int N_ROUNDS = (NUM_KEYS + BLKLEN + 1)/BLKLEN;
     int round = 0;
-    
+
     /* We must be careful here: each process must perform the same
        maximum number of rounds. If it does not, then the Allreduce()
        might block because some processes exited the loop. */
@@ -229,6 +229,10 @@ int main( int argc, char *argv[] )
 
     if ( 0 == my_rank ) {
         printf("Elapsed time: %f\n", elapsed);
+        if (found < 0) {
+            fprintf(stderr, "FATAL: key not found\n");
+            MPI_Abort(MPI_COMM_WORLD, -1);
+        }
         printf("Key found \"%d\"\n", found);
         sprintf(key, "%08d", found);
         xorcrypt(enc, buf, msglen, key, 8);
