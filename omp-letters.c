@@ -99,13 +99,15 @@ Run with:
 #include <assert.h>
 #include <omp.h>
 
+#define ALPHA_SIZE 26
+
 /**
  * Count occurrences of letters 'a'..'z' in `text`; uppercase
  * characters are transformed to lowercase, and all other symbols are
  * ignored. `text` must be zero-terminated. `hist` will be filled with
  * the computed counts. Returns the total number of letters found.
  */
-int make_hist( const char *text, int hist[26] )
+int make_hist( const char *text, int hist[ALPHA_SIZE] )
 {
     int nlet = 0; /* total number of alphabetic characters processed */
     int i, j;
@@ -113,7 +115,7 @@ int make_hist( const char *text, int hist[26] )
     /* [TODO] Parallelize this function */
 
     /* Reset the histogram */
-    for (j=0; j<26; j++) {
+    for (j=0; j<ALPHA_SIZE; j++) {
         hist[j] = 0;
     }
     /* Count occurrences */
@@ -126,10 +128,10 @@ int make_hist( const char *text, int hist[26] )
     }
 #else
     const int num_threads = omp_get_max_threads();
-    int local_hist[num_threads][26]; /* one histogram per OpenMP thread */
+    int local_hist[num_threads][ALPHA_SIZE]; /* one histogram per OpenMP thread */
 
     for (i=0; i<num_threads; i++) {
-        for (j=0; j<26; j++) {
+        for (j=0; j<ALPHA_SIZE; j++) {
             local_hist[i][j] = 0;
         }
     }
@@ -153,7 +155,7 @@ int make_hist( const char *text, int hist[26] )
     }
 
     /* compute the frequencies by summing the local histograms */
-    for (j=0; j<26; j++) {
+    for (j=0; j<ALPHA_SIZE; j++) {
         int s = 0;
         for (i=0; i<num_threads; i++) {
             s += local_hist[i][j];
@@ -168,14 +170,14 @@ int make_hist( const char *text, int hist[26] )
 /**
  * Print frequencies
  */
-void print_hist( int hist[26] )
+void print_hist( int hist[ALPHA_SIZE] )
 {
     int i;
     int nlet = 0;
-    for (i=0; i<26; i++) {
+    for (i=0; i<ALPHA_SIZE; i++) {
         nlet += hist[i];
     }
-    for (i=0; i<26; i++) {
+    for (i=0; i<ALPHA_SIZE; i++) {
         printf("%c : %8d (%6.2f%%)\n", 'a'+i, hist[i], 100.0*hist[i]/nlet);
     }
     printf("    %8d total\n", nlet);
@@ -183,7 +185,7 @@ void print_hist( int hist[26] )
 
 int main( void )
 {
-    int hist[26];
+    int hist[ALPHA_SIZE];
     const size_t size = 5*1024*1024; /* maximum text size: 5 MB */
     char *text = (char*)malloc(size); assert(text != NULL);
 

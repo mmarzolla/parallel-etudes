@@ -91,6 +91,28 @@ using suitable OpenMP constructs.
  */
 void solve( const float *A, const float *b, float *x, int n )
 {
+#ifdef SERIAL
+    for (int i=n-1; i>=0; i--) {
+        x[i] = b[i];
+        for (int j=i+1; j<n; j++) {
+            x[i] -= A[i*n + j]*x[j];
+        }
+        x[i] /= A[i*n + i];
+        /* HINT: you might want to rewrite the outer loop body as
+           follows:
+
+           float xi = b[i];
+           for (int j=i+1; j<n; j++) {
+             xi -= A[i*n + j]*x[j];
+           }
+           x[i] = xi / A[i*n + i];
+
+           Although this version ios more verbose and definitely less
+           clear, it shows that a known parallel pattern applies to
+           the inner loop...
+        */
+    }
+#else
     for (int i=n-1; i>=0; i--) {
         float xi = b[i];
 #pragma omp parallel for default(none) shared(A,i,n,x) reduction(-:xi)
@@ -99,10 +121,12 @@ void solve( const float *A, const float *b, float *x, int n )
         }
         x[i] = xi / A[i*n + i];
     }
+#endif
 }
 
 void init( float *A, float *b, int n )
 {
+    const float EPSILON = 1e-5;
     for (int i=0; i<n; i++) {
         b[i] = i;
         for (int j=0; j<n; j++) {
@@ -112,6 +136,8 @@ void init( float *A, float *b, int n )
                 A[i*n + j] = i+j + 1;
             }
         }
+        /* ensures that matrix A is non-singular */
+        assert( fabs(A[i*n + i]) > EPSILON );
     }
 }
 
