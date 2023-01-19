@@ -21,7 +21,7 @@
 /***
 % HPC - Brute-force password cracking
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-08-08
+% Last updated: 2023-01-19
 
 ![DES cracker board developed in 1998 by the Electronic Frontier Foundation (EFF); this device can be used to brute-force a DES key. The original uploader was Matt Crypto at English Wikipedia. Later versions were uploaded by Ed g2s at en.wikipedia - CC BY 3.0 us, <https://commons.wikimedia.org/w/index.php?curid=2437815>](des-cracker.jpg)
 
@@ -102,7 +102,7 @@ Run with:
         mpirun -n 4 ./mpi-brute-force
 
 **Note**: the execution time of the parallel program might change
-irregularly depending on the number $P$ of OpenMP threads. Why?
+irregularly depending on the number $P$ of processes. Why?
 
 ## Files
 
@@ -115,7 +115,6 @@ server:
 
 ***/
 
-#include "hpc.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -164,7 +163,6 @@ char *gen_encrypt( const char *msg, char *key, int keylen )
 int main( int argc, char *argv[] )
 {
     const int KEY_LEN = 8;
-    const int BLKLEN = 1024;
     /* encrypted message */
     const char enc[] = {
         4, 1, 0, 1, 0, 1, 4, 1,
@@ -176,7 +174,7 @@ int main( int argc, char *argv[] )
         93, 67, 18, 92, 91, 64, 18, 66,
         91, 16, 66, 94, 85, 77, 28, 54
     };
-    
+
     int my_rank, comm_sz;
     /* There is some redundant code that has been used by me to
        generate the encrypted message */
@@ -184,83 +182,59 @@ int main( int argc, char *argv[] )
     const int msglen = strlen(msg)+1; /* length of the encrypted message, including the trailing \0 */
     char enc_key[] = "40224426"; /* encryption key */
     const int n = 100000000;    /* total number of possible keys */
-    int found = 0, local_found = 0;
     const char check[] = "0123456789"; /* the decrypted message starts with this string */
     const int CHECK_LEN = strlen(check);
-    
+
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
-    
+
+    char* buf = (char*)malloc(msglen);
+    char key[KEY_LEN+1];
+    int my_start = (n*my_rank)/comm_sz;
+    const int my_end = (n*(my_rank+1))/comm_sz;
+    int found = 0, local_found = 0;
+    int k = my_start;
+
+    const double tstart = MPI_Wtime();
+    const int BLKLEN = 1024; /* processes synchronize every BLKLEN keys */
+
+    /* FIXME: il codice seguente può fallire nel caso in cui alcuni
+       dei blocchi siano multipli di BLKLEN e alcuni no; in tal caso
+       ci potrebbero essere delle Allreduce che restano "appese"
+       perché non vengono eseguite da tutti i processi .*/
+    do {
+        for (k = my_start; k < my_start + BLKLEN && k < my_end && !local_found; k++) {
+            sprintf(key, "%08d", k);
+            xorcrypt(enc, buf, msglen, key, 8);
+            if ( 0 == memcmp(buf, check, CHECK_LEN)) {
+                printf("Key found \"%s\" by rank %d\n", key, my_rank);
+                printf("Decrypted message: %s\n", buf);
+                local_found = 1;
+            }
+        }
+
+        my_start += BLKLEN;
+
+        MPI_Allreduce( &local_found,    /* sendbuf              */
+                       &found,          /* recvbuf              */
+                       1,               /* count                */
+                       MPI_INT,         /* sent datatype        */
+                       MPI_LOR,         /* operation            */
+                       MPI_COMM_WORLD   /* communicator         */
+                       );
+    } while (!found && k < my_end);
+
+    const double elapsed = MPI_Wtime() - tstart;
+
     if ( 0 == my_rank ) {
-		char *tmp = gen_encrypt(msg, enc_key, KEY_LEN);
+        printf("Elapsed time: %f\n", elapsed);
+        if ( !found )
+            printf("No key found to decrypt the message\n");
+    }
 
-		free(tmp);
-	}
+    free(buf);
 
-    const double tstart = hpc_gettime();
-     
-	char* buf = (char*)malloc(msglen);
-	char key[KEY_LEN+1];
-	int my_start = (n*my_rank)/comm_sz;
-	const int my_end = (n*(my_rank+1))/comm_sz;
-
-	/* Technically, there is a race condition updating the
-	   variable `found`; however, the race condition is benign
-	   because in the worst case it forces the other threads to
-	   execute one more iteration than necessary. */
-
-	int i=my_start;
-
-	while(found == 0 && i<my_end) {
-		/* Every BLKLEN each process check if any other has found
-		 * the correct key or if they should keep looking for it */
-		const int key_found_check = my_start + BLKLEN;
-		
-		for(;i<key_found_check && i<my_end && !local_found;i++) {
-			sprintf(key, "%08d", i);
-			xorcrypt(enc, buf, msglen, key, 8);
-			if ( 0 == memcmp(buf, check, CHECK_LEN)) {
-				printf("Key found: %s, by rank: %d\n", key, my_rank);
-				printf("Decrypted message: %s\n", buf);
-				local_found = 1;
-				
-				const double elapsed = hpc_gettime() - tstart;
-				printf("Rank: %d, elapsed time: %f\n", my_rank, elapsed);
-				
-				printf("Broadcasting that the key has been found\n");
-			}
-		}
-		
-		my_start += BLKLEN;
-		
-		MPI_Allreduce( &local_found, 	/* sendbuf      	*/
-					   &found,			/* recvbuf      	*/
-					   1,				/* count 			*/
-					   MPI_INT,			/* sent datatype 	*/
-					   MPI_SUM,			/* operation 		*/
-					   MPI_COMM_WORLD   /* communicator		*/
-					   );
-	}
-
-	if ( 0 == my_rank ) {
-		if ( !found ) {
-			printf("No key found to decrypt the message\n");
-		}
-
-		if ( found > 1 ) {
-			fprintf(stderr, "More than one key found - ERROR\n");
-			return EXIT_FAILURE;
-		}
-	}
-	
-	if ( !local_found && found ) {
-		printf("My rank: %d, another process has found the key - EXITING\n", my_rank);
-	}
-	
-	free(buf);
-    
-    
     MPI_Finalize();
     return EXIT_SUCCESS;
 }
