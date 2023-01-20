@@ -79,7 +79,7 @@ int primes(int n)
 
 int main( int argc, char *argv[] )
 {
-    int n = 1000000, nprimes;
+    int n = 1000000;
 
     if ( argc > 2 ) {
         fprintf(stderr, "Usage: %s [n]\n", argv[0]);
@@ -97,11 +97,11 @@ int main( int argc, char *argv[] )
 
     sclInitFromFile("opencl-sieve.cl");
     const double tstart = hpc_gettime();
-    nprimes = primes(n);
+    const int nprimes = primes(n);
     const double elapsed = hpc_gettime() - tstart;
     printf("Elapsed time: %f\n", elapsed);
 
-    printf("There are %ld primes in {2, ..., %d}\n", nprimes, n);
+    printf("There are %d primes in {2, ..., %d}\n", nprimes, n);
 
     sclFinalize();
 

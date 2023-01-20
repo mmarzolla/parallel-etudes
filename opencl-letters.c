@@ -83,8 +83,8 @@ sclKernel hist_kernel;
 int make_hist( const char *text, int hist[ALPHA_SIZE] )
 {
     const size_t len = strlen(text);
-    int nlet = 0; /* total number of alphabetic characters processed */
 #ifdef SERIAL
+    int nlet = 0; /* total number of alphabetic characters processed */
     /* [TODO] Parallelize this function */
 
     /* Reset the histogram */
