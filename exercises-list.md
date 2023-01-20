@@ -5,7 +5,7 @@
 
 Kernel                           OpenMP   MPI   OpenCL  Pattern
 ------------------------------ --------- ----- -------- --------------------------
-Password cracking                X                      Embarrassingly parallel
+Password cracking                X         X            Embarrassingly parallel
 Dot product                      X         X     X      Reduction, Scatter/Gather
 Array sum                                  X            Reduction, Scatter/Gather
 Monte Carlo Pi                   X         X            Embarrassingly parallel, Reduction

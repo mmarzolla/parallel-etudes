@@ -70,8 +70,9 @@ Run with:
 
 ## Files
 
-* [mpi-letters.c](mpi-letters.c) [War and Peace](war-and-peace.txt) by L. Tolstoy
-* [The Hound of the  Baskervilles](the-hound-of-the-baskervilles.txt) by A. C. Doyle
+* [mpi-letters.c](mpi-letters.c)
+* [War and Peace](war-and-peace.txt) by L. Tolstoy
+* [The Hound of the Baskervilles](the-hound-of-the-baskervilles.txt) by A. C. Doyle
 * [The War of the Worlds](the-war-of-the-worlds.txt) by H. G. Wells
 
 ***/
@@ -95,14 +96,13 @@ Run with:
 int make_hist( const char *text, int hist[ALPHA_SIZE], int n )
 {
     int nlet = 0; /* total number of alphabetic characters processed */
-    int i, j;
 
     /* Reset the histogram */
-    for (j=0; j<ALPHA_SIZE; j++) {
+    for (int j=0; j<ALPHA_SIZE; j++) {
         hist[j] = 0;
     }
     /* Count occurrences */
-    for (i=0; i<n; i++) {
+    for (int i=0; i<n; i++) {
         const char c = text[i];
         if (isalpha(c)) {
             nlet++;
@@ -111,7 +111,6 @@ int make_hist( const char *text, int hist[ALPHA_SIZE], int n )
     }
     return nlet;
 }
-
 
 /**
  * Print frequencies
@@ -192,9 +191,8 @@ int main( int argc, char *argv[] )
                 MPI_COMM_WORLD  /* communicator     */
                 );
 
-    const double elapsed = MPI_Wtime() - tstart;
-
     if ( 0 == my_rank ) {
+        const double elapsed = MPI_Wtime() - tstart;
         print_hist(hist);
         fprintf(stderr, "Elapsed time: %f\n", elapsed);
     }
