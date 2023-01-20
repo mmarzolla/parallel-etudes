@@ -21,47 +21,48 @@
 /***
 % HPC - Sieve of Eratosthenes
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-10-14
+% Last updated: 2023-01-20
 
 The _sieve of Erathostenes_ is an algorithm for identifying the prime
-numbers falling within a given range which usually is the set $\{2,
-\ldots, n\}$ . A natural number $p \geq 2$ is prime if and only if the
-only divisors are 1 and $p$ itself (2 is prime).
+numbers within the set $\{2, \ldots, n\}$. A natural number $p \geq 2$
+is prime if and only if its only divisors are 1 and $p$ itself (2 is
+prime).
 
 To illustrate how the sieve of Eratosthenes works, let us consider the
 case $n=20$. We start by listing all integers $2, \ldots n$:
 
 ![](omp-sieve1.svg)
 
-The first value in the list (2) is prime; we mark all its multiples
+The first value in the list (2) is prime; we mark all its multiples,
 and get:
 
 ![](omp-sieve2.svg)
 
-The next unmarked value (3) is again prime. We mark all its multiples
-starting from $3 \times 3$ (indeed, $3 \times 2$ has been
-marked at the previous step because it is a multiple of 2). We get:
+The next unmarked value (3) is prime. We mark all its multiples
+starting from $3 \times 3$, since $3 \times 2$ has already been marked
+the previous step because it is a multiple of 2. We get:
 
 ![](omp-sieve3.svg)
 
 The next unmarked value (5) is prime. The smaller unmarked multiple of
 5 is $5 \times 5$, because $5 \times 2$, $5 \times 3$ and $5 \times 4$
-have all been marked since they are multiples of 2 and 3. However,
-since $5 \times 5 > 20$ is outside the upper bound of the interval,
-the algorithm terminates and all unmarked numbers are prime:
+have been marked since they are multiples of 2 and 3. However, since
+$5 \times 5$ is outside the upper bound of the interval, the algorithm
+terminates and all unmarked numbers are prime:
 
 ![](omp-sieve4.svg)
 
-The file [omp-sieve.c](omp-sieve.c) contains a serial program that,
-given an integer $n \geq 2$, computes the number $\pi(n)$ of primes in
-the set $\{2, \ldots n\}$ using the sieve of
+The file [omp-sieve.c](omp-sieve.c) contains a serial program that
+takes as input an integer $n \geq 2$, and computes the number $\pi(n)$
+of primes in the set $\{2, \ldots n\}$ using the sieve of
 Eratosthenes[^1]. Although the serial program could be made more
-efficient both in time and space, here it is best to sacrifice
-efficiency for readability. The set of unmarked numbers in $\{2,
-\ldots, n\}$ is represented by the `isprime[]` array of length $n+1$;
-during execution, `isprime[k]` is 0 if and only if $k$ has been
-marked, i.e., has been determined to be composite ($2 \leq k \leq n$);
-`isprime[0]` and `isprime[1]` are not used.
+efficient, for the sake of this exercise we trade efficiency for
+readability.
+
+The set of unmarked numbers in $\{2, \ldots, n\}$ is represented by
+the `isprime[]` array of length $n+1$; during execution, `isprime[k]`
+is 0 if and only if $k$ has been marked, i.e., has been determined to
+be composite; `isprime[0]` and `isprime[1]` are not used.
 
 [^1]: $\pi(n)$ is also called [prime-counting
       function](https://en.wikipedia.org/wiki/Prime-counting_function)
@@ -71,10 +72,11 @@ from, int to)` that marks all multiples of $k$ belonging to the set
 $\{\texttt{from}, \ldots \texttt{to}-1\}$. The function returns the
 number of values that have been marked for the first time.
 
-The goal is to write a parallel version of the sieve of Erathostenes;
-to this aim, you might want to use the following hints.
+The goal of this exercise is to write a parallel version of the sieve
+of Erathostenes; to this aim, you might want to use the following
+hints.
 
-The main program contains the following instructions:
+The main program contains the loop:
 
 ```C
 count = n - 1;
@@ -87,16 +89,25 @@ for (i=2; i*i <= n; i++) {
 
 To compute $\pi(n)$ we start by initializing `count` as the number of
 elements in the set $\{2, \ldots n\}$; every time we mark a value for
-the first time, we decrement `count` so that, at the end, we have that
+the first time, we decrement `count` so that, at the end, we have
 $\pi(n) = \texttt{count}$.
 
-It is not possible to parallelize the _for_ loop above, because the
-content of `isprime[]` is possibly modified by function `mark()`, and
-this represents a _loop-carried dependency_. However, it is possible
-to parallelize the body of function `mark()`. The idea is to partition
-the set $\{\texttt{from}, \ldots \texttt{to}-1\}$ among $P$ OpenMP
-threads so that every thread will mark all multiples of $k$ that
-belong to its partition.
+The function `mark()` has the following signature:
+
+        long mark( char *isprime, int k, long from, long to )
+
+and its purpose is to mark all multiples of `k`, starting from $k
+\times k$, that belongs to the set $\{\texttt{from}, \ldots,
+\texttt{to}-\\}$.  The function returns the number of values that have
+been marked for the first time.
+
+IT is not possible to parallelize the loop above, because the content
+of `isprime[]` is modified by function `mark()`, and this represents a
+_loop-carried dependency_. However, it is possible to parallelize the
+body of function `mark()`. The idea is to partition the set
+$\{\texttt{from}, \ldots \texttt{to}-1\}$ among $P$ OpenMP threads so
+that every thread will mark all multiples of $k$ that belong to its
+partition.
 
 I suggest that you start using the `omp parallel` construct (not `omp
 parallel for`) and compute the bounds of each partition by hand.  It
