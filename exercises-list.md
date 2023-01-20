@@ -1,6 +1,6 @@
 % HPC - List of exercises
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-01-19
+% Last updated: 2023-01-20
 
 
 Kernel                           OpenMP   MPI   OpenCL  Pattern
@@ -9,8 +9,8 @@ Password cracking                X         X            Embarrassingly parallel
 Dot product                      X         X     X      Reduction, Scatter/Gather
 Array sum                                  X            Reduction, Scatter/Gather
 Monte Carlo Pi                   X         X            Embarrassingly parallel, Reduction
-Primes                           X                      Embarrassingly parallel, Reduction
-Character frequencies            X         X            Embarrassingly parallel, Reduction
+Sieve of Eratosthenes            X               X      Embarrassingly parallel, Reduction
+Character frequencies            X         X     X      Embarrassingly parallel, Reduction
 Inclusive scan                   X         X            Scan
 Dynamic task scheduling          X                      Master-Worker
 MergeSort                        X                      Task-level parallelism

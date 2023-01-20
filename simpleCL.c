@@ -101,6 +101,7 @@ Steps 2--6 can be repeated as necessary.
 #define MAX_STR_LEN 1024
 #define MAX_BUILD_LOG_LEN 8192
 
+static int nkernels = 0; /* number of kernels enqueued so far */
 static sclDevice *scl_dev = NULL;
 static int sclDebugEnabled = 1;
 size_t SCL_DEFAULT_WG_SIZE = -1;
@@ -902,13 +903,13 @@ void sclLaunchKernel( sclKernel kernel,
                                     NULL );
     sclCheckError(err, "clEnqueueNDRangeKernel error in sclLaunchKernel for kernel %s: %s\n", kernel.kernel_name, sclGetErrorString(err));
     sclDeviceSynchronize( );
+    nkernels = 0;
 }
 
 void sclEnqueueKernel( sclKernel kernel,
                        const sclDim global_work_size,
                        const sclDim local_work_size )
 {
-    static int nkernels = 0; /* number of kernels enqueued so far */
     static const int SYNC_EVERY = 100; /* after how many operations to force a flush of the command queue */
     sclCheckDeviceInitialized();
 
