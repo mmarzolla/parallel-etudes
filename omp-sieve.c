@@ -67,11 +67,6 @@ be composite; `isprime[0]` and `isprime[1]` are not used.
 [^1]: $\pi(n)$ is also called [prime-counting
       function](https://en.wikipedia.org/wiki/Prime-counting_function)
 
-The program contains a function `int mark(char *isprime, int k, int
-from, int to)` that marks all multiples of $k$ belonging to the set
-$\{\texttt{from}, \ldots \texttt{to}-1\}$. The function returns the
-number of values that have been marked for the first time.
-
 The goal of this exercise is to write a parallel version of the sieve
 of Erathostenes; to this aim, you might want to use the following
 hints.
@@ -101,7 +96,7 @@ and its purpose is to mark all multiples of `k`, starting from $k
 \texttt{to}-\\}$.  The function returns the number of values that have
 been marked for the first time.
 
-IT is not possible to parallelize the loop above, because the content
+It is not possible to parallelize the loop above, because the content
 of `isprime[]` is modified by function `mark()`, and this represents a
 _loop-carried dependency_. However, it is possible to parallelize the
 body of function `mark()`. The idea is to partition the set
