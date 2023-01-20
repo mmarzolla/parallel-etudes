@@ -198,7 +198,7 @@ int main( int argc, char *argv[] )
 
     const double tstart = MPI_Wtime();
     const int BLKLEN = 1024; /* processes synchronize every BLKLEN keys */
-    const int N_ROUNDS = (NUM_KEYS + BLKLEN + 1)/BLKLEN;
+    const int N_ROUNDS = (NUM_KEYS + comm_sz*BLKLEN + 1)/(comm_sz*BLKLEN);
     int round = 0;
 
     /* We must be careful here: each process must perform the same

@@ -37,7 +37,7 @@ void check(int *s, int n)
     for (int i = 0; i < n; i++) {
         if ( s[i] != i+1 ) {
             fprintf(stderr, "Check failed: expected s[%d]==%d, got %d\n", i, i+1, s[i]);
-            abort();
+            MPI_Abort(MPI_COMM_WORLD, -1);
         }
     }
     fprintf(stderr, "Check ok!\n");
@@ -52,7 +52,7 @@ void fill(int* local, int n)
 }
 
 /* Compute the inclusive scan of the n-elements array v[], and store
-   the result in s[]. */
+   the result in s[]. v[] and s[] must not overlap */
 void inclusive_scan(int *v, int *s, int n)
 {
     s[0] = v[0];
@@ -61,6 +61,8 @@ void inclusive_scan(int *v, int *s, int n)
     }
 }
 
+/* Compute the exclusive scan of the n-elements array v[], and store
+   the result in s[]. v[] and s[] must not overlap */
 void exclusive_scan(int *v, int *s, int n)
 {
     s[0] = 0;
@@ -120,14 +122,15 @@ int main(int argc, char *argv[])
     /* Each process performs an inclusive scan of its portion of array */
     inclusive_scan(my_in, my_out, my_len);
 
-    MPI_Gather( &my_out[my_len - 1],
-                1,
-                MPI_INT,
-                blksum,
-                1,
-                MPI_INT,
-                0,
-                MPI_COMM_WORLD
+    /* The master collects the last element of each local buffer `my_out[]` */
+    MPI_Gather( &my_out[my_len - 1],    /* sendbuf      */
+                1,                      /* sendcount    */
+                MPI_INT,                /* sendtype     */
+                blksum,                 /* recvbuf      */
+                1,                      /* recvcount    */
+                MPI_INT,                /* recvtype     */
+                0,                      /* root         */
+                MPI_COMM_WORLD          /* comm         */
                 );
 
     /* The master performs an exclusive scan on blksum_s[] */
@@ -135,14 +138,14 @@ int main(int argc, char *argv[])
         exclusive_scan(blksum, blksum_s, comm_sz);
     }
 
-    MPI_Scatter( blksum_s,      /* send buffer          */
-                 1,             /* send count           */
-                 MPI_INT,       /* datatype             */
-                 &my_blksum,    /* receive buffer       */
-                 1,             /* receive count        */
-                 MPI_INT,       /* datatype             */
-                 0,             /* root                 */
-                 MPI_COMM_WORLD /* communicator         */
+    MPI_Scatter( blksum_s,      /* sendbuf      */
+                 1,             /* sendcount    */
+                 MPI_INT,       /* sendtype     */
+                 &my_blksum,    /* recvbuf      */
+                 1,             /* recvcount    */
+                 MPI_INT,       /* recvtype     */
+                 0,             /* root         */
+                 MPI_COMM_WORLD /* comm         */
                  );
 
     /* Each process increments all values of its portion of the array */
@@ -150,15 +153,17 @@ int main(int argc, char *argv[])
         my_out[i] += my_blksum;
     }
 
-    MPI_Gatherv( my_out,        /* sendbuf              */
-                 my_len,        /* sendcount            */
-                 MPI_INT,       /* sent datatype        */
-                 out,           /* recvbuf              */
-                 sendcounts,    /* recvcount            */
-                 displs,        /* displacements        */
-                 MPI_INT,       /* received datatype    */
-                 0,             /* source               */
-                 MPI_COMM_WORLD /* communicator         */
+    /* The master collects and concatenates the local arrays and
+       checks the result. */
+    MPI_Gatherv( my_out,        /* sendbuf      */
+                 my_len,        /* sendcount    */
+                 MPI_INT,       /* sendtype     */
+                 out,           /* recvbuf      */
+                 sendcounts,    /* recvcounts   */
+                 displs,        /* displs       */
+                 MPI_INT,       /* recvtype     */
+                 0,             /* root         */
+                 MPI_COMM_WORLD /* comm         */
                  );
 
     if ( 0 == my_rank) {
