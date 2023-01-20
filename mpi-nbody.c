@@ -46,8 +46,7 @@ float randab( float a, float b )
 
 /**
  * Randomly initialize positions and velocities of the `n` particles
- * stored in `p`. This function must be called by the rank 0 processor
- * only.
+ * stored in `p`. This function must be called by the rank 0 process.
  */
 void init(float *x, float *y, float *z,
           float *vx, float *vy, float *vz,
@@ -66,11 +65,11 @@ void init(float *x, float *y, float *z,
 
 /**
  * Compute the new velocities of the particles that are handled by the
- * current process.
+ * current process. Requires updated positions of all particles.
  */
-void compute_force(const float *x, const float *y, const float *z,
-                   float *vx, float *vy, float *vz,
-                   float dt, int n)
+void update_velocities(const float *x, const float *y, const float *z,
+                       float *vx, float *vy, float *vz,
+                       float dt, int n)
 {
     const int start = (n * my_rank) / comm_sz;
     const int end = (n * (my_rank+1)) / comm_sz;
@@ -100,9 +99,9 @@ void compute_force(const float *x, const float *y, const float *z,
  * Update the positions of the particles that are handled by the
  * current process, using the updated velocities.
  */
-void integrate_positions(float *x, float *y, float *z,
-                         const float *vx, const float *vy, const float *vz,
-                         float dt, int n)
+void update_positions(float *x, float *y, float *z,
+                      const float *vx, const float *vy, const float *vz,
+                      float dt, int n)
 {
     const int start = (n * my_rank) / comm_sz;
     const int end = (n * (my_rank+1)) / comm_sz;
@@ -116,7 +115,9 @@ void integrate_positions(float *x, float *y, float *z,
 
 /**
  * Compute the energy of the particles that are handled by the current
- * process.
+ * process. Requires the updated positions of ALL particles, and
+ * updated velocities of the particles handled by the current process
+ * only.
  */
 float energy(const float *x, const float *y, const float *z,
              const float *vx, const float *vy, const float *vz,
@@ -135,7 +136,7 @@ float energy(const float *x, const float *y, const float *z,
         e += 0.5 * (vx[i] * vx[i] + vy[i] * vy[i] + vz[i] * vz[i]);
         /* Accumulate potential energy, defined as
 
-           sum_{i<j} - m[j] * m[j] / d_ij
+           sum_{i<j} - m[i] * m[j] / d_ij
 
          */
         for (int j=i+1; j<n; j++) {
@@ -264,7 +265,8 @@ int main(int argc, char* argv[])
 
     for (int iter = 1; iter <= nIters; iter++) {
         const double tstart = MPI_Wtime();
-        compute_force(x, y, z, vx, vy, vz, DT, nBodies);
+        update_velocities(x, y, z, vx, vy, vz, DT, nBodies);
+        update_positions(x, y, z, vx, vy, vz, DT, nBodies);
 
         /* Note: in-place operations */
         MPI_Allgatherv( MPI_IN_PLACE,   /* sendbuf              */
@@ -294,8 +296,6 @@ int main(int argc, char* argv[])
                         MPI_FLOAT,      /* received datatype    */
                         MPI_COMM_WORLD  /* communicator         */
                         );
-
-        integrate_positions(x, y, z, vx, vy, vz, DT, nBodies);
 
         const float local_e = energy(x, y, z, vx, vy, vz, nBodies);
         float e = 0.0f;
