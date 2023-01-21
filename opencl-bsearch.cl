@@ -38,7 +38,7 @@ bsearch_kernel( __global const int *x,
         *result = -1;
     }
 
-    barrier(CLK_LOCAL_MEM_FENCE);
+    barrier(CLK_GLOBAL_MEM_FENCE);
 
     while (end - start > bsize) {
         m[tid] = start + ((end - start) * tid + bsize) / (bsize+1);

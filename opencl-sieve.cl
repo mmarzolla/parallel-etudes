@@ -28,16 +28,13 @@ mark_kernel( __global char *isprime,
              int k,
              int from,
              int to,
-             __global int *nprimes )
+             __global int *nprimes,
+             __local int *mark)
 {
     const int i = from + get_global_id(0)*k;
     const int li = get_local_id(0);
 
-    __local int mark[SCL_DEFAULT_WG_SIZE1D];
-
-    if (li < SCL_DEFAULT_WG_SIZE1D)
-        mark[li] = 0;
-
+    mark[li] = 0;
     barrier(CLK_LOCAL_MEM_FENCE);
 
     if (i < to) {

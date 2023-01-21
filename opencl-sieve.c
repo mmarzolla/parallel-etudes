@@ -21,7 +21,7 @@
 /***
 % HPC - Sieve of Eratosthenes
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-01-20
+% Last updated: 2023-01-21
 
 ## Files
 
@@ -62,8 +62,8 @@ int primes(int n)
 
         sclSetArgsEnqueueKernel(mark_kernel,
                                 GRID, BLOCK,
-                                ":b :d :d :d :b",
-                                d_isprime, k, (int)from, (int)to, d_nprimes);
+                                ":b :d :d :d :b :L",
+                                d_isprime, k, (int)from, (int)to, d_nprimes, BLOCK.sizes[0] * sizeof(int));
         sclSetArgsEnqueueKernel(next_prime_kernel,
                                 DIM1(1), DIM1(1),
                                 ":b :d :d :b",
@@ -88,11 +88,6 @@ int main( int argc, char *argv[] )
 
     if ( argc == 2 ) {
         n = atol(argv[1]);
-    }
-
-    if (n > (1ul << 31)) {
-        fprintf(stderr, "FATAL: n too large\n");
-        return EXIT_FAILURE;
     }
 
     sclInitFromFile("opencl-sieve.cl");

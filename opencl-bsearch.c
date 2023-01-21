@@ -2,7 +2,7 @@
  *
  * opencl-bsearch.c - OpenCL binary search
  *
- * Copyright (C) 2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2022, 2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,9 +28,16 @@
  * ./opencl-bsearch
  *
  ****************************************************************************/
+/***
+% HPC - OpenCL binary search
+% Moreno Marzolla <moreno.marzolla@unibo.it>
+% Last updated: 2023-01-21
+
+***/
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
+#include <assert.h>
 #include "simpleCL.h"
 
 void vec_init( int *x, int n )
@@ -117,7 +124,7 @@ int main( int argc, char* argv[] )
     sclKernel bsearch_kernel = sclCreateKernel("bsearch_kernel");
 
     /* Allocate space for host copies of x */
-    x = (int*)malloc(size);
+    x = (int*)malloc(size); assert(x != NULL);
     vec_init(x, n);
 
     /* Allocate space for device copies of x, result */
@@ -127,12 +134,14 @@ int main( int argc, char* argv[] )
     /* Launch bsearch() kernel on the device */
     printf("Searching for %d on %d elements... ", key, n);
 #if 1
+    const sclDim BLOCK = DIM1(SCL_DEFAULT_WG_SIZE);
+    const sclDim GRID = DIM1(SCL_DEFAULT_WG_SIZE);
     sclSetArgsEnqueueKernel(bsearch_kernel,
-                            DIM1(SCL_DEFAULT_WG_SIZE), DIM1(SCL_DEFAULT_WG_SIZE),
+                            GRID, BLOCK,
                             ":b :d :d :b :L :L",
                             d_x, n, key, d_result,
-                            SCL_DEFAULT_WG_SIZE*sizeof(int),
-                            SCL_DEFAULT_WG_SIZE*sizeof(size_t));
+                            BLOCK.sizes[0] * sizeof(int),
+                            BLOCK.sizes[0] * sizeof(size_t));
     /* Copy result back to host */
     sclMemcpyDeviceToHost(&result, d_result, sizeof(result));
 #else
