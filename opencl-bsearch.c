@@ -129,7 +129,7 @@ int main( int argc, char* argv[] )
 #if 1
     sclSetArgsEnqueueKernel(bsearch_kernel,
                             DIM1(SCL_DEFAULT_WG_SIZE), DIM1(SCL_DEFAULT_WG_SIZE),
-                            ":b :d :d :b :l :l",
+                            ":b :d :d :b :L :L",
                             d_x, n, key, d_result,
                             SCL_DEFAULT_WG_SIZE*sizeof(int),
                             SCL_DEFAULT_WG_SIZE*sizeof(size_t));

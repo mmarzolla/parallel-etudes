@@ -18,6 +18,11 @@
  *
  ****************************************************************************/
 
+/**
+ * Mark all multiples of k belonging to the set {from, ... to-1}.
+ * from must be a multiple of k. The number of elements that are
+ * marked for the first time is atomically subtracted from *nprimes.
+ */
 __kernel void
 mark_kernel( __global char *isprime,
              int k,
@@ -41,17 +46,31 @@ mark_kernel( __global char *isprime,
     }
 
     barrier(CLK_LOCAL_MEM_FENCE);
+    barrier(CLK_GLOBAL_MEM_FENCE);
 
-    /* TODO: inefficient reduction */
+    int d = get_local_size(0);
+    while (d > 1) {
+        int d2 = (d + 1)/2;
+        if (li + d2 < d) mark[li] += mark[li + d2];
+        d = d2;
+        barrier(CLK_LOCAL_MEM_FENCE);
+    }
     if (0 == li) {
+        /*
         int count = 0;
         for (int i=0; i < SCL_DEFAULT_WG_SIZE1D; i++) {
             count += mark[i];
         }
         atomic_sub(nprimes, count);
+        */
+        atomic_sub(nprimes, mark[0]);
     }
 }
 
+/**
+ * Store in *next_prime the next prime strictly greater than k, or n
+ * if we reached the end of array isprime[]
+ */
 __kernel void
 next_prime_kernel(__global const char *isprime,
                   int k,
@@ -60,6 +79,7 @@ next_prime_kernel(__global const char *isprime,
 {
     const int li = get_local_id(0);
     if (0 == li) {
+        k++;
         while (k < n && isprime[k] == 0)
             k++;
         *next_prime = k;

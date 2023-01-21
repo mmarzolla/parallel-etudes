@@ -55,10 +55,10 @@ int primes(int n)
     /* main iteration of the sieve */
     int k = 2;
     while (k*k <= n) {
-        const int from = ((k*k + k - 1l)/k)*k; /* Start from the first multiple of k greater than or equal to "from" */
+        const int from = k*k;
         const int to = n;
         const sclDim BLOCK = DIM1(SCL_DEFAULT_WG_SIZE1D);
-        const sclDim GRID = DIM1(sclRoundUp((to - from)/k, SCL_DEFAULT_WG_SIZE1D));
+        const sclDim GRID = DIM1(sclRoundUp((to - from + k-1)/k, SCL_DEFAULT_WG_SIZE1D));
 
         sclSetArgsEnqueueKernel(mark_kernel,
                                 GRID, BLOCK,
@@ -67,7 +67,7 @@ int primes(int n)
         sclSetArgsEnqueueKernel(next_prime_kernel,
                                 DIM1(1), DIM1(1),
                                 ":b :d :d :b",
-                                d_isprime, k+1, n, d_next_prime);
+                                d_isprime, k, n, d_next_prime);
         sclMemcpyDeviceToHost(&k, d_next_prime, sizeof(k));
     }
 

@@ -113,8 +113,9 @@ enum {
     SCL_SEPARATOR = ':',
     SCL_VALUE = 'v',
     SCL_BUFFER = 'b',
-    SCL_LOCALMEM = 'l',
+    SCL_LOCALMEM = 'L',
     SCL_INT = 'd',
+    SCL_LONG = 'l',
     SCL_FLOAT = 'f'
 };
 
@@ -947,6 +948,7 @@ static void _sclVSetKernelArgs( sclKernel kernel, const char *fmt, va_list argLi
     void* argument;
     size_t actual_size;
     int int_arg;
+    long long_arg;
     float float_arg;
     cl_mem mem_arg;
 
@@ -976,6 +978,11 @@ static void _sclVSetKernelArgs( sclKernel kernel, const char *fmt, va_list argLi
             case SCL_INT:
                 int_arg = va_arg( argList, int );
                 sclSetKernelArg(kernel, arg_count, sizeof(int), &int_arg);
+                arg_count++;
+                break;
+            case SCL_LONG:
+                long_arg = va_arg( argList, long );
+                sclSetKernelArg(kernel, arg_count, sizeof(long), &long_arg);
                 arg_count++;
                 break;
             case SCL_FLOAT:
@@ -1030,7 +1037,7 @@ Format      Meaning
             The corresponding kernel parameter must be of type
             `T *` (pointer to some type `T`).
 
-`:l`        The corresponding parameter must be of type `size_t`,
+`:L`        The corresponding parameter must be of type `size_t`,
             and represents the size of a local memory block that
             is allocated and passed as a parameter of type `__local`
             or `local` to the kernel call.
@@ -1043,6 +1050,9 @@ Format      Meaning
 
 `:d`        The corresponding parameter must be of type `int`,
             and corresponds to an `int` kernel parameter.
+
+`:l`        The corresponding parameter must be of type `long`,
+            and corresponds to a `long` kernel parameter.
 
 `:f`        The corresponding parameter must be of type `float`,
             and corresponds to a `float` kernel parameter.
