@@ -74,7 +74,7 @@ substituting the known values into the first equation.
 The goal fo this exercise is to parallelize the code fragment below
 using suitable OpenMP constructs.
 
-# Files
+## Files
 
 - [omp-gaussian-elimination.c](omp-gaussian-elimination.c)
 

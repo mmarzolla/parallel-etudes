@@ -6,7 +6,7 @@
  *
  * Copyright 2011 Oscar Amoros Huguet, Cristian Garcia Marin
  * Copyright 2013 Camil Demetrescu
- * Copyright 2021, 2022 Moreno Marzolla
+ * Copyright 2021, 2023 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 /***
 % `simpleCL`: A Simple C Wrapper for OpenCL
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-02-28
+% Last updated: 2023-01-21
 
 `simpleCL` is a C wrapper for OpenCL. Its goal is to make OpenCL
 programming less tedious, by hiding most of the burden associated with
