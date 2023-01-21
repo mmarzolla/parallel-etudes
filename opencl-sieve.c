@@ -50,10 +50,10 @@ int primes(int n)
 
     cl_mem d_isprime = sclMallocCopy(n+1, isprime, CL_MEM_READ_WRITE);
     cl_mem d_nprimes = sclMallocCopy(sizeof(nprimes), &nprimes, CL_MEM_READ_WRITE);
-    cl_mem d_next_prime = sclMalloc(sizeof(int), CL_MEM_WRITE_ONLY);
 
     /* main iteration of the sieve */
     int k = 2;
+    cl_mem d_next_prime = sclMalloc(sizeof(k), CL_MEM_WRITE_ONLY);
     while (k*k <= n) {
         const int from = k*k;
         const int to = n;
@@ -63,7 +63,7 @@ int primes(int n)
         sclSetArgsEnqueueKernel(mark_kernel,
                                 GRID, BLOCK,
                                 ":b :d :d :d :b :L",
-                                d_isprime, k, (int)from, (int)to, d_nprimes, BLOCK.sizes[0] * sizeof(int));
+                                d_isprime, k, from, to, d_nprimes, BLOCK.sizes[0] * sizeof(int));
         sclSetArgsEnqueueKernel(next_prime_kernel,
                                 DIM1(1), DIM1(1),
                                 ":b :d :d :b",
