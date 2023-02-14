@@ -72,7 +72,7 @@ Gaussian elimination             X                      Reduction
 ### Lab 1
 
 - [Ring communication](mpi-ring.html) (point-to-point)
-- [Simulating broadcast](mpi-my-bcast.html) (point-to-point)
+- [MPI_Bcase using tree-structured communications](mpi-my-bcast.html) (broadcast, point-to-point)
 - [Monte Carlo approximation of $\pi$](mpi-pi.html) (reduction)
 - [Sum-reduction](mpi-sum.html) (reduction)
 
@@ -92,7 +92,8 @@ Gaussian elimination             X                      Reduction
 ## Extra
 
 - [Scatter](mpi-my-scatter.html)
-- [Sum-reduction with point-to-point communications](mpi-sum.html) (reduction, point-to-point)
+- [Sum-reduction of arbitrary array with point-to-point communications](mpi-sum.html) (reduction, point-to-point)
+- [MPI_Reduce using tree-structured communications](mpi-reduce.html) (reduction, point-to-point)
 - [Circular shif of arrayt](mpi-rotate-right.html) Esame 2022-01-12
 - [First occurrence](mpi-first-pos.html) Esame 2022-02-09
 - [Ray Tracer](mpi-c-ray.html) (embarrassingly parallel, scatter/gather)
@@ -158,7 +159,7 @@ Gaussian elimination             X                      Reduction
 Year               Topic
 -----------------  ----------------------------------------
 2016/2017          Biham-Middleton-Levine CA
-2017/2018          Larger-than-Life
+2017/2018          Larger-than-Life CA
 2018/2019          Earthquake
 2019/2020          Convex Hull
 2020/2021          Skyline
