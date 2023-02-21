@@ -170,6 +170,11 @@ figure img {
     margin: 0 auto;
 }
 
+p img {
+    display: block;
+    margin: 0 auto;
+}
+
 figcaption {
     font-size: 0.8em;
     margin: .8em 0 0;
