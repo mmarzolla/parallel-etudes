@@ -2,7 +2,7 @@
  *
  * mpi-lookup.c - Parallel linear search
  *
- * Copyright (C) 2021, 2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2021--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Parallel linear search
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-11-09
+% Last updated: 2023-03-07
 
 Write an MPI program that finds the positions of all occurrences of a
 given `key` in an unsorted integer array `v[]`. For example, if `v[] =
@@ -60,9 +60,9 @@ the code:
    `key` in `local_v[]`. **Warning**: indexes must refer to the
    **global** array `v[]` array, not `local_v[]`.
 
-4. The processes use `MPI_Gather()` to concatenate the values of
-   `local_nf` in an array `recvcounts[]` of length `comm_sz` owned by
-   process 0.
+4. All processes use `MPI_Gather()` to concatenate the values of
+   `local_nf` into an array `recvcounts[]` of length `comm_sz` owned
+   by process 0.
 
 5. Process 0 computes the _exclusive scane_ of `recvcounts[]`, and
    stores the result in a separate array `displs[]`. Only the master
@@ -73,6 +73,10 @@ the code:
    `local_result[]` to process 0. Process 0 uses the `displs[]` array
    from the previous step; all other processes do not need the
    displacements array, so they can pass a `NULL` reference.
+
+Note: steps 4 and 5 could be collapsed and realized more efficiently
+using `MPI_Exscan()` (not discussed during the class) that performs an
+exclusive scan.
 
 To compile:
 
