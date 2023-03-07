@@ -2,7 +2,7 @@
  *
  * omp-sieve.c -- Sieve of Eratosthenes
  *
- * Copyright (C) 2018--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2018--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Sieve of Eratosthenes
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-01-20
+% Last updated: 2023-03-07
 
 The _sieve of Erathostenes_ is an algorithm for identifying the prime
 numbers within the set $\{2, \ldots, n\}$. A natural number $p \geq 2$
@@ -93,7 +93,7 @@ The function `mark()` has the following signature:
 
 and its purpose is to mark all multiples of `k`, starting from $k
 \times k$, that belongs to the set $\{\texttt{from}, \ldots,
-\texttt{to}-\\}$.  The function returns the number of values that have
+\texttt{to}-1\}$.  The function returns the number of values that have
 been marked for the first time.
 
 It is not possible to parallelize the loop above, because the content
