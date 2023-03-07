@@ -74,9 +74,9 @@ the code:
    from the previous step; all other processes do not need the
    displacements array, so they can pass a `NULL` reference.
 
-Note: steps 4 and 5 could be collapsed and realized more efficiently
-using `MPI_Exscan()` (not discussed during the class) that performs an
-exclusive scan.
+> **Note:** steps 4 and 5 could be collapsed and realized more
+> efficiently using `MPI_Exscan()` (not discussed during the class)
+> that performs an exclusive scan.
 
 To compile:
 
