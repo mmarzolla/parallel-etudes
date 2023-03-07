@@ -25,14 +25,14 @@
 
 The file [simd-matmul.c](simd-matmul.c) contains a serial version of
 the dense matrix-matrix product of two square matrices $p, q$, $r=p
-\times q$. Both a "plain" and cache-efficient versions are provided;
+\times q$. Both a "plain" and cache-efficient version are provided;
 the cache-efficient program transposes $q$ so that the product can be
 computed by accessing both $p$ and $q^T$ row-wise.
 
 The cache-efficient matrix-matrix product can be modified to take
 advantage of SIMD instructions, since it essentially computes a number
-of dot products between rows of $p$ and rows of q^T$. Indeed, the body
-of function `scalar_matmul_tr()`
+of dot products between rows of $p$ and rows of $q^T$. Indeed, the
+body of function `scalar_matmul_tr()`
 
 ```C
 	for (i=0; i<n; i++) {
@@ -51,14 +51,14 @@ at memory addresses $(p + i \times n)$ and $(\mathit{qT} + j \times
 n)$, respectively.
 
 Your goal is to use SIMD instructions to compute the dot product above
-using _vector datatypes_ provided by the GCC compiler. This program
+using _vector datatypes_ provided by the GCC compiler. The program
 guarantees that the array length $n$ is an integer multiple of the
-SIMD register lenghts, and that all data are suitably aligned in
+SIMD register length, and that all data are suitably aligned in
 memory.
 
 This exercise uses the `double` data type; it is therefore necessary
-to define a vector datatype `v2d` of total length 16 Bytes, containing
-two doubles, using the declaration:
+to define a vector datatype `v2d` of length 16 Bytes, containing two
+doubles, using the declaration:
 
 ```C
 	typedef double v2d __attribute__((vector_size(16)));
