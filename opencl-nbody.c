@@ -117,7 +117,7 @@ memory $N$ times; indeed, each of the $N$ work-items scans the entire
 `p[]` array, so each element of `p[]` is accessed $N$ times by $N$
 different work-items.
 
-![Figure 1: Using _local memory_](opencl-nbody.png)
+![Figure 1: Using _local memory_](opencl-nbody.svg)
 
 In situations like this, it can be useful to try to use use local
 memory to reduce access to the device memory (Figure 1). To do this:
