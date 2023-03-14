@@ -21,7 +21,9 @@
 /***
 % HPC - Sieve of Eratosthenes
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-03-07
+% Last updated: 2023-03-14
+
+![Eratosthenes (276 BC--194 BC)](Eratosthenes.png "Etching of an ancient seal identified as Eartosthenes")
 
 The _sieve of Erathostenes_ is an algorithm for identifying the prime
 numbers within the set $\{2, \ldots, n\}$. A natural number $p \geq 2$
