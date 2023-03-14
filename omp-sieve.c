@@ -94,17 +94,17 @@ The function `mark()` has the following signature:
         long mark( char *isprime, int k, long from, long to )
 
 and its purpose is to mark all multiples of `k`, starting from $k
-\times k$, that belongs to the set $\{\texttt{from}, \ldots,
+\times k$, that belong to the set $\{\texttt{from}, \ldots,
 \texttt{to}-1\}$.  The function returns the number of values that have
-been marked for the first time.
+been marked _for the first time_.
 
-It is not possible to parallelize the loop above, because the content
-of `isprime[]` is modified by function `mark()`, and this represents a
-_loop-carried dependency_. However, it is possible to parallelize the
-body of function `mark()`. The idea is to partition the set
-$\{\texttt{from}, \ldots \texttt{to}-1\}$ among $P$ OpenMP threads so
-that every thread will mark all multiples of $k$ that belong to its
-partition.
+It is not possible to parallelize the loop above, because the array
+`isprime[]` is modified by the function `mark()`, and this represents
+a _loop-carried dependency_. However, it is possible to parallelize
+the body of function `mark()` (refer to the provided source code). The
+idea is to partition the set $\{\texttt{from}, \ldots \texttt{to}-1\}$
+among $P$ threads so that every thread will mark all multiples of $k$
+that belong to its partition.
 
 I suggest that you start using the `omp parallel` construct (not `omp
 parallel for`) and compute the bounds of each partition by hand.  It
