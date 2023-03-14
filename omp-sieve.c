@@ -132,7 +132,7 @@ Table 1 shows the values of the prime-counting function $\pi(n)$ for
 some $n$. Use the table to check the correctness of your
 implementation.
 
-:Table 1
+:Table 1: Some values of the prime-counting function $\pi(n)$
 
           $n$                             $\pi(n)$
 -------------  -----------------------------------
