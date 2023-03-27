@@ -99,6 +99,8 @@ mpi-c-ray: LDLIBS+=-lm
 
 gendna: LDLIBS+=-lm
 
+omp-bellman-ford: LDLIBS+=-lm
+
 cuda-nbody-shared: NVCFLAGS+=-DUSE_SHARED
 cuda-nbody-shared: cuda-nbody.cu
 	$(NVCC) $(NVCFLAGS) $< -o $@
