@@ -21,7 +21,7 @@
 /***
 % HPC - One-dimensional coupled oscillators
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Ultimo aggiornamento: 2023-03-27
+% Last updated: 2023-03-27
 
 ![](coupled_metronomes.jpg)
 
