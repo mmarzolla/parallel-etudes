@@ -167,7 +167,7 @@ che ritorna _true_ (nonzero) se e solo se `x` ha valore `INFINITY`.
 ## Files
 
 - [omp-bellman-ford.c](omp-bellman-ford.c)
-- Grafi di esempio: [rome99.gr](rome99.gr), [DE.gr](DE.gr), [VT.gr](VT.gr), [ME.gr](ME.gr), [NV.gr](NV.gr), [USA-road-d.FLA.gr](USA-road-d.FLA.gr)
+- Grafi di esempio: [rome99.gr](rome99.gr), [DE.gr](DE.gr), [VT.gr](VT.gr), [ME.gr](ME.gr), [NV.gr](NV.gr)
 
 ***/
 
