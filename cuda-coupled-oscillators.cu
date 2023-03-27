@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * cuda-coupled-oscillators.c - One-dimensional coupled oscillators system
+ * cuda-coupled-oscillators.c - One-dimensional coupled oscillators
  *
  * Copyright (C) 2017--2021, 2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
@@ -19,7 +19,7 @@
  ******************************************************************************/
 
 /***
-% HPC - Oscillatori accoppiati
+% HPC - One-dimensional coupled oscillators
 % Moreno Marzolla <moreno.marzolla@unibo.it>
 % Ultimo aggiornamento: 2023-03-27
 
