@@ -1,6 +1,6 @@
 % HPC - List of exercises
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-01-20
+% Last updated: 2023-03-28
 
 
 Kernel                           OpenMP   MPI   OpenCL  Pattern
@@ -34,6 +34,8 @@ N-body simulation                X               X      Embarrassingly parallel,
 Knapsack problem                 X               X      Non-uniform 1D stencil
 Edge detection                   X               X      2D Stencil
 Gaussian elimination             X                      Reduction
+SAT solver                       X                      Embarrassingly parallel
+Sibgle-Source Shortest Path      X                      Reduction
 ------------------------------ --------- ----- -------- --------------------------
 
 ## OpenMP
@@ -66,6 +68,8 @@ Gaussian elimination             X                      Reduction
 - [N-body simulation](omp-nbody.html) (embarrassingly parallel, load balancing, reduction)
 - [0/1 knapsack problem](omp-knapsack.html) (2D stencil)
 - [Gaussian elimination](omp-gaussian-elimination.html) (reduction)
+- [SAT Solver](omp-sat-solver.html) (embarrassingly parallel)
+- [Single-Source Shortest Paths](omp-bellman-ford.html) (reduction)
 
 ## MPI
 
@@ -166,4 +170,3 @@ Year               Topic
 2021/2022          Hardy, Pomeau, de Pazzis CA
 2022/2023          Smoothed Particle Hydrodynamics (SPH)
 -----------------  ----------------------------------------
-
