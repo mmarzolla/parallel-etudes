@@ -7,12 +7,12 @@ EXE_SERIAL := gensphfract genspheres gendna bbox-gen circles-gen knapsack-gen
 EXE := $(EXE_OMP) $(EXE_MPI) $(EXE_SERIAL) $(EXE_SIMD) $(EXE_OPENCL) $(EXE_CUDA)
 SRC := $(wildcard *.c) $(wildcard *.cu) $(wildcard *.cl)
 INC := $(wildcard *.h)
-DATAFILES := $(wildcard *.in) $(wildcard *.txt) $(wildcard *.gr)
+DATAFILES := $(wildcard *.in) $(wildcard *.txt) $(wildcard *.gr) $(wildcard *.cnf)
 OUTFILES :=
 HANDOUTS_SRC := ${SRC:%.c=handouts/%.c} ${SRC:%.cu=handouts/%.cu} ${SRC:%.cl=handouts/%.cl} ${INC:%.h=handouts/%.h}
 SOLUTIONS_SRC := ${SRC:%.c=solutions/%.c} ${SRC:%.cu=solutions/%.cu} ${SRC:%.cl=solutions/%.cl} ${INC:%.h=solutions/%.h}
 HTML := ${SRC:%.c=handouts/%.html} ${SRC:%.cu=handouts/%.html} handouts/exercises-list.html
-EXTRAS += lab.css $(wildcard *.png *.svg *.jpg *.pgm *.ppm *.md *,sh) mpi-rule30.pdf
+EXTRAS += lab.css $(wildcard *.png *.svg *.jpg *.pgm *.ppm *.md *.sh *.odp *.odg) mpi-rule30.pdf
 IMGS := omp-c-ray-images.jpg denoise.png simd-map-levels.png edge-detect.png cat-map-demo.png anneal-demo.png
 CFLAGS += -std=c99 -Wall -Wpedantic -g -ggdb
 LDLIBS +=
