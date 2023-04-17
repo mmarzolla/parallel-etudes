@@ -21,7 +21,7 @@
 /***
 % HPC - Dense matrix-matric product using vector datatypes
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Ultimo aggiornamento: 2023-03-07
+% Last updated: 2023-03-07
 
 The file [simd-matmul.c](simd-matmul.c) contains a serial version of
 the dense matrix-matrix product of two square matrices $p, q$, $r=p
