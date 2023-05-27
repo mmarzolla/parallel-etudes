@@ -45,12 +45,12 @@ so the performance of the parallel version should be much better.
 
 :Table 1: Render time with default parameters, single core Intel i7-4790 3.60GHz, gcc 9.4.0
 
-File                                     Time (s)
+File                                       Time (s)
 ---------------------------------------- ----------
-[sphfract.big.in](sphfract.big.in)       182.7
-[sphfract.small.in](sphfract.small.in)   7.7
-[spheres.in](spheres.in)                 5.9
-[dna.in](dna.in)                         4.,0
+[sphfract.big.in](sphfract.big.in)            182.7
+[sphfract.small.in](sphfract.small.in)          7.7
+[spheres.in](spheres.in)                        5.9
+[dna.in](dna.in)                               4.,0
 ---------------------------------------- ----------
 
 To compile:
