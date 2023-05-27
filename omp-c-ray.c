@@ -2,7 +2,7 @@
  * omp-c-ray - Ray tracing
  *
  * Copyright (C) 2006 John Tsiombikas <nuclear@siggraph.org>
- * Copyright (C) 2016, 2017, 2018, 2020, 2021, 2022 Moreno Marzolla <moreno.marzolla@unibo.it>
+ * Copyright (C) 2016, 2017, 2018, 2020, 2021, 2022, 2023 Moreno Marzolla <moreno.marzolla@unibo.it>
  *
  * You are free to use, modify and redistribute this program under the
  * terms of the GNU General Public License v2 or (at your option) later.
@@ -25,7 +25,7 @@
 /***
 % HPC - Ray tracing
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-10-19
+% Last updated: 2023-05-27
 
 The file [omp-c-ray.c](omp-c-ray.c) contains the implementation of a
 [simple ray tracing program](https://github.com/jtsiomb/c-ray) written
@@ -43,19 +43,19 @@ Table 1 shows the approximate time (in seconds) needed on my PC
 slower because it has a lower clock frequency, but it has many cores
 so the performance of the parallel version should be much better.
 
-:Table 1: Render time using default parameters, single core Intel i7-4790 3.60GHz, gcc 7.5.0
+:Table 1: Render time with default parameters, single core Intel i7-4790 3.60GHz, gcc 9.4.0
 
 File                                     Time (s)
 ---------------------------------------- ----------
-[sphfract.big.in](sphfract.big.in)       478
-[sphfract.small.in](sphfract.small.in)   19
-[spheres.in](spheres.in)                 15
-[dna.in](dna.in)                         9
+[sphfract.big.in](sphfract.big.in)       182.7
+[sphfract.small.in](sphfract.small.in)   7.7
+[spheres.in](spheres.in)                 5.9
+[dna.in](dna.in)                         4.,0
 ---------------------------------------- ----------
 
 To compile:
 
-        gcc -std = c99 -Wall -Wpedantic -fopenmp omp-c-ray.c -o omp-c-ray -lm
+        gcc -std=c99 -Wall -Wpedantic -fopenmp omp-c-ray.c -o omp-c-ray -lm
 
 To render the scene [sphfract.small.in](sphfract.small.in):
 
@@ -191,8 +191,8 @@ const double ERR_MARGIN	= 1e-6;		/* an arbitrary error margin to avoid surface a
 const double DEG_TO_RAD = M_PI / 180.0; /* convert degrees to radians   */
 
 /* global state */
-int xres = 800;
-int yres = 600;
+int xres = 1024;
+int yres = 768;
 double aspect = 1.333333;
 sphere_t *obj_list = NULL;
 vec3_t lights[MAX_LIGHTS];
