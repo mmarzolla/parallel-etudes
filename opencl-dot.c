@@ -2,7 +2,7 @@
  *
  * opencl-dot.c - Dot product
  *
- * Copyright (C) 2017--2021 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,82 +19,82 @@
  ****************************************************************************/
 
 /***
-% HPC - Prodotto scalare
+% HPC - Dot product
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Ultimo aggiornamento: 2021-12-04
+% Last updated: 2023-06-07
 
-## Familiarizzare con l'ambiente di lavoro
+## Familiarize with the environment
 
-Il server `isi-raptor03.csr.unibo.it` dispone di tre GPU identiche
-(NVidia GeForce GTX 1070). Di default viene utilizzata la prima; è
-però possibile selezionare il dispositivo OpenCL da usare mediante la
-variabile d'ambiente `SCL_DEFAULT_DEVICE`; ad esempio
+The server has three identical GPUs (NVidia GeForce GTX 1070). The
+first one is used by default, although it is possible to select
+another card using the environment variable `SCL_DEFAULT_DEVICE`.
 
-        SCL_DEFAULT_DEVUCE=1 ./opencl-dot
+For example
 
-esegue il programma `opencl-dot` sulla seconda GPU.
+        SCL_DEFAULT_DEVICE=2 ./opencl-stencil1d
 
-Il comando `clinfo` visualizza le caratteristiche dei dispotivi OpenCL
-disponibili (tra i quali figura anche la CPU).
+runs `cuda-stencil1d` on device 2; the `sclInitFromFile()` or
+`sclInitFromString()` functions print the list of available devices,
+as does the `clinfo` command-line tool.
 
-## Prodotto scalare
+## Scalar product
 
-Modificare il file [opencl-dot.c](opencl-dot.c) per calcolare e
-stampare il prodotto scalare tra due array `x[]` e `y[]` di lunghezza
-$n$ sfruttando OpenCL, trasformando la funzione `dot()` in un
-kernel. Ricordiamo che il prodotto scalare $s$ di due array `x[]` e
-`y[]` è definito come
+The program [opencl-dot.c](opencl-dot.c) computes the dot product of two
+arrays `x[]` and `y[]` of length $n$. Modify the program to use the
+GPU, by transforming the `dot()` function into a kernel.  The dot
+product $s$ of two arrays `x[]` and `y[]` is defined as
 
 $$
 s = \sum_{i=0}^{n-1} x[i] \times y[i]
 $$
 
-Sono necessarie delle modifiche alla funzione `dot()` per sfruttare la
-GPU. Per questo esercizio si richiede l'uso di un singolo workgroup
-composto da `SCL_DEFAULT_WG_SIZE` work-item, procedendo come segue:
+Some modifications of the `dot()` function are required to use the
+GPU. In this exercise we implement a simple (although not efficient)
+approach where we use a _single_ workgroup of _SCL_DEFAULT_WG_SIZE_
+work-items.  The algorithm works as follows:
 
-1. La CPU alloca sul device un array `tmp[]` di `SCL_DEFAULT_WG_SIZE`
-   elementi, oltre ad una copia degli array `x[]` e `y[]`. Per
-   allocare gli array si usino le funzioni `sclMallocCopy()`
-   e `sclMalloc()`.
+1. The CPU allocates a `tmp[]` array of _BLKDIM_ elements on the GPU,
+   in addition to a copy of `x[]` and `y[]`.
 
-2. La CPU esegue il kernel che calcola il prodotto scalare come segue:
-   il work-item $t$ calcola il valore dell'espressione $(x[t] \times
-   y[t] + x[t + B] \times y[t + B] + x[t + 2 \times B] \times y[t +
-   2B] + \ldots$) e memorizza il risultato in `tmp[t]`.
+2. The CPU executes _SCL_DEFAULT_WG_SIZE_ work-items; use the maximum
+   number of work-items per workgroup supported by the hardware.
 
-3. Una volta che il kernel termina l'esecuzione, la CPU trasferisce
-   l'array `tmp[]` dalla memoria del device a quella dell'host, e ne
-   somma il contenuto determinando così il prodotto scalare cercato.
+3. Work-item $t$ ($t = 0, \ldots, \mathit{SCL_DEFAULT_WG_SIZE}-1$)
+   computes the value of the expression $(x[t] \times y[t] + x[t +
+   \mathit{SCL_DEFAULT_WG_SIZE}] \times y[t +
+   \mathit{SCL_DEFAULT_WG_SIZE}] + x[t + 2 \times \mathit{BLKDIM}]
+   \times y[t + 2 \times \mathit{SCL_DEFAULT_WG_SIZE}] + \ldots)$ and
+   stores the result in `tmp[t]` (see Figure 1).
 
-Si rende quindi necessario calcolare il prodotto scalare in due fasi:
-la prima (passo 2) viene svolta dal device, mentre la seconda (passo
-3) viene svolta dalla CPU. La Figura 1 mostra l'assegnazione del
-calcolo dei prodotti scalari ai work-item, assumendo valori "piccoli"
-della dimensione del workgroup per semplificare la figura:
+4. When the kernel terminates, the CPU transfers `tmp[]` back to host
+   memory and performs a sum-reduction to compute the final result.
 
-![Figura 1](opencl-dot.png)
+![Figure 1](opencl-dot.svg)
 
-Il programma deve funzionare correttamente per qualunque valore di $n$
+Your program must work correctly for any value of $n$, even if it is
+not a multiple of _BLKDIM_.
 
-Compilare con:
+A better way to compute a reduction will be shown in future lectures.
 
-        cc opencl-dot.c simpleCL.c -o opencl-dot -lm -lOpenCL
+To compile:
 
-Eseguire con:
+        cc -std=c99 -Wall -Wpedantic opencl-dot.c simpleCL.c -o opencl-dot -lOpenCL
+
+To execute:
 
         ./opencl-dot [len]
 
-Esempio:
+Example:
 
         ./opencl-dot
 
-## File
+## Files
 
-- [opencl-dot.c](opencl-dot.c)
-- [simpleCL.c](simpleCL.c) [simpleCL.h](simpleCL.h) [hpc.h](hpc.h)
+- [opencl-dot.cu](opencl-dot.cu)
+- [hpc.h](hpc.h)
 
 ***/
+
 #include "hpc.h"
 #include <stdio.h>
 #include <stdlib.h>
