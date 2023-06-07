@@ -2,7 +2,7 @@
  * omp-c-ray - Ray tracing
  *
  * Copyright (C) 2006 John Tsiombikas <nuclear@siggraph.org>
- * Copyright (C) 2016, 2017, 2018, 2020, 2021, 2022, 2023 Moreno Marzolla <moreno.marzolla@unibo.it>
+ * Copyright (C) 2016, 2017, 2018, 2020-2023 Moreno Marzolla <moreno.marzolla@unibo.it>
  *
  * You are free to use, modify and redistribute this program under the
  * terms of the GNU General Public License v2 or (at your option) later.
@@ -25,7 +25,7 @@
 /***
 % HPC - Ray tracing
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-05-27
+% Last updated: 2023-06-07
 
 The file [omp-c-ray.c](omp-c-ray.c) contains the implementation of a
 [simple ray tracing program](https://github.com/jtsiomb/c-ray) written
@@ -38,19 +38,18 @@ produce the images shown in Figure 1.
 from left to right: [sphfract.small.in](sphfract.small.in),
 [spheres.in](spheres.in), [dna.in](dna.in)](omp-c-ray-images.jpg)
 
-Table 1 shows the approximate time (in seconds) needed on my PC
-(i7-4790 3.60GHz) to render each file using one core. The server is
-slower because it has a lower clock frequency, but it has many cores
-so the performance of the parallel version should be much better.
+Table 1 shows the approximate single-core render time of each image on
+the lab machine (Xeon E5-2603 1.70GHz).
 
-:Table 1: Render time with default parameters, single core Intel i7-4790 3.60GHz, gcc 9.4.0
+:Table 1: Render time with default parameters (resolution $800 \times
+600$, no oversampling), lab machine using a single core, gcc 9.4.0
 
 File                                       Time (s)
 ---------------------------------------- ----------
-[sphfract.big.in](sphfract.big.in)            182.7
-[sphfract.small.in](sphfract.small.in)          7.7
-[spheres.in](spheres.in)                        5.9
-[dna.in](dna.in)                               4.,0
+[sphfract.big.in](sphfract.big.in)            895.5
+[sphfract.small.in](sphfract.small.in)         36.5
+[spheres.in](spheres.in)                       27.9
+[dna.in](dna.in)                               17.8
 ---------------------------------------- ----------
 
 To compile:
@@ -191,8 +190,8 @@ const double ERR_MARGIN	= 1e-6;		/* an arbitrary error margin to avoid surface a
 const double DEG_TO_RAD = M_PI / 180.0; /* convert degrees to radians   */
 
 /* global state */
-int xres = 1024;
-int yres = 768;
+int xres = 800;
+int yres = 600;
 double aspect = 1.333333;
 sphere_t *obj_list = NULL;
 vec3_t lights[MAX_LIGHTS];
