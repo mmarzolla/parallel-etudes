@@ -31,8 +31,8 @@ The file [omp-c-ray.c](omp-c-ray.c) contains the implementation of a
 [simple ray tracing program](https://github.com/jtsiomb/c-ray) written
 by [John Tsiombikas](http://nuclear.mutantstargoat.com/) and released
 under the GPLv2+ license. The instructions for compilation and use are
-included in the comments. Some input files are provided, and should
-produce the images shown in Figure 1.
+in the source comments. Some input files are provided, and produce the
+images shown in Figure 1.
 
 ![Figure 1: Some images produced by the program; the input files are,
 from left to right: [sphfract.small.in](sphfract.small.in),
@@ -52,6 +52,45 @@ File                                       Time (s)
 [dna.in](dna.in)                               17.8
 ---------------------------------------- ----------
 
+The goal of this exercise is to parallelize the `render()` function
+using appropriate OpenMP directives. The serial program is well
+structured: in particular, functions don't modify global variables, so
+there are not hidden dependences. If you have time, measure the
+_speedup_ and the _strong scaling efficienty_ of the parallel version.
+
+Although not strictly necessary, it might be helpful to know the
+basics of [how a ray tracer
+works](https://en.wikipedia.org/wiki/Ray_tracing_(graphics)) based on
+the [Whitted recursive
+algorithm](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.156.1534)
+(Figure 2).
+
+![Figure 2: Recursive ray tracer](omp-c-ray.svg)
+
+The scene is represented by a set of geometric primitives (spheres, in
+our case). We generate a _primary ray_ (_V_) from the observer towards
+each pixel. For each ray we determine the intersections with the
+spheres in the scene, if any. The intersection point _p_ that is
+closest to the observer is selected, and one or more _secondary rays_
+are cast, depending on the material of the object _p_ belongs to:
+
+- a _light ray_ (_L_) in the direction of each of the light sources,
+  to see whether _p_ is directly illuminated;
+
+- if the surface of _p_ is reflective, we generate a _reflected ray_
+  (_R_) and repeat the procedure recursively;
+
+- if the surface is translucent, we generate a _transmitted ray_ (_T_)
+  and repeat the procedure recursively (`omp-c-ray` does not support
+  translucent objects, so this never happens).
+
+The time required to compute the color of a pixel depends on the
+number of spheres and lights in the scene, and on the material of the
+spheres. It also depends on whether reflected rays are cast or
+not. This suggests that there could be a high variability in the time
+required to compute the color of each pixel, which leads to load
+imbalance that should be addressed.
+
 To compile:
 
         gcc -std=c99 -Wall -Wpedantic -fopenmp omp-c-ray.c -o omp-c-ray -lm
@@ -61,7 +100,7 @@ To render the scene [sphfract.small.in](sphfract.small.in):
         ./omp-c-ray -s 800x600 < sphfract.small.in > img.ppm
 
 The command above produces an image `img.ppm` with a resolution $800
-\times 500$. To view the image on Windows it is useful to convert it
+\times 600$. To view the image on Windows it is useful to convert it
 to JPEG format using the command:
 
         convert img.ppm img.jpeg
@@ -69,51 +108,9 @@ to JPEG format using the command:
 and then transferring `img.jpeg` to your PC for viewing.
 
 The `omp-c-ray` program accepts a number of optional command-line
-parameters; use
+parameters; to see the complete list, use
 
         ./omp-c-ray -h
-
-to see the complete list.
-
-Parallelize the `render()` function using appropriate OpenMP
-directives. The serial program is well structured: in particular,
-functions don't modify global variables, so there are not hidden
-dependences. If you have time, measure the _speedup_ and the _strong
-scaling efficienty_ of the parallel version.
-
-It might be helpful to know the basics of [how a ray tracer
-works](https://en.wikipedia.org/wiki/Ray_tracing_(graphics)) based on
-the [Whitted recursive
-algorithm](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.156.1534)
-(Figure 2).
-
-![Figure 2: Operation diagram of a recursive ray tracer](omp-c-ray.svg)
-
-The scene is represented by a set of geometric primitives (spheres, in
-our case). We generate a _primary ray_ (_V_) from the observer towards
-each pixel. For each ray we determine the intersections (if any) with
-the spheres in the scene. The point of intersection _p_ that is
-closest to the observer is selected, and one or more _secondary rays_
-are cast, depending on the material of the object _p_ belongs to:
-
-- a _light ray_ (_L_) in the direction of each of the light sources;
-  for each ray we compute intersections with the spheres to see
-  whether _p_ is directly illuminated;
-
-- if the surface of _p_ is reflective, we generate a _reflected ray_
-  (_R_) and repeat recursively the procedure;
-
-- if the surface is translucent, we generate a _transmitted ray_ (_T_)
-  and repeat recursively the procedure (`omp-c-ray` does not support
-  translucent objects, so this case never happens).
-
-The time required to compute the color of a pixel depends, among other
-things, on the number of spheres and lights, and on the material of
-the spheres, and whether the primary ray intersects a sphere and
-reflected rays are cast or not. This suggests that there could be a
-high variability in the time required to compute the color of each
-pixel, which leads to load imbalance that should be addressed in some
-way.
 
 ## Files
 
@@ -130,6 +127,7 @@ way.
 #include <ctype.h>
 #include <errno.h>
 #include <stdint.h> /* for uint8_t */
+#include <unistd.h> /* for getopt  */
 #include <assert.h>
 #include <omp.h>
 
@@ -615,54 +613,48 @@ int main(int argc, char *argv[])
     pixel_t *pixels; /* framebuffer (where the image is drawn) */
     int rays_per_pixel = 1;
     FILE *infile = stdin, *outfile = stdout;
+    int opt;
+    char *sep;
 
-    for (i=1; i<argc; i++) {
-        if (argv[i][0] == '-' && argv[i][2] == 0) {
-            char *sep;
-            switch(argv[i][1]) {
-            case 's':
-                if (!isdigit(argv[++i][0]) || !(sep = strchr(argv[i], 'x')) || !isdigit(*(sep + 1))) {
-                    fputs("-s must be followed by something like \"640x480\"\n", stderr);
-                    return EXIT_FAILURE;
-                }
-                xres = atoi(argv[i]);
-                yres = atoi(sep + 1);
-                aspect = (double)xres / (double)yres;
-                break;
-
-            case 'i':
-                if ((infile = fopen(argv[++i], "r")) == NULL) {
-                    fprintf(stderr, "failed to open input file %s: %s\n", argv[i], strerror(errno));
-                    return EXIT_FAILURE;
-                }
-                break;
-
-            case 'o':
-                if ((outfile = fopen(argv[++i], "w")) == NULL) {
-                    fprintf(stderr, "failed to open output file %s: %s\n", argv[i], strerror(errno));
-                    return EXIT_FAILURE;
-                }
-                break;
-
-            case 'r':
-                if (!isdigit(argv[++i][0])) {
-                    fputs("-r must be followed by a number (rays per pixel)\n", stderr);
-                    return EXIT_FAILURE;
-                }
-                rays_per_pixel = atoi(argv[i]);
-                break;
-
-            case 'h':
-                fputs(usage, stdout);
-                return EXIT_SUCCESS;
-
-            default:
-                fprintf(stderr, "unrecognized argument: %s\n", argv[i]);
-                fputs(usage, stderr);
+    while ((opt = getopt(argc, argv, "s:i:o:r:h")) != -1) {
+        switch (opt) {
+        case 's':
+            if (!isdigit(optarg[0]) || !(sep = strchr(optarg, 'x')) || !isdigit(*(sep + 1))) {
+                fprintf(stderr, "FATAL: -s must be followed by something like \"640x480\"\n");
                 return EXIT_FAILURE;
             }
-        } else {
-            fprintf(stderr, "unrecognized argument: %s\n", argv[i]);
+            xres = atoi(optarg); assert(xres > 0);
+            yres = atoi(sep + 1); assert(yres > 0);
+            aspect = (double)xres / (double)yres;
+            break;
+
+        case 'i':
+            if ((infile = fopen(optarg, "r")) == NULL) {
+                fprintf(stderr, "FATAL: failed to open input file %s: %s\n", optarg, strerror(errno));
+                return EXIT_FAILURE;
+            }
+            break;
+
+        case 'o':
+            if ((outfile = fopen(optarg, "w")) == NULL) {
+                fprintf(stderr, "FATAL: failed to open output file %s: %s\n", optarg, strerror(errno));
+                return EXIT_FAILURE;
+            }
+            break;
+
+        case 'r':
+            rays_per_pixel = atoi(optarg);
+            if (rays_per_pixel < 0 || rays_per_pixel > NRAN) {
+                fprintf(stderr, "FATAL: the number of rays must be in 0-%d\n", NRAN);
+                return EXIT_FAILURE;
+            }
+            break;
+
+        case 'h':
+            fputs(usage, stdout);
+            return EXIT_SUCCESS;
+
+        default:
             fputs(usage, stderr);
             return EXIT_FAILURE;
         }
