@@ -13,7 +13,7 @@ HANDOUTS_SRC := ${SRC:%.c=handouts/%.c} ${SRC:%.cu=handouts/%.cu} ${SRC:%.cl=han
 SOLUTIONS_SRC := ${SRC:%.c=solutions/%.c} ${SRC:%.cu=solutions/%.cu} ${SRC:%.cl=solutions/%.cl} ${INC:%.h=solutions/%.h}
 HTML := ${SRC:%.c=handouts/%.html} ${SRC:%.cu=handouts/%.html} handouts/exercises-list.html
 EXTRAS += lab.css $(wildcard *.png *.svg *.jpg *.pgm *.ppm *.md *.sh *.odp *.odg) mpi-rule30.pdf
-IMGS := omp-c-ray-images.jpg denoise.png simd-map-levels.png edge-detect.png cat-map-demo.png anneal-demo.png
+IMGS := omp-c-ray-images.jpg denoise.png simd-map-levels.png edge-detect.png cat-map.png cat-map-demo.png anneal-demo.png
 CFLAGS += -std=c99 -Wall -Wpedantic -g -ggdb
 LDLIBS +=
 PANDOC_EXTRA_OPTS += -V lang=en-US --mathjax="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
@@ -147,7 +147,7 @@ cat-map.png: omp-cat-map
 	for niter in 0 1 2 5 10 36; do \
 	  ./omp-cat-map "$${niter}" < cat1368.pgm > `printf "cat-map-demo-%02d.pgm" $${niter}` ; \
 	done
-	montage "cat-map-demo-[0-9]*.pgm" -scale x600 -tile 6x1 -geometry +0+0 $@
+	montage "cat-map-demo-[0-9]*.pgm" -scale x300 -tile 6x1 -geometry +0+0 $@
 	\rm -f "cat-map-demo-[0-9]*.pgm"
 
 cat-map-demo.png: omp-cat-map
