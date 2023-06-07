@@ -190,7 +190,7 @@ const double DEG_TO_RAD = M_PI / 180.0; /* convert degrees to radians   */
 /* global state */
 int xres = 800;
 int yres = 600;
-double aspect = 1.333333;
+double aspect;
 sphere_t *obj_list = NULL;
 vec3_t lights[MAX_LIGHTS];
 int lnum = 0; /* number of lights */
@@ -624,7 +624,6 @@ int main(int argc, char *argv[])
             }
             xres = atoi(optarg); assert(xres > 0);
             yres = atoi(sep + 1); assert(yres > 0);
-            aspect = (double)xres / (double)yres;
             break;
 
         case 'i':
@@ -658,6 +657,8 @@ int main(int argc, char *argv[])
             return EXIT_FAILURE;
         }
     }
+
+    aspect = (double)xres / (double)yres;
 
     if ((pixels = malloc(xres * yres * sizeof(*pixels))) == NULL) {
         fprintf(stderr, "FATAL: pixel buffer allocation failed");
