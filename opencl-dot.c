@@ -91,7 +91,7 @@ Example:
 ## Files
 
 - [opencl-dot.cu](opencl-dot.cu)
-- [hpc.h](hpc.h)
+- [simpleCL.c](simpleCL.c) [simpleCL.h](simpleCL.h) [hpc.h](hpc.h)
 
 ***/
 

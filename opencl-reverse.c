@@ -19,48 +19,49 @@
  ****************************************************************************/
 
 /***
-% HPC - Inversione di un array
+% HPC - Array reversal with OpenCL
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Ultimo aggiornamento: 2021-12-03
+% Last updated: 2023-06-07
 
-Realizzare un programma per invertire un array di $n$ elementi interi,
-cioè scambiare il primo elemento con l'ultimo, il secondo col
-penultimo e così via. Realizzare due kernel diversi: il primo ricopia
-gli elementi di un array `in[]` in un altro array `out[]` in modo che
-quest'ultimo contenga gli stessi elementi di in `in[]` in ordine
-inverso; il secondo kernel inverte gli elementi di `in[]` "in place",
-ossia modificando `in[]` senza sfruttare altri array di appoggio.
+Write a program that reverses an array `v[]` of length $n$, i.e.,
+exchanges `v[0]` and `v[n-1]`, `v[1]` and `v[n-2]` and so
+on. You should write two versions of the program:
 
-Il file [opencl-reverse.c](opencl-reverse.c) fornisce una
-implementazione basata su CPU delle funzioni `reverse()` e
-`inplace_reverse()`; modificare il programma per trasformare le
-funzioni in kernel da invocare opportunamente.
+1. the first version reverses an input array `in[]` into a different
+   output array `out[]`, so that the input is not modified. You can
+   assume that `in[]` and `out[]` are mapped to different,
+   non-overlapping memory blocks.
 
-**Suggerimento:** la funzione `reverse()` può essere facilmente
-trasformata in un kernel eseguito da $n$ work-item (uno per ogni
-elemento dell'array). Ciascun work-item copia un elemento di `in[]`
-nella corretta posizione di `out[]`; utilizzare workgroup 1D, dato che
-in tal caso risulta facile mappare ciascun work-item in un elemento
-dell'array di input. La funzione `inplace_reverse()` si trasforma in
-un kernel in modo simile, che però verrà eseguito da $n/2$ work-item
-anziché $n$; ciascuno degli $n/2$ work-item scambia un elemento della
-prima metà dell'array `in[]` con l'elemento in posizione simmetrica
-nella seconda metà. Controllare che il programma funzioni anche se $n$
-è dispari.
+2. The second version reverses an array `in[]` "in place" using $O(1)$
+   additional storage.
 
-Per compilare:
+The file [opencl-reverse.cu](opencl-reverse.cu) provides a CPU-based
+implementation of `reverse()` and `inplace_reverse()`.  Modify the
+functions to use of the GPU.
 
-        cc opencl-reverse.c simpleCL.c -o opencl-reverse -lOpenCL
+**Hint:** `reverse()` can be easily transformed into a kernel executed
+by $n$ work-items (one for each array element). Each work-item copies
+one element from `in[]` to `out[]`. Use one-dimensional workgroups,
+since that makes easy to map work-itemss to array elements.
+`inplace_reverse()` can be transformed into a kernel as well, but in
+this case only $\lfloor n/2 \rfloor$ work-items are required (note the
+rounding): each work-item swaps an element from the first half of
+`in[]` with the appropriate element from the second half. Make sure
+that the program works also when the input length $n$ is odd.
 
-Per eseguire:
+To compile:
+
+        cc -std=c99 -Wall -Wpedantic opencl-reverse.c simpleCL.c -o opencl-reverse -lOpenCL
+
+To execute:
 
         ./opencl-reverse [n]
 
-Esempio:
+Example:
 
         ./opencl-reverse
 
-## File
+## Files
 
 - [opencl-reverse.c](opencl-reverse.c)
 - [simpleCL.c](simpleCL.c) [simpleCL.h](simpleCL.h) [hpc.h](hpc.h)
