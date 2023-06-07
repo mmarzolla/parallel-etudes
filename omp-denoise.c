@@ -40,7 +40,7 @@ hot pixel; see Figure 1.
 
 The input image is read from standard input in
 [PPM](http://netpbm.sourceforge.net/doc/ppm.html) (Portable Pixmap)
-format; the result is written to standard output in the same format.q
+format; the result is written to standard output in the same format.
 
 To compile:
 

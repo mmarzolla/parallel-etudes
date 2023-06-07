@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * opencl-denoise.c -- Rimozione del rumore da una immagine
+ * opencl-denoise.c -- Image denoising using the median filter
  *
- * Copyright 2018--2022 Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright 2018--2023 Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,35 +19,34 @@
  ****************************************************************************/
 
 /***
-% HPC - Rimozione del rumore da una immagine
+% HPC - Image denoising using the median filter
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Ultimo aggiornamento 2022-03-21
+% Last updated: 2022-03-21
 
 ![By Simpsons contributor, CC BY-SA 3.0, <https://commons.wikimedia.org/w/index.
 php?curid=8904364>](denoise.png)
 
-Il file [opencl-denoise.c](opencl-denoise.c) contiene una
-implementazione seriale di un programma per effettuare il _denoising_,
-cioè per rimuovere il "rumore", da una immagine a colori. L'algoritmo
-di denoising è molto semplice, e consiste nell'impostare il colore di
-ciascun pixel come la mediana dei colori dei quattro pixel adiacenti
-più il pixel stesso (_median-of-five_). Questa operazione viene
-ripetuta separatamente per ciascuno dei tre canali di colore (rosso,
-verde, blu).
+The file [opencl-denoise.c](opencl-denoise.c) contains a serial
+implementaiton of a program for _image denoising_, that is, to remove
+"noise" from a color image. The algorithm is based on a _median
+filter_: the color of each pixel is computed as the median of the
+colors of the four adjacent pixels, plus itself
+(_median-of-five_). This operation is applied separately for each
+color channel (red, green, blue).
 
-Il programma legge l'immagine di input da standard input in formato
-[PPM](http://netpbm.sourceforge.net/doc/ppm.html) (Portable Pixmap), e
-produce il risultato su standard output nello stesso formato.
+The program reads the input image from standard input in
+[PPM](http://netpbm.sourceforge.net/doc/ppm.html) (Portable Pixmap)
+format, and outputs the result to standard output.
 
-Per compilare:
+To compile:
 
-        nvcc opencl-denoise.c -o opencl-denoise
+        cc -std=c99 -Wall -Wpedantic opencl-denoise.c simpleCL.c -o opencl.denoise -lOpenCL
 
-Per eseguire:
+To execute:
 
         ./opencl-denoise < input > output
 
-Esempio:
+Example:
 
         ./opencl-denoise < giornale.ppm > giornale-denoised.ppm
 
@@ -55,7 +54,7 @@ Esempio:
 
 - [opencl-denoise.c](opencl-denoise.c)
 - [simpleCL.c](simpleCL.c) [simpleCL.h](simpleCL.h) [hpc.h](hpc.h)
-- [giornale.ppm](giornale.ppm) (input di esempio)
+- [giornale.ppm](giornale.ppm) (sample input)
 
  ***/
 #include "hpc.h"

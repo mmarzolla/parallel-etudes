@@ -2,7 +2,7 @@
  *
  * cuda-cat-map.cu - Arnold's cat map
  *
- * Copyright (C) 2016--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2016--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ If we take an image and apply $C$ once, we get a severely distorted
 version of the input. If we apply $C$ on the resulting image, we get
 an even more distorted image. As we keep applying $C$, the original
 image is no longer discernible. However, after a certain number of
-iterations that depend on $N$ and has been proved to never exceed
+iterations that depends on $N$ and has been proved to never exceed
 $3N$, we get back the original image! (Figure 2).
 
 ![Figure 2: Some iterations of the cat map](cat-map-demo.png)
