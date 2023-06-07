@@ -58,7 +58,7 @@ To compile:
 
 To render the scene [sphfract.small.in](sphfract.small.in):
 
-        ./omp-c-ray -s 800x600 <sphfract.small.in> img.ppm
+        ./omp-c-ray -s 800x600 < sphfract.small.in > img.ppm
 
 The command above produces an image `img.ppm` with a resolution $800
 \times 500$. To view the image on Windows it is useful to convert it
