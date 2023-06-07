@@ -127,7 +127,7 @@ parameters; to see the complete list, use
 #include <ctype.h>
 #include <errno.h>
 #include <stdint.h> /* for uint8_t */
-#include <unistd.h> /* for getopt  */
+#include <getopt.h>
 #include <assert.h>
 #include <omp.h>
 
@@ -605,7 +605,6 @@ void free_scene( void )
     }
 }
 
-
 int main(int argc, char *argv[])
 {
     int i;
@@ -661,7 +660,7 @@ int main(int argc, char *argv[])
     }
 
     if ((pixels = malloc(xres * yres * sizeof(*pixels))) == NULL) {
-        perror("pixel buffer allocation failed");
+        fprintf(stderr, "FATAL: pixel buffer allocation failed");
         return EXIT_FAILURE;
     }
     load_scene(infile);
