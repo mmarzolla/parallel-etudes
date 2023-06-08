@@ -31,7 +31,7 @@ connected by a spring with elastic constant $k$ and rest length
 $L$. The first and last points (those in position $x_0$ and $x_{n-1}$
 occupy a fixed position and cannot move.
 
-![Figur3 1: Coupled oscillators](cuda-coupled-oscillators.svg)
+![Figur3 1: Coupled oscillators](opencl-coupled-oscillators.svg)
 
 Initially, one of the springs is displaced so that a wave of
 oscillations is triggered; due to the lack of friction, such

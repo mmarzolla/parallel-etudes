@@ -33,7 +33,7 @@ For example
 
         SCL_DEFAULT_DEVICE=2 ./opencl-stencil1d
 
-runs `cuda-stencil1d` on device 2; the `sclInitFromFile()` or
+runs `opencl-stencil1d` on device 2; the `sclInitFromFile()` or
 `sclInitFromString()` functions print the list of available devices,
 as does the `clinfo` command-line tool.
 
