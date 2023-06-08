@@ -48,7 +48,7 @@ are exchanged at the end of each step.
 The initial states are chosen at random with uniform
 probability. Figure 2 shows the evolution of a grid of size $256
 \times 256$ after 10, 100 and 1024 steps. We observe the emergence of
-"blobs" that grow over time, with the exception of small "specks". 
+"blobs" that grow over time, with the exception of small "specks".
 
 ![Figure 2: Evolution of the _ANNEAL_ CA](anneal-demo.png)
 

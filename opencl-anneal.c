@@ -40,22 +40,24 @@ so you will always have $0 \leq B_x \leq 9$). If $B_x = 4$ or $B_x
 0. See Figure 1.
 
 ![Figure 1: Examples of computation of the new state of the central
- cell of a block of size $3 \times 3$](opencl-anneal1.png)
+ cell of a block of size $3 \times 3$](opencl-anneal1.svg)
 
 To simulate synchrnonous, concurrent updates of all cells, two domains
 must be used. The state of a cell is always read from the "current"
 domain, and new values are written to the "next" domain. The domains
 are exchanged at the end of each step.
 
-The initial state of a cell is chosen at random with equal
+The initial states are chosen at random with uniform
 probability. Figure 2 shows the evolution of a grid of size $256
-\times 256$ after 10, 100 and 1024 iterations. We observe the
-emergence of "blobs" of cells that grow over time, with the exception
-of small "bubbles" that remain stable. You might be interested in [a
-short YouTube video showing the evolution of the
-automaton](https://youtu.be/TSHWSjICCxs) over time.
+\times 256$ after 10, 100 and 1024 steps. We observe the emergence of
+"blobs" that grow over time, with the exception of small "specks".
 
-![Figure 2: Evolution of the _ANNEAL_ automaton ([video]()https://youtu.be/TSHWSjICCxs)](anneal-demo.png)
+![Figure 2: Evolution of the _ANNEAL_ CA](anneal-demo.png)
+
+I made a short YouTube video to show the evolution of the automaton
+over time:
+
+<iframe style="display:block; margin:0 auto" width="560" height="315" src="https://www.youtube-nocookie.com/embed/TSHWSjICCxs" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 The file [opencl-anneal.c](opencl-anneal.c) contains a serial
 implementation of the algorithm that computes the evolution of the
@@ -131,7 +133,7 @@ locally the calculation of coordinates can be done as follows:
     const int lj = 1 + get_local_id (0);
 ```
 
-![Figure 3: Copying data from global domain to local storage](opencl-anneal3.png)
+![Figure 3: Copying data from global domain to local storage](opencl-anneal3.svg)
 
 The hardest part is copying the data from the global grid to the local
 buffer. Using workgroup of size $\mathit{BLKDIM} \times
@@ -145,7 +147,7 @@ buffer. Using workgroup of size $\mathit{BLKDIM} \times
 where `ext_width = (W + 2)` is the domain width, including the ghost
 area.
 
-![Figure 4: Active work-items while filling the local domain](opencl-anneal4.png)
+![Figure 4: Active work-items while filling the local domain](opencl-anneal4.svg)
 
 To initialize the ghost area you might proceed as follows (Figure 4):
 
