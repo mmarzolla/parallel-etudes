@@ -21,7 +21,7 @@
 /***
 % HPC - Arnold's cat map
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-11-23
+% Last updated: 2023-06-08
 
 ![](cat-map.png)
 
@@ -103,20 +103,22 @@ format, e.g., JPEG. Under Linux you can use `convert` from the
         convert cat1368-100.pgm cat1368-100.jpeg
 
 To make use of OpenCL parallelism, define a 2D grid of 2D workgroups
-that cover the input image. The workgroup size is $\mathit{BLKDIM}
-\times \mathit{BLKDIM}$, with `BLKDIM = 32`, and the grid size is the
-minimum multiple of `BLKDIM` that is no less than $N$.
+that cover the input image. The workgroup size is $B \imtes B$, with
+$B := \mathit{SCL\_DEFAULT\_WG\_SIZE2D}$, and the grid size is the
+minimum multiple of _B_ that is no less than $N$.
 
 Each work-item applies a single iteration of the cat map and copies
 one pixel from the input image to the correct position of the output
 image.  The kernel has the following signature:
 
 ```C
-__kernel void cat_map_iter( __global unsigned char *cur, __global unsigned char *next, int N )
+__kernel void cat_map_iter( __global unsigned char *cur,
+                            __global unsigned char *next,
+                            int N )
 ```
 
 where $N$ is the height/width of the image. The program must work
-correctly even if $N$ is not an integer multiple of _BLKDIM_. Each
+correctly even if $N$ is not an integer multiple of _B_. Each
 work-item is mapped to the coordinates $(x, y)$ of a pixel using the
 usual formulas:
 
@@ -131,7 +133,10 @@ execute the kernel $k$ times.
 A better approach is to define a kernel
 
 ```C
-__kernel void cat_map_iter_k( __global unsigned char *cur, __global unsigned char *next, int N, int k )
+__kernel void cat_map_iter_k( __global unsigned char *cur,
+                              __global unsigned char *next,
+                              int N,
+                              int k )
 ```
 
 that applies $k$ iterations of the cat map to the current image.  This
@@ -175,7 +180,7 @@ Example:
 ## Files
 
 - [opencl-cat-map.c](opencl-cat-map.c)
-- [hpc.h](hpc.h)
+- [simpelCL.c](simpleCL.c) [simpleCL.h](simpleCL.h) [hpc.h](hpc.h)
 - [cat1368.pgm](cat1368.pgm) (the minimum recurrence time of this image is 36)
 
 ***/

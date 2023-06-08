@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * opencl-rule30.c - Rule30 Cellular Automaton with OpenCL
+ * opencl-rule30.c - "Rule 30" Cellular Automaton
  *
- * Copyright (C) 2017--2021 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,141 +19,149 @@
  ****************************************************************************/
 
 /***
-% HPC - Automa cellulare della "regola 30"
+% HPC - "Rule 30" Cellular Automaton
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Ultimo aggiornamento: 2021-12-03
+% Last updated: 2023-06-08
 
-Questo esercizio chiede di implementare mediante OpenCL l'automa
-cellulare della [regola 30](https://en.wikipedia.org/wiki/Rule_30) che
-abbiamo già incontrato in una precedente esercitazione. Per comodità
-riportiamo la descrizione del funzionamento dell'automa.
+The goal of this exercise is to implement the [Rule 30 Cellular
+Automaton](https://en.wikipedia.org/wiki/Rule_30) in OpenCL.
 
-L'automa è costituito da un array $x[N]$ di $N$ interi, ciascuno dei
-quali può avere valore 0 oppure 1. Lo stato dell'automa evolve durante
-istanti discreti nel tempo: lo stato di una cella al tempo $t$ dipende
-dal suo stato e da quello dei due vicini al tempo $t-1$. Assumiamo un
-dominio ciclico, per cui i vicini della cella $x[0]$ sono $x[N-1]$ e
-$x[1]$ e i vicini della cella $x[N-1]$ sono $x[N-2]$ e $x[0]$.
+The Rule 30 CA is a 1D cellular aotmaton that consists of an array
+`x[N]` of $N$ integers that can be either 0 or 1. The state of the CA
+evolves at discrete time steps: the new state of a cell depends on its
+current state, and on the current state of the two neighbors. We
+assume cyclic boundary conditions, so that the neighbors of $x[0]$ are
+$x[N-1]$ and $x[1]$ and the neighbors of $x[N-1]$ are $x[N-2]$ and
+$x[0]$ (Figure 1).
 
-Dati i valori correnti $pqr$ di tre celle adiacenti, il nuovo valore
-$q'$ della cella centrale è determinato in base alla tabella seguente
-(■ = 1, □ = 0):
+![Figure 1: Rule 30 CA](mpi-rule30-fig1.svg)
 
-:Regola 30
+Given the current values $pqr$ of three adjacent cells, the new value
+$q'$ of the middle cell is computed according to Table 1.
+
+:Table 1: Rule 30 (■ = 1, □ = 0):
 
 ---------------------------------------- ----- ----- ----- ----- ----- ----- ----- -----
-Configurazione corrente ($pqr$)           ■■■   ■■□   ■□■   ■□□   □■■   □■□   □□■   □□□
-Nuovo stato della cella centrale ($q'$)    □     □     □     ■     ■     ■     ■     □
+Current configuration $pqr$               ■■■   ■■□   ■□■   ■□□   □■■   □■□   □□■   □□□
+New state $q'$ of the central cell         □     □     □     ■     ■     ■     ■     □
 ---------------------------------------- ----- ----- ----- ----- ----- ----- ----- -----
 
-(si noti che la sequenza □□□■■■■□ = 00011110, che si legge sulla
-seconda riga della tabella, rappresenta il numero 30 in binario, da
-cui il nome "regola 30").
+The sequence □□□■■■■□ = 00011110 on the second row is the binary
+representation of decimal 30, from which the name ("Rule 30 CA"); more
+details can be found [here](mpi-rule30.pdf).
 
-Il file [opencl-rule30.c](opencl-rule30.c) contiene lo scheletro di
-una implementazione seriale dell'algoritmo che calcola l'evoluzione
-dell'automa. Inizialmente tutte le celle sono nello stato 0, ad
-eccezione di quella in posizione $N/2$ che è nello stato 1. Il
-programma accetta sulla riga di comando la dimensione del dominio $N$
-e il numero di passi da calcolare (se non indicati, si usano dei
-valori di default). Al termine dell'esecuzione il programma produce il
-file `opencl-rule30.pbm` contenente una immagine simile alla Figura 1.
+The file [opencl-rule30.c](opencl-rule30.c) contains a serial program
+that computes the evolution of the Rule 30 CA, assuming an initial
+condition where all cells are 0 except the central one. The program
+accepts two optional command line parameters: the domain size $N$ and
+the number of steps _nsteps_ to simulate. At the end, the program
+produces the image `rule30.pbm` shown in Figure 2 of size $N \times
+\textit{nsteps}$.
 
-![Figura 1: Evoluzione dell'automa cellulare della "regola 30" partendo da una singola cella attiva al centro](rule30.png)
+![Figure 2: Evolution of Rule 30 CA](rule30.png)
 
-Ogni riga dell'immagine rappresenta lo stato dell'automa in un dato
-istante di tempo; il colore di ogni pixel indica lo stato di ciascuna
-cella (1 = nero, 0 = bianco). Il tempo avanza dall'alto verso il
-basso, quindi la prima riga indica lo stato al tempo 0, la seconda
-riga lo stato al tempo 1 e così via.
+Each row of the image represents the state of the automaton at a
+specific time step (1 = black, 0 = white). Time moves from top to
+bottom: the first line is the initial state (time 0), the second line
+is the state at time 1, and so on.
 
-Scopo di questo esercizio è di svilupparne una versione parallela in
-cui il calcolo dei nuovi stati (cioè di ogni riga dell'immagine) venga
-realizzato da work-item. In particolare, la funzione `rule30()` dovrà
-essere trasformata in un kernel che viene invocato per calcolare un
-passo di evoluzione dell'automa. Assumere che $N$ sia multiplo della
-dimensione del workgroup.
+Interestingly, the pattern shown in Figure 2 is similar to the pattern
+on the [Conus textile](https://en.wikipedia.org/wiki/Conus_textile)
+shell, a highly poisonous marine mollusk which can be found in
+tropical seas (Figure 3).
 
-Si consiglia di iniziare con una versione in cui si opera direttamente
-sulla memoria globale senza usare memoria condivisa (`__local`);
-questa prima versione si può ricavare molto velocemente partendo dal
-codice seriale fornito come esempio.
+![Figure 3: Conus Textile by Richard Ling - Own work; Location: Cod
+Hole, Great Barrier Reef, Australia, CC BY-SA 3.0,
+<https://commons.wikimedia.org/w/index.php?curid=293495>](conus-textile.jpg)
 
-Da quanto detto a lezione, l'uso della memoria condivisa può essere
-utile perché ogni valore di stato nella memoria globale viene letto
-più volte (tre, per la precisione). Realizzare una seconda versione
-del programma che sfrutti la memoria condivisa. L'idea è la stessa
-dell'esempio visto a lezione relativo ad una computazione di tipo
-stencil, con la differenza che in questo caso il raggio della _stencil_
-vale 1, cioè il nuovo stato di ogni cella dipende dallo stato
-precedente di quella cella e dei due vicini. Si presti però attenzione
-che, a differenza dell'esempio visto a lezione, qui si assume un
-dominio ciclico. La parte più delicata sarà quindi la copia dei valori
-dalla memoria globale alla memoria condivisa.
+The goal of this exercise is to write a parallel version where the
+computation of the new states are performed by OpenCL work-items. In
+particular, the `rule30()` function should be turned into a kernel.
+Assume that the domain size $N$ is a multiple of the workgroup size
+(_SCL_DEFAULT_WG_SIZE_).
 
-![Figura 2: Copia dalla memoria globale alla memoria condivisa](opencl-rule30.png)
+I suggest that you start with a version that does not use local
+memory; this first version should be easily derived from the provided
+serial code.
 
-Aiutandoci con la Figura 2 procediamo come segue:
+Since each domain cell is read three times by three different work-item
+within the same block, the computation _might_ benefit from the use of
+local memory.
 
-- `d_cur[]` è la copia nella memoria del device dello stato corrente
-  dell'automa.
+> **Note:** The use local memory might produce minor improvements on
+> modern GPUs, or even make the program _slower_. The reason is that
+> there is little data reuse, and modern GPUs are equipped with caches
+> that work reasonably well in these kind of
+> computations. Nevertheless, it is useful to practice with local
+> memory, so this exercise should be considered as it is: an exercise.
 
-- Definire un kernel per riempire le ghost cell di `d_cur[]`; tale
-  kernel, chiamato ad esempio `fill_ghost(...)`, deve essere eseguito
-  da un unico work-item.
+To use local memory, refer to the simple example of 1D stencil
+computation that we have seen during the class; in this case, the
+radius of the stencil is one, i.e., the new state of each cell depends
+on the state of a cell and the state of the two neighbors. Be careful,
+since in this exercise we assume a cyclic domain, whereas in the
+stencil computation discussed in the class we did not.
 
-- Definire un secondo kernel 1D per aggiornare il dominio. Ciascun
-  workgroup definisce un array `__local` chiamato ad esempio
-  `buf[BLKDIM+2]`; usiamo `BLKDIM+2` elementi perché dobbiamo
-  includere una ghost cell a sinistra e una a destra per calcolare lo
-  stato successivo dei _BLKDIM_ elementi centrali senza dover
-  ricorrere a ulteriori letture dalla memoria globale;
+![Figure 3: Using local memory](opencl-rule30.svg)
 
-- Ciascun work-item determina l'indice `lindex` dell'elemento locale
-  (nell'array `buf[]`), e l'indice `gindex` dell'elemento globale
-  (nell'array `cur[]` in memoria globale) su cui deve
-  operare. Estendiamo l'array `cur[]` con due ghost cell (una per
-  estremità), come pure l'array `buf[]` in memoria condivisa. Quindi
-  gli indici vanno calcolati come:
+Looking at Figure 2, you might proceed as follows:
+
+- `d_cur[]` is the current state on GPU memory.
+
+- We create a kernel, say `fill_ghost(...)` that fills the ghost area
+  of `d_cur[]`. The kernel will be executed by one work-item, since
+  only two values need to be copied.
+
+- We create another kernel that computes the new state of the domain,
+  given the current state. To this aim, we use a 1D grid of 1D
+  workgroups.  Each block defined a `__local` array
+  `buf[SCL_DEFAULT_WG_SIZE+2]`; we need `SCL_DEFAULT_WG_SIZE+2`
+  elements since we need to include ghost cells in each partition in
+  order to be able to compute the new states of all cells.
+
+- Each work-item computes the "local" index `lindex` in the `buf[]`
+  array, and a "global" index `gindex` in the `d_cur[]` array, of the
+  element it is associated with. Care should be taken, since both the
+  local and global domains have ghost cells. Therefore, indices should
+  be computed as:
 ```C
       const int lindex = 1 + get_local_id(0);
       const int gindex = 1 + get_global_id(0);
 ```
 
-- Ciascun work-item copia un elemento dalla memoria globale alla memoria
-  locale:
+- Each work-item copies one element from global to local memory:
 ```C
       buf[lindex] = cur[gindex];
 ```
 
-- Il primo work-item di ciascun workgroup inizializza le ghost cell di
-  `buf[]` ad esempio con:
+- The first work-item of each workgroup also fills the ghost area
+  of the local array `buf[]`:
 ```C
       if (0 == get_local_id(0)) {
           buf[0] = cur[gindex-1];
-          buf[BLKDIM + 1] = cur[gindex + BLKDIM];
+          buf[SCL_DEFAULT_WG_SIZE + 1] = cur[gindex + SCL_DEFAULT_WG_SIZE];
       }
 ```
 
-Per generare l'evoluzione dell'automa, le nuove configurazioni vanno
-trasferite dal _device_ all'_host_ al termine di ogni esecuzione del
-kernel.
+To generate the output image, the new domain should be transferred
+back to host memory after each iteration. Then, `d_cur` and `d_next`
+must be exchanged before starting the next iteration.
 
-Per compilare:
+To compile:
 
-        cc opencl-rule30.c simpleCL.c -o opencl-rule30 -lOpenCL
+        cc -std=c99 -Wall -Wpedantic opencl-rule30.c simpleCL.c -o opencl-rule30 -l OpenCL
 
-Per eseguire:
+To execute:
 
         ./opencl-rule30 [width [steps]]
 
-Esempio:
+Example:
 
         ./opencl-rule30 1024 1024
 
-Il risultato sarà nel file `opencl-rule30.pbm`
+The output is stored to the file `opencl-rule30.pbm`
 
-## File
+## Files
 
 - [opencl-rule30.c](opencl-rule30.c)
 - [simpleCL.c](simpleCL.c) [simpleCL.h](simpleCL.h) [hpc.h](hpc.h)
