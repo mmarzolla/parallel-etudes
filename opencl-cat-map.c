@@ -174,7 +174,7 @@ Example:
 
 ## Files
 
-- [opencl-cat-map.cu](opencl-cat-map.cu)
+- [opencl-cat-map.c](opencl-cat-map.c)
 - [hpc.h](hpc.h)
 - [cat1368.pgm](cat1368.pgm) (the minimum recurrence time of this image is 36)
 

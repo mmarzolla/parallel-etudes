@@ -53,18 +53,17 @@ GPU. In this exercise we implement a simple (although not efficient)
 approach where we use a _single_ workgroup of _SCL_DEFAULT_WG_SIZE_
 work-items.  The algorithm works as follows:
 
-1. The CPU allocates a `tmp[]` array of _BLKDIM_ elements on the GPU,
-   in addition to a copy of `x[]` and `y[]`.
+1. The CPU allocates a `tmp[]` array of $B :=
+   \mathit{SCL\_DEFAULT\_WG\_SIZE}$ elements on the GPU, in addition
+   to a copy of `x[]` and `y[]`.
 
-2. The CPU executes _SCL_DEFAULT_WG_SIZE_ work-items; use the maximum
-   number of work-items per workgroup supported by the hardware.
+2. The CPU executes _B_ work-items; use the maximum number of
+   work-items per workgroup supported by the hardware.
 
-3. Work-item $t$ ($t = 0, \ldots, \mathit{SCL_DEFAULT_WG_SIZE}-1$)
-   computes the value of the expression $(x[t] \times y[t] + x[t +
-   \mathit{SCL_DEFAULT_WG_SIZE}] \times y[t +
-   \mathit{SCL_DEFAULT_WG_SIZE}] + x[t + 2 \times \mathit{BLKDIM}]
-   \times y[t + 2 \times \mathit{SCL_DEFAULT_WG_SIZE}] + \ldots)$ and
-   stores the result in `tmp[t]` (see Figure 1).
+3. Work-item $t$ ($t = 0, \ldots, B-1$) computes the value of the
+   expression $(x[t] \times y[t] + x[t + B] \times y[t + B] + x[t +
+   2B] \times y[t + 2B] + \ldots)$ and stores the result in `tmp[t]`
+   (see Figure 1).
 
 4. When the kernel terminates, the CPU transfers `tmp[]` back to host
    memory and performs a sum-reduction to compute the final result.
@@ -72,7 +71,7 @@ work-items.  The algorithm works as follows:
 ![Figure 1](opencl-dot.svg)
 
 Your program must work correctly for any value of $n$, even if it is
-not a multiple of _BLKDIM_.
+not a multiple of _B_.
 
 A better way to compute a reduction will be shown in future lectures.
 
@@ -90,7 +89,7 @@ Example:
 
 ## Files
 
-- [opencl-dot.cu](opencl-dot.cu)
+- [opencl-dot.c](opencl-dot.c)
 - [simpleCL.c](simpleCL.c) [simpleCL.h](simpleCL.h) [hpc.h](hpc.h)
 
 ***/

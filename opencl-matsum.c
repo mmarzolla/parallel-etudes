@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * opencl-matsum.cu - Dense matrix-matrix addition with OpenCL
+ * opencl-matsum.c - Dense matrix-matrix addition with OpenCL
  *
  * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *

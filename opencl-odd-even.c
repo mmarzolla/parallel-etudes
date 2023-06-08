@@ -19,42 +19,36 @@
  ****************************************************************************/
 
 /***
-% HPC - Odd-even transposition sort
+% HPC - Odd-even sort
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Ultimo aggiornamento: 2021-12-04
+% Last updated: 2023-06-08
 
-A lezione è stato discusso l'algoritmo di ordinamento _Odd-Even
-Transposition Sort_. L'algoritmo è una variante di BubbleSort, e
-ordina un array di $n$ elementi in tempo $O(n^2)$. Pur non essendo
-efficiente, l'algoritmo si presta bene ad essere
-parallelizzato. Abbiamo già visto versioni parallele basate su OpenMP
-e MPI; in questo esercizio viene richiesta la realizzazione di una
-versione OpenCL.
+The _Odd-Even sort_ algorithm is a variant of BubbleSort, and sorts an
+array of $n$ elements in sequential time $O(n^2)$. Although
+inefficient, odd-even sort is easily parallelizable; indeed, we have
+discussed both an OpenMP and an MPI version. In this exercise we will
+create an OpenCL version.
 
-Dato un array `v[]` di $n$ elementi, l'algoritmo esegue $n$ fasi
-numerate da 0 a $n–1$; nelle fasi pari si confrontano gli elementi di
-`v[]` di indice pari con i successivi, scambiandoli se non sono
-nell'ordine corretto. Nelle fasi dispari si esegue la stessa
-operazione confrontando gli elementi di `v[]` di indice dispari con i
-successivi (Figura 1).
+Given an array `v[]` of length $n$, the algorithm performs $n$ steps
+numbered $0, \ldots, n-1$. During even steps, array elements in even
+positions are compared with the next element and swapped if not in the
+correct order. During odd steps, elements in odd position are compared
+(and possibly swapped) with their successors. See Figure 1.
 
-![Figura 1: Odd-Even Sort](opencl-odd-even.png)
+![Figure 1: Odd-Even Sort](opencl-odd-even.svg)
 
-Il file [opencl-odd-even.c](opencl-odd-even.c) contiene una
-implementazione dell'algoritmo Odd-Even Transposition
-Sort. L'implementazione fornita fa solo uso della CPU: scopo di questo
-esercizio è di sfruttare il parallelismo OpenCL.
+The file [opencl-odd-even.c](opencl-odd-even.c) contains a serial
+implementation of Odd-Even transposition sort. The purpose of this
+algorithm is to modify the program to use the GPU.
 
-Il paradigma OpenCL suggerisce di adottare un parallelismo a grana
-fine, facendo gestire ad ogni work-item il confronto e lo scambio di
-una coppia di elementi adiacenti. La soluzione più semplice consiste
-nel creare $n$ work-item e lanciare $n$ volte un kernel che sulla base
-dell'indice della fase (da passare come parametro al kernel), attiva i
-work-item che agiscono sugli elementi dell'array di indice pari o
-dispari. In altre parole, la struttura di questo kernel è simile a:
+The OpenCL paradigm suggests a fine-grained parallelism where a
+work-item is responsible for a single compare-and-swap operation of a
+pair of adjacent elements. The simplest solution is to launch $n$
+work-items during each phase; only even (resp. odd) work-items will be
+active during even (resp. odd) phases. The kernel looks like this:
 
 ```C
-__kernel step_bad( __global int *x, int n, int phase )
+__kernel void odd_even_step_bad( __global int *x, int n, int phase )
 {
 	const int idx = get_global_id(0);
 	if ( (idx < n-1) && ((idx % 2) == (phase % 2)) ) {
@@ -63,21 +57,25 @@ __kernel step_bad( __global int *x, int n, int phase )
 }
 ```
 
-Questa soluzione non è però efficiente, perché solo metà dei work-item
-sono attivi durante ogni fase. Realizzare quindi una seconda versione
-in cui in ogni fase si lanciano $\lceil n/2 \rceil$ work-item, facendo
-in modo che tutti siano sempre attivi durante ogni fase. Nelle fasi
-pari i work-item con id globale $0, 1, 2, 3, \ldots$ gestiranno
-rispettivamente le coppie di indici $(0, 1)$, $(2, 3)$, $(4, 5)$, $(6,
-7)$, $\ldots$, mentre nelle fasi dispari gestiranno le coppie di
-indici $(1, 2)$, $(3, 4)$, $(5, 6)$, $(7, 8)$, $\ldots$.
+This solution is simple but _not_ efficient since only half the
+work-items are active during each phase, so a lot of computational
+resources are wasted. To address this issue, write a second version
+where $\lceil n/2 \rceil$ work-items are executed at each phase, so
+that each one is always active. Indexing becomes more problematic,
+since each work-item should be uniquely assigned to an even
+(resp. odd) position depending on the phase.  Specifically, during
+even phases, work-items $0, 1, 2, 3, \ldots$ are required to handle
+the pairs $(0, 1)$, $(2, 3)$, $(4, 5)$, $(6, 7)$, $\ldots$. During odd
+phases, work-items are required to handle the pairs $(1, 2)$, $(3,
+4)$, $(5, 6)$, $(7, 8)$, $\ldots$.
 
-La Tabella 1 illustra la corrispondenza tra l'indice globale `idx` dei
-work-item e la coppia di indici dell'array che devono gestire.
+Table 1 illustrates the correspondence between the global ID `idx` of
+each work-item, computed using the expression in the above code
+snipped, and the index pair it needs to manage.
 
-:Tabella 1: corrispondenza tra indice dei work-item e dell'array
+:Table 1: Mapping work-items to array index pairs.
 
-Indice globale     Fasi pari     Fasi dispari
+work-item          Even phases   Odd phases
 -----------------  ------------  --------------
 0                  $(0,1)$       $(1,2)$
 1                  $(2,3)$       $(3,4)$
@@ -87,39 +85,38 @@ Indice globale     Fasi pari     Fasi dispari
 ...                ...           ...
 -----------------  ------------  --------------
 
-> **Attenzione.** L'hardware impone delle limitazioni sulla dimensione
-> della coda dei comandi OpenCL. In altre parole, un frammento di
-> codice come questo:
+> **Warning.** Some OpenCL implementations limit the number of commands
+> in the OpenCL queue. Therefore, a sequence of kernel launches inside
+> a "for" loop like this:
 >
 > ```C
 > for (int phase = 0; phase < n; phase++) {
 >    sclSetArgsEnqueueKernel(...);
+>    blah();
 > }
 > ```
 >
-> potrebbe causare dei crash (es., _segmentation fault_) o altri
-> errori, soprattutto per valori elevati di _n_. La libreria
-> `simpleCL` prende precauzioni, ed inserisce periodicamente il
-> comando `sclDeviceSynchronize()` dopo l'inserimento di un kernel in
-> coda.
+> might crash (i.e., _segmentation fault_ or other errors),
+> especially when _n_ is large. The `simpleCL` library takes
+> precautions against this, and automatically inserts
+> `sclDeviceSynchronize()`periodically after kernel launches.
 
-Per compilare:
+To compile:
 
-        cc opencl-odd-even.c simpleCL.c -o opencl-odd-even -lOpenCL
+        cc -std=c99 -Wall -Wpedantic opencl-odd-even.c simpleCL.c -o opencl-odd-even -lOpenCL
 
-Per eseguire:
+To execute:
 
         ./opencl-odd-even [len]
 
-Esempio:
+Example:
 
         ./opencl-odd-even 1024
 
-## File
+## Files
 
 - [opencl-odd-even.c](opencl-odd-even.c)
-- [simpleCL.c](simpleCL.c) [simpleCL.h](simpleCL.h)
-- [hpc.h](hpc.h)
+- [simpleCL.c](simpleCL.c) [simpleCL.h](simpleCL.h) [hpc.h](hpc.h)
 
  ***/
 #include "hpc.h"

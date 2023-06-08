@@ -35,7 +35,7 @@ on. You should write two versions of the program:
 2. The second version reverses an array `in[]` "in place" using $O(1)$
    additional storage.
 
-The file [opencl-reverse.cu](opencl-reverse.cu) provides a CPU-based
+The file [opencl-reverse.c](opencl-reverse.c) provides a CPU-based
 implementation of `reverse()` and `inplace_reverse()`.  Modify the
 functions to use of the GPU.
 

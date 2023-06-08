@@ -2,7 +2,7 @@
  *
  * opencl-coupled-oscillators.c - One-dimensional coupled oscillators system
  *
- * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,84 +19,81 @@
  ******************************************************************************/
 
 /***
-% HPC - Oscillatori accoppiati
+% HPC - One-dimensional coupled oscillators
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Ultimo aggiornamento: 2022-03-18
+% Ultimo aggiornamento: 2023-06-08
 
-![Un gruppo di metronomi accoppiati tende a sincronizzarsi anche se il periodo naturale di ciascuno è diverso (Fonte: [Università di Harvard](https://sciencedemonstrations.fas.harvard.edu/presentations/synchronization-metronomes))](coupled_metronomes.jpg)
+![](coupled_metronomes.jpg)
 
-Consideriamo $n$ punti di massa $m$ disposti lungo una retta alle
-coordinate $x_0, x_1, \ldots, x_{n-1}$. Masse adiacenti sono collegate
-da una molla di costante elastica $k$ e lunghezza a riposo $L$. Il
-primo e l'ultimo punto (quelli in posizione $x_0$ e $x_{n-1}$ occupano
-una posizione fissa e non possono muoversi.
+Let us consider $n$ points of mass $m$ arranged along a straight line
+at coordinates $x_0, x_1, \ldots, x_{n-1}$. Adjacent masses are
+connected by a spring with elastic constant $k$ and rest length
+$L$. The first and last points (those in position $x_0$ and $x_{n-1}$
+occupy a fixed position and cannot move.
 
-![Figura 1: Oscillatori accoppiati](opencl-coupled-oscillators.png)
+![Figur3 1: Coupled oscillators](cuda-coupled-oscillators.svg)
 
-Se all'istante iniziale una delle molle non è a riposo, si innescano
-delle oscillazioni che, in mancanza di attrito, proseguiranno
-indefinitamente. Sfruttando la seconda legge della dinamica di Newton
-$F = ma$ e la legge di Hooke che afferma che una molla di costante $k$
-compressa di una quantità $\Delta x$ esercita una forza $k \Delta x$,
-sviluppiamo un programma che, date le posizioni e le velocità iniziali
-delle masse, calcoli posizioni e velocità al tempo $t > 0$. Il
-programma si basa su un algoritmo iterativo che partendo dalle
-posizioni e velocità delle masse al tempo $t$, determina le nuove
-posizioni e le nuove velocità al tempo $t + \Delta t$. In particolare,
-la funzione
+Initially, one of the springs is displaced so that a wave of
+oscillations is triggered; due to the lack of friction, such
+oscillations will go on indefinitely. Using Newton's second law of
+motion $F = ma$ and Hooke's law which states that a spring with
+elastic parameter $k$ that is compressed by $\Delta x$ exerts a force
+$k \Delta x$, we develop a program that, given the initial positions
+and velocities, computes the positions and speeds of all masses at any
+time $t > 0$. The program is based on an iterative algorithm that,
+from positions and speeds of the masses at time $t$, determine the new
+positions and velocities at time $t + \Delta t$. In particular, the
+function
 
 ```C
 step(double *x, double *v, double *xnext, double *vnext, int n)
 ```
 
-calcola posizione `xnext[i]` e velocità `vnext[i]` della massa
-$i$-esima al tempo $t + \Delta t$, $0 \le i < n$, date le posizioni
-`x[i]` e velocità `v[i]` al tempo $t$.
+computes the new position `xnext[i]` and velocity `vnext[i]` of mass
+$i$ at time $t + \Delta t$, $0 \le i < n$, given the current position
+`x[i]` and velocity `v[i]` at time $t$.
 
-1. Per ogni $i = 1, \ldots, n-2$ si calcola la forza $F_i$ che agisce
-   sulla massa $i$-esima come $F_i := k \times (x_{i-1} -2x_i +
-   x_{i+1})$; si noti come la forza non dipenda dalla lunghezza $L$
-   delle molle a riposo. Le masse 0 e $n-1$ rimangono in posizione
-   fissa, quindi le forze che agiscono su di esse possono essere
-   omesse.
+1. For each $i = 1, \ldots, n-2$, the force $F_i$ acting on mass $i$
+   is $F_i := k \times (x_{i-1} -2x_i + x_{i+1})$; note that the force
+   does not depend on the length $L$ of the spring at rest. Masses 0
+   and $n-1$ are stationary, therefore the forces acting on them are
+   not computed.
 
-2. Per ogni $i = 1, \ldots, n-2$ si calcola la nuova velocità $v'_i$
-   della massa $i$-esima al tempo $t + \Delta t$ come $v'_i := v_i +
-   (F_i / m) \Delta t$. Le masse 0 e $n-1$ restano fisse, quindi la
-   loro velocità sarà sempre zero.
+2. For each $i = 1, \ldots, n-2$ the new velocity $v'_i$ of mass $i$
+   at time $t + \Delta t$ is $v'_i := v_i + (F_i / m) \Delta
+   t$. Again, masses 0 and $n-1$ are statioary, therefore their
+   velocities are always zero.
 
-3. Per ogni $i = 1, \ldots, n-2$ si calcola la nuova posizione $x'i$
-   della massa $i$-esima al tempo $t + \Delta t$ come $x'_i := x_i +
-   v'_i \Delta t$. Le masse 0 e $n-1$ restano ferme quindi la loro
-   posizione al tempo $t + \Delta t$ sarà uguale a quella al tempo
-   $t$: $x'_0 := x_0$, $x'_{n-1} := x_{n-1}$.
+3. For each $i = 1, \ldots, n-2$ the new position $x'_i$ of mass $i$
+   at time $t + \Delta t$ is $x'_i := x_i + v'_i \Delta t$. Masses 0
+   and $n-1$ are stationary, therefore their positions at time $t +
+   \Delta t$ are the same as those at time $t$: $x'_0 := x_0$,
+   $x'_{n-1} := x_{n-1}$.
 
-Il file [opencl-coupled-oscillators.c](opencl-coupled-oscillators.c)
-contiene una versione seriale del programma che calcola l'evoluzione
-di un insieme di oscillatori accoppiati. Il programma produce una
-immagine bidimensionale in cui ogni riga mostra le energie potenziali
-delle $n-1$ molle in ogni istante di tempo. Al termine dell'esecuzione
-il programma dovrebbe produrre un file `coupled-oscillators.ppm`
-contenente una immagine simile alla Figura 2:
+The file [opencl-coupled-oscillators.c](opencl-coupled-oscillators.c)
+contains a serial program that computes the evolution of $n$ coupled
+oscillators. The program produces a two-dimensional image
+`coupled-oscillators.ppm` where each line shows the potential energies
+of the springs at any time (Figure 2).
 
-![Figura 2: energia potenziale delle molle](coupled-oscillators.png)
+![Figure 2: potential energy of the springs](coupled-oscillators.png)
 
-Parallelizzare la funzione `step()` trasformandola (in tutto o in
-parte) in un kernel OpenCL.
+Your task is to parallelize function `step()` by defining additional
+OpenCL kernel(s).
 
-Per compilare:
+To compile:
 
-        cc opencl-coupled-oscillators.c sipleCL.c -o opencl-coupled-oscillators -lm -lOpenCL
+        cc -std=c99 -Wall -Wpedantic opencl-coupled-oscillators.c simpleCL.c -o opencl-coupled-oscillators -lm -lOpenCL
 
-Per eseguire:
+To execute:
 
         ./opencl-coupled-oscillators [N]
 
-Esempio:
+Example:
 
         ./opencl-coupled-oscillators 1024
 
-## File
+## Files
 
 - [opencl-coupled-oscillators.c](opencl-coupled-oscillators.c)
 - [simpleCL.c](simpleCL.c) [simpleCL.h](simpleCL.h) [hpc.h](hpc.h)

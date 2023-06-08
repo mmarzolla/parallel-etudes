@@ -76,7 +76,7 @@ oscillators. The program produces a two-dimensional image
 `coupled-oscillators.ppm` where each line shows the potential energies
 of the springs at any time (Figure 2).
 
-![Figura 2: energia potenziale delle molle](coupled-oscillators.png)
+![Figura 2: potential energies of the springs](coupled-oscillators.png)
 
 Your task is to parallelize function `step()` by defining additional
 CUDA kernel(s).
