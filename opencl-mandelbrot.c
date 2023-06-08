@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * mpi-mandelbrot.c - Draw the Mandelbrot set with MPI
+ * opencl-mandelbrot.c - Mandelbrot set
  *
- * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,54 +19,61 @@
  ****************************************************************************/
 
 /***
-% HPC - Insieme di Mandelbrot
+% HPC - Mandelbrot set
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Ultimo aggiornamento: 2022-06-30
+% Last updated: 2023-06-08
 
-![Benoit Mandelbrot (1924--2010)](Benoit_Mandelbrot.jpg)
+![](mandelbrot-set.png)
 
-Il file [opencl-mandelbrot.c](opencl-mandelbrot.c) contiene lo
-scheletro di un programma OpenCL che calcola l'insieme di
-Mandelbrot.
-
-Il programma accetta come parametro opzionale la dimensione verticale
-dell'immagine, ossia il numero di righe (default 1024). La risoluzione
-orizzontale viene calcolata automaticamente dal programma in modo da
-includere l'intero insieme. Il programma produce un file
-`mandebrot.ppm` contenente una immagine dell'insieme di Mandelbrot in
-formato PPM (_Portable Pixmap_). Se non si dispone di un programma per
-visualizzare questo formato, lo si può convertire, ad esempio, in PNG
-dando sul server il comando:
+The file [opencl-mandelbrot.c](opencl-mandelbrot.c) contains a serial
+program that computes the Mandelbrot set. The program accepts the
+image height as an optional command-line parameter; the width is
+computed automatically to include the whole set. The program writes a
+graphical representation of the Mandelbrot set into a file
+`mandebrot.ppm` in PPM (_Portable Pixmap_) format. If you don't have a
+suitable viewer, you can convert the image, e.g., into PNG with the
+command:
 
         convert mandelbrot.ppm mandelbrot.png
 
-Scopo di questo esercizio è quello di sviluppare una versione
-parallela usando OpenCL.
+The goal of this exercise is to write a parallel version of the
+program using OpenCL. A 2D grid of 2D workgroups is created, and each
+work-item takes care of computing a single pixel of the image.  The
+size of each workgroup is $\mathit{SCL\_DEFAULT\_WG\_SIZE2D} \times
+\mathit{SCL\_DEFAULT\_WG\_SIZE2D}$. The side of the grid is the
+minimum integer multiple of _SCL_DEFAULT_WG_SIZE2D_ that covers the
+whole image. The `simpleCL` library provides a function `sclRoundUp(n,
+a)` that can be used to compute the minimum integer multiple of _a_
+that is no less than _n_; therefore, the size of a workgroup and grid
+can be computed as:
 
-[TBD]
+```C
+const sclDim BLOCK = DIM2(SCL_DEFAULT_WG_SIZE2D, SCL_DEFAULT_WG_SIZE2D);
+const sclDim GRID = DIM2(sclRoundUp(xsize, SCL_DEFAULT_WG_SIZE2D),
+                         sclRoundUp(ysize, SCL_DEFAULT_WG_SIZE2D));
+```
 
-Suggerisco di conservare la versione seriale del programma per usarla
-come riferimento. Per verificare in modo empirico la correttezza del
-programma parallelo, consiglio di confrontare il risultato con quello
-prodotto dalla versione seriale: le due immagini devono risultare
-identiche byte per byte. Per confrontare due immagini si può usare il
-comando `cmp` dalla shell di Linux:
+You may want to keep the serial program as a reference; to check the
+correctness of the parallel implementation, you can compare the output
+images produced by both versions with the command:
 
         cmp file1 file2
 
-stampa un messaggio se e solo se `file1` e `file2` differiscono.
+Both images should be identical; if not, something is wrong.
 
-Per compilare:
+To compile:
 
-        cc -std=c99 -Wall -Wpedantic opencl-mandelbrot.c simpleCL.c -o opencl-mandelbrot
+        cc -std=c99 -Wall -Wpedantic opencl-mandelbrot.c simpleCL.c -o opencl-mandelbrot -lOpenCL
 
-Per eseguire:
+To execute:
 
-        ./opencl-mandelbrot [ysize]
+        ./open-mandelbrot [ysize]
 
-scrive il risultato sul file `opencl-mandelbrot.ppm`
+Example:
 
-## File
+        ./opencl-mandelbrot 800
+
+## Files
 
 - [opencl-mandelbrot.c](opencl-mandelbrot.c)
 - [simpleCL.c](simpleCL.c) [simpleCL.h](simpleCL.h) [hpc.h](hpc.h)
@@ -145,6 +152,6 @@ int main( int argc, char *argv[] )
     sclFree(d_bitmap);
 
     sclFinalize();
-    
+
     return EXIT_SUCCESS;
 }
