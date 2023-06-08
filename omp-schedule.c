@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * omp-schedule.c - simulate "schedule(static)" and "schedule(dynamic)" using the "omp parallel" clause
+ * omp-schedule.c - simulate "schedule()" directives
  *
- * Copyright (C) 2017--2021 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,67 +19,63 @@
  ****************************************************************************/
 
 /***
-% HPC - Realizzazione delle clausole "schedule(static)" e "schedule(dynamic)"
+% HPC - Simulate "schedule()" directives
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Ultimo aggiornamento: 2021-10-24
+% Last updated: 2023-07-08
 
-A lezione abbiamo visto come sia possibile utilizzare le clausole
-`schedule(static)` e `schedule(dynamic)` per assegnare le iterazioni
-di un ciclo "for" ai thread OpenMP. Lo scopo di questo esercizio è di
-simulare queste clausole _senza_ usare il costrutto `omp parallel
-for`.
+OpenMPO allows the use of `schedule(static)` and `schedule(dynamic)`
+clauses to assign iterations of a "for" loop to OpenMP threads. The
+purpose of this exercise is to simulate these clauses _without_ using
+the `omp parallel for` construct.
 
-Il file [omp-schedule.c](omp-schedule.c) contiene una implementazione
-seriale di un programma che effettua le seguenti computazioni. Il
-programma crea e inizializza un array `vin[]` di $n$ interi (il valore
-$n$ può essere passato da riga di comando). Il programma crea un
-secondo array `vout[]`, sempre di lunghezza $n$, e ne definisce il
-contenuto in modo tale che `vout[i] = Fib(vin[i])` per ogni $i$,
-essendo `Fib(k)` il _k_-esimo numero della successione di Fibonacci:
-`Fib(0)` = `Fib(1)` = 1; `Fib(k) = Fib(k-1) + Fib(k-2)` se $k \geq
-2$. Il calcolo dei numeri di Fibonacci viene fatto in modo volutamente
-inefficiente con un algoritmo ricorsivo, per far sì che il tempo di
-calcolo vari significativamente al variare di $i$.
+The file [omp-schedule.c](omp-schedule.c) contains a serial program
+that performs the following computations. The program creates and
+initializes a `vin[]` array of length $n$ (the value $n$ can be passed
+from the command line). The program creates a second array `vout[]` of
+length $n$, and defines its content such that `vout[i] = Fib(vin[i])`
+for each $i$, where `Fib(k)` the _k_th number of the Fibonacci
+sequence: `Fib(0)` = `Fib(1)` = 1; `Fib(k) = Fib(k-1) + Fib(k-2)` if
+$k \geq $2. To compute `fib(k)` we deliberately use the inefficient
+recursive algorithm, so that the computation time strongly depends on
+_k_.
 
-Sono presenti due funzioni identiche, `do_static()` e `do_dynamic()`,
-contenenti un ciclo "for" che realizza il calcolo di cui sopra.
+There are two identical functions, `do_static()` and `do_dynamic()`
+that perform the computation above.
 
-1. Modificare la funzione `do_static()` per distribuire le iterazioni
-   del ciclo come se fosse presente la direttiva `schedule(static,
-   chunk_size)`, ma senza usare il costrutto `omp parallel parallel`
-   (è invece consentito usare `omp parallel`).
+1. Modify `do_static()` to distribute the loop iterations to OpenMP
+   threads as would be done by the `schedule(static, chunk_size)`
+   directive, but without using an explicit `omp parallel for`
+   construct (you may use `omp parallel`).
 
-2. Fatto ciò, si modifichi la funzione `do_dynamic()` per distribuire
-   le iterazioni del ciclo come se fosse presente una direttiva
-   `schedule(dynamic, chunk_size)`. Anche in questo caso non si deve
-   usare la direttiva `omp parallel for`.
+2. Then, modify `do_dynamic()` to distribute the loop iterations to
+   OpenMP threads as would be done by the `schedule(dynamic,
+   chunk_size)` directive. Again, you are not allowed to use `omp
+   parallel for`, but only `omp parallel`.
 
-**Suggerimenti.** In entrambi i casi consiglio di iniziare assumendo
-`chunk_size = 1`. Per il punto 2 (schedule dinamico) consiglio di
-procedere come segue: supponendo `chunk_size = 1`, si utilizza una
-variabile condivisa per indicare qual è l'indice del prossimo elemento
-di `vin[]` che deve essere assegnato ad un thread. Ogni thread
-acquisisce in mutua esclusione il prossimo elemento di `vin[]`, se
-presente, e lo elabora in maniera indipendente dagli altri thread.
+**Suggestion.** Start assuming `chunk_size = 1`. When implementing
+dynamic schedule (point 2 above) I suggest to assume `chunk_size = 1`,
+and use a shared variable to keep track of the index of the next
+element of `vin[]` which must be processed. Each thread gets the next
+unprocessed elements from `vin[]` and increments the shared variable
+atomically. This is tricky and must be done carefully.
 
-Se avanza tempo, si confrontino i tempi di esecuzione della propria
-implementazione con quelli ottenuti applicando le clausole
-`schedule(static, chunk_size)` e `schedule(dynamic, chunk_size)` al
-ciclo "for".
+If you have time, compare the execution times of your implementation
+with those obtained by using the `omp parallel for` directive with the
+appropriate `schedule()` clauses.
 
-Per compilare:
+To compile:
 
         gcc -std=c99 -Wall -Wpedantic -fopenmp omp-schedule.c -o omp-schedule
 
-Per eseguire:
+To execute:
 
         ./omp-schedule [n]
 
-Esempio:
+Example:
 
         OMP_NUM_THREADS=2 ./omp-schedule
 
-## File
+## Files
 
 - [omp-schedule.c](omp-schedule.c)
 

@@ -25,7 +25,7 @@
 /***
 % HPC - Ray Tracer
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Ultimo aggiornamento: 2022-11-03
+% Last updated: 2022-11-03
 
 The file [mpi-c-ray.c](mpi-c-ray.c) contains the implementation of a
 [simple ray tracing program](https://github.com/jtsiomb/c-ray) written
