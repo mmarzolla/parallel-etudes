@@ -85,21 +85,14 @@ work-item          Even phases   Odd phases
 ...                ...           ...
 -----------------  ------------  --------------
 
-> **Warning.** Some OpenCL implementations limit the number of commands
-> in the OpenCL queue. Therefore, a sequence of kernel launches inside
-> a "for" loop like this:
->
-> ```C
-> for (int phase = 0; phase < n; phase++) {
->    sclSetArgsEnqueueKernel(...);
->    blah();
-> }
-> ```
->
-> might crash (i.e., _segmentation fault_ or other errors),
-> especially when _n_ is large. The `simpleCL` library takes
-> precautions against this, and automatically inserts
-> `sclDeviceSynchronize()`periodically after kernel launches.
+> **Warning.** Some OpenCL implementations limit the number of
+> commands in the OpenCL queue. Therefore, a sequence of kernel
+> launches inside a "for" loop like this: ```C for (int phase = 0;
+> phase < n; phase++) { sclSetArgsEnqueueKernel(...); blah(); } ```
+> might crash (i.e., _segmentation fault_ or other errors), especially
+> when _n_ is large. The `simpleCL` library takes precautions against
+> this, and automatically inserts `sclDeviceSynchronize()` calls every
+> now and then after kernel launches.
 
 To compile:
 
