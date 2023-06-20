@@ -1,6 +1,6 @@
 % HPC - List of exercises
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-03-28
+% Last updated: 2023-06-20
 
 
 Kernel                           OpenMP   MPI   OpenCL  Pattern
@@ -14,6 +14,7 @@ Character frequencies            X         X     X      Embarrassingly parallel,
 Inclusive scan                   X         X            Scan
 Dynamic task scheduling          X                      Master-Worker
 MergeSort                        X                      Task-level parallelism
+Binary Tree traversal            X                      Task-level parallelism
 Ray tracing                      X         X            Embarrassingly parallel, Scatter/Gather
 Levenstein's distance            X                      2D stencil, wavefront
 Ray casting                      X               X      Embarrassingly parallel
@@ -35,7 +36,7 @@ Knapsack problem                 X               X      Non-uniform 1D stencil
 Edge detection                   X               X      2D Stencil
 Gaussian elimination             X                      Reduction
 SAT solver                       X                      Embarrassingly parallel
-Sibgle-Source Shortest Path      X                      Reduction
+Single-Source Shortest Path      X                      Reduction
 ------------------------------ --------- ----- -------- --------------------------
 
 ## OpenMP
@@ -70,6 +71,7 @@ Sibgle-Source Shortest Path      X                      Reduction
 - [Gaussian elimination](omp-gaussian-elimination.html) (reduction)
 - [SAT Solver](omp-sat-solver.html) (embarrassingly parallel)
 - [Single-Source Shortest Paths](omp-bellman-ford.html) (reduction)
+- [Binary Tree traversal](omp-bintree-walk.html) (task)
 
 ## MPI
 
