@@ -21,9 +21,9 @@
 /***
 % HPC - Simulate "schedule()" directives
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-07-08
+% Last updated: 2023-06-20
 
-OpenMPO allows the use of `schedule(static)` and `schedule(dynamic)`
+OpenMP allows the use of `schedule(static)` and `schedule(dynamic)`
 clauses to assign iterations of a "for" loop to OpenMP threads. The
 purpose of this exercise is to simulate these clauses _without_ using
 the `omp parallel for` construct.
