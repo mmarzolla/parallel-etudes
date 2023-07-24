@@ -58,7 +58,7 @@ the number of steps _nsteps_ to simulate. At the end, the program
 produces the image `rule30.pbm` shown in Figure 2 of size $N \times
 \textit{nsteps}$.
 
-![Figure 2: Evolution of Rule 30 CA](rule30.png)
+![Figure 2: Evolution of Rule 30 CA](rule30.svg)
 
 Each row of the image represents the state of the automaton at a
 specific time step (1 = black, 0 = white). Time moves from top to

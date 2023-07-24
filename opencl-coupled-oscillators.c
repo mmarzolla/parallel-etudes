@@ -76,7 +76,7 @@ oscillators. The program produces a two-dimensional image
 `coupled-oscillators.ppm` where each line shows the potential energies
 of the springs at any time (Figure 2).
 
-![Figure 2: potential energy of the springs](coupled-oscillators.png)
+![Figure 2: potential energy of the springs](coupled-oscillators.svg)
 
 Your task is to parallelize function `step()` by defining additional
 OpenCL kernel(s).
