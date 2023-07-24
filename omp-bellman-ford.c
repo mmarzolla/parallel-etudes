@@ -96,8 +96,8 @@ che mostrano la distanza dist tra il nodo $i$ e il nodo $j$ ($i$ sarà
 sempre il nodo sorgente). Le caratteristiche dei grafi, e le distanze
 tra il nodo $0$ e il nodo $n-1$ sono indicati nella tabella seguente:
 
-Grafo                      Nodi (n)    Archi (m)    Distanza $0 \rightarrow n-1$
-------------------------- --------- ------------ -------------------------------
+Grafo                       Nodi (n)    Archi (m)    Distanza $0 \rightarrow n-1$
+-------------------------  --------- ------------ -------------------------------
 [rome99.gr](rome99.g)           3353         8870                         30290.0
 [DE.gr](DE.gr)                 49109       121024                         69204.0
 [VT.gr](VT.gr)                 97975       215116                        129866.0
@@ -107,7 +107,7 @@ Grafo                      Nodi (n)    Archi (m)    Distanza $0 \rightarrow n-1$
 È possibile stampare la distanza tra la sorgente e il nodo $n-1$ con
 il comando:
 
-        ./omp-dijkstra < rome99.gr | tail -1
+        ./omp-bellman-ford < rome99.gr | tail -1
 
 Si presti attenzione al fatto che i grafi nei file di input sono da
 considerarsi come grafi non orientati; questo significa che ogni arco
@@ -318,10 +318,6 @@ void dijkstra(const graph_t* g, int s, float *d)
 #pragma omp parallel default(none) shared(g,d,best_dist,best_node,m)
 #endif
         {
-            const int num_threads = omp_get_max_threads();
-            const int my_id = omp_get_thread_num();
-            const int jstart = m*my_id/num_threads;
-            const int jend = m*(my_id+1)/num_threads;
             float my_best_dist = INFINITY;
             int my_best_node = -1;
             int j;
@@ -520,7 +516,7 @@ int checkdist( float *d1, float *d2, int n)
 int main( int argc, char* argv[] )
 {
     graph_t g;
-    int i, src = 0;
+    int src = 0;
     float *d_serial, *d_parallel;
     float tstart, t_serial, t_atomic, t_none, t_dijkstra;
 
