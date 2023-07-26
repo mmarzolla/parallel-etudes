@@ -2,7 +2,7 @@
  *
  * omp-cat-map.c - Arnold's cat map
  *
- * Copyright (C) 2016--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2016--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Arnold's cat map
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-10-18
+% Last updated: 2023-07-26
 
 ![](cat-map.png)
 
@@ -198,20 +198,20 @@ Intuitively, we might expect that (c) performs better than (3), because:
 
 Interestingly, this does not appear to be the case (at least, not on
 every processor). Table 1 shows the execution time of the two versions
-of the `cat_map()` function ("Noi loop interchange" refers to option
+of the `cat_map()` function ("No loop interchange" refers to option
 (3) above; "Loop interchange" refers to option (c)). The program has
 been compiled with:
 
         gcc -O0 -fopenmp omp-cat-map.c -o omp-cat-map
 
 (`-O0` prevents the compiler to make code transformations that might
-alter significantly our functions) and executed with the command line:
+significantly alter the functions) and executed with the command line:
 
         ./omp-cat-map 2048 < cat1368.pgm > /dev/null
 
 Each measurement is the average of five independent executions.
 
-:Table 1: Execution time (in seconds) of different implementations.
+:Table 1: Execution time (in seconds) of the command `./omp-cat-map 2048 < cat1368.pgm > /dev/null` using all processor cores, with different implementations of the cat map iteration.
 
 Processor type      Cores   GHz  GCC version  No loop interchange   Loop interchange
 ------------------ ------ ----- ------------ -------------------- ------------------
