@@ -2,7 +2,7 @@
  *
  * omp-lookup.c - Parallel linear search
  *
- * Copyright (C) 2021--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2023 by Alice Girolomini <alice.girolomini(at)studio.unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Parallel linear search
 % Alice Girolomini <alice.girolomini@studio.unibo.it>
-% Last updated: 2023-07-17
+% Last updated: 2023-08-10
 
 Write an OMP program that finds the positions of all occurrences of a
 given `key` in an unsorted integer array `v[]`. For example, if `v[] =

@@ -2,7 +2,7 @@
  *
  * omp-sum.c - Sum-reduction of an array
  *
- * Copyright (C) 2018--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2023 by Alice Girolomini <alice.girolomini(at)studio.unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Sum-reduction of an array
 % Alice Girolomini <alice.girolomini@studio.unibo.it>
-% Last updated: 2022-05-10
+% Last updated: 2022-08-10
 
 The file [omp-sum.c](omp-sum.c) contains a serial implementation of an
 OpenMP program that computes the sum of an array of length $N$; indeed,
