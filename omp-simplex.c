@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * omp-simplex.c - Solve systems of linear equations in upper triangular form
+ * omp-simplex.c - Solve LP Problem with Primal Simplex Algorithm
  *
  * Copyright (C) 2023 by Alice Girolomini <alice.girolomini(at)studio.unibo.it>
  *
