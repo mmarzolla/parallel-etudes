@@ -21,7 +21,7 @@
 /***
 % HPC - Parallel Primal Simplex Algorithm
 % Alice Girolomini <alice.girolomini@studio.unibo.it>
-% Last updated: 2023-08-10
+% Last updated: 2023-08-24
 
 Solves LP Problem with Primal Simplex: { minimize cx : Ax <= b, x >= 0 }.
 Input: { m, n, Mat[m x n] } where
@@ -76,23 +76,20 @@ typedef struct {
 
 /* Check whether b = mat[1..m,0] is >= 0 */
 void check_b_positive(Tableau *tab) {
-    int i;
 
-    for(i=1; i<tab->m; i++){
+    for(int i = 1; i < tab->m; i++){
         if(tab->mat[i][0] < 0){
             fprintf(stderr, "\nFATAL: b[%d] must be positive\n", i);
-             exit(1);
+            exit(1);
         }
     }
 }
 
 void print_tableau(Tableau *tab) {
 
-  int i, j;
-
   printf("\n Tableau:\n");
-  for (i = 0; i < tab->m; i++) {
-    for (j = 0; j < tab->n; j++) {
+  for (int i = 0; i < tab->m; i++) {
+    for (int j = 0; j < tab->n; j++) {
         printf(" %lf", tab->mat[i][j]);
     }
     printf("\n");
@@ -141,9 +138,9 @@ void read_tableau (Tableau *tab, const char * filename) {
         exit(1);
     }
 
-    tab->mat = (double**)malloc(tab->m * sizeof(double*));
+    tab->mat = (double**) malloc(tab->m * sizeof(double*));
     for (i = 0; i < tab->m; i++){
-        tab->mat[i] = (double*)malloc(tab->n * sizeof(double));
+        tab->mat[i] = (double*) malloc(tab->n * sizeof(double));
     }
 
     for (i = 0; i < tab->m; i++) {
@@ -168,10 +165,10 @@ void read_tableau (Tableau *tab, const char * filename) {
 /* Select pivot column */
 /*  Select the greatest value in mat[0][1..n] */
 int find_pivot_col (Tableau *tab){
-    int j, pivot_col = 1;
+    int pivot_col = 1;
     double highest_val = 0;
 
-    for (j = 1; j < tab->n; j++) {
+    for (int j = 1; j < tab->n; j++) {
         if (tab->mat[0][j] > highest_val && tab->mat[0][j] != 0) {
             highest_val = tab->mat[0][j];
             pivot_col = j;
@@ -188,10 +185,10 @@ int find_pivot_col (Tableau *tab){
 /* Select pivot row */
 /* Count the number of positive values in the given column, if all are < 0 then solution is unbounded else finds the smallest positive ratio min_ratio = mat[0] / mat[pivot_col] */
 int find_pivot_row (Tableau *tab, int pivot_col){
-    int i, pivot_row = 0;
+    int pivot_row = 0;
     double min_ratio = -1;
 
-    for (i = 1; i < tab->m; i++) {
+    for (int i = 1; i < tab->m; i++) {
         if (tab-> mat[i][pivot_col] > 0.0) {
             double ratio = tab->mat[i][0] / tab->mat[i][pivot_col];
             if ((ratio > 0 && ratio < min_ratio) || min_ratio < 0) {
@@ -202,7 +199,8 @@ int find_pivot_row (Tableau *tab, int pivot_col){
     }
 
     if (min_ratio == UNBOUNDED){
-        return min_ratio;
+        fprintf(stderr, "Unbounded solution\n");
+        exit(1);
     }
     printf("    Pivot row %d\n", pivot_row);
 
@@ -212,9 +210,8 @@ int find_pivot_row (Tableau *tab, int pivot_col){
 /* Update pivot row */
 /* Convert pivot element to 1 and updates the other element in the row */
 void update_pivot_row (Tableau *tab, int pivot_row, double pivot){
-    int j;
 
-    for (j = 0; j < tab->n; j++) {
+    for (int j = 0; j < tab->n; j++) {
         tab->mat[pivot_row][j] = tab->mat[pivot_row][j] / pivot;
     }
     
@@ -223,13 +220,12 @@ void update_pivot_row (Tableau *tab, int pivot_row, double pivot){
 /* Update rows */
 /* Updates all other rows except the pivot row*/
 void update_rows (Tableau *tab, int pivot_row, int pivot_col){
-    int i, j;
     double coeff;
 
-    for (i = 0; i < tab->m; i++) {
+    for (int i = 0; i < tab->m; i++) {
         if (i != pivot_row) {
             coeff = -tab->mat[i][pivot_col];
-            for (j = 0; j < tab->n; j++) {
+            for (int j = 0; j < tab->n; j++) {
                 tab->mat[i][j] = (coeff * tab->mat[pivot_row][j]) + tab->mat[i][j];
             }
         }
@@ -241,7 +237,7 @@ void update_rows (Tableau *tab, int pivot_row, int pivot_col){
 #else
 
 /* Select pivot column */
-int parallel_find_pivot_col (Tableau *tab){
+int find_pivot_col (Tableau *tab){
     int j, pivot_col;
     const int max_threads = omp_get_max_threads();
     int *local_max_index = (int*)malloc(max_threads * sizeof(int));
@@ -279,7 +275,7 @@ int parallel_find_pivot_col (Tableau *tab){
 }
 
 /* Select pivot row */
-int parallel_find_pivot_row (Tableau *tab, int pivot_col){
+int find_pivot_row (Tableau *tab, int pivot_col){
     int i, pivot_row = 0;
     const int max_threads = omp_get_max_threads();
     int *local_min_index = (int*)malloc(max_threads * sizeof(int));
@@ -313,7 +309,8 @@ int parallel_find_pivot_row (Tableau *tab, int pivot_col){
     }
 
     if (min_ratio == UNBOUNDED){
-        return min_ratio;
+        fprintf(stderr, "Unbounded solution\n");
+        exit(1);
     }
     printf("    Pivot row %d\n", pivot_row);
 
@@ -321,18 +318,17 @@ int parallel_find_pivot_row (Tableau *tab, int pivot_col){
 }
 
 /* Update pivot row */
-void parallel_update_pivot_row (Tableau *tab, int pivot_row, double pivot){
-    int j;
+void update_pivot_row (Tableau *tab, int pivot_row, double pivot){
 
     #pragma omp parallel for default(none) shared(tab,  pivot, pivot_row)
-    for (j = 0; j < tab->n; j++) {
+    for (int j = 0; j < tab->n; j++) {
         tab->mat[pivot_row][j] = tab->mat[pivot_row][j] / pivot;
     }
     
 }
 
 /* Update rows */
-void parallel_update_rows (Tableau *tab, int pivot_row, int pivot_col){
+void update_rows (Tableau *tab, int pivot_row, int pivot_col){
     int i, j;
     double *coeff = (double*)malloc(tab->m * sizeof(double));
 
@@ -357,12 +353,11 @@ void parallel_update_rows (Tableau *tab, int pivot_row, int pivot_col){
 
     /*print_tableau(tab);*/
 }
-
 #endif
 
 int main ( int argc, char *argv[] ) {
 
-    int it=0, optimal=0;
+    int it = 0, optimal = 0;
     Pivot p;
     Tableau tab;
     
@@ -374,28 +369,20 @@ int main ( int argc, char *argv[] ) {
     read_tableau(&tab, argv[1]);
     const double tstart = omp_get_wtime();
     do {
-    #ifdef SERIAL
         p.column = find_pivot_col(&tab);
-    #else
-        p.column = parallel_find_pivot_col(&tab);
-    #endif
+
         if (p.column == 0){
             optimal = 1;
         } else {
-            printf("Iteration: %d\n", it+1);
+            it++;
+            printf("Iteration: %d\n", it);
             printf("    Pivot column %d\n", p.column);
-    #ifdef SERIAL
+
             p.row = find_pivot_row(&tab, p.column);
             p.value = tab.mat[p.row][p.column];
             update_pivot_row(&tab, p.row, p.value);
             update_rows(&tab, p.row, p.column);
-    #else
-            p.row = parallel_find_pivot_row(&tab, p.column);
-            p.value = tab.mat[p.row][p.column];
-            parallel_update_pivot_row(&tab, p.row, p.value);
-            parallel_update_rows(&tab, p.row, p.column);
-    #endif
-            it++;
+
         }
     } while (optimal == 0); 
 
