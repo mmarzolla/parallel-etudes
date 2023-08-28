@@ -75,7 +75,7 @@ Example:
 #define CHUNK_SIZE 1 /* can be set to any value >= 1 */
 #define WORK_COMPLETED 1
 
-typedef struct{
+typedef struct {
     int start, end;
     int local_vin[CHUNK_SIZE];
     int local_vout[CHUNK_SIZE];
@@ -83,7 +83,7 @@ typedef struct{
 
 /* Recursive computation of the n-th Fibonacci number, for n=0, 1, 2, ...
    Do not parallelize this function. */
-int fib_rec(int n) {
+int fib_rec (int n) {
     if (n < 2) {
         return 1;
     } else {
@@ -93,7 +93,7 @@ int fib_rec(int n) {
 
 /* Iterative computation of the n-th Fibonacci number. This function
    must be used for checking the result only. */
-int fib_iter(int n) {
+int fib_iter (int n) {
     if (n < 2) {
         return 1;
     } else {
@@ -115,7 +115,7 @@ int fib_iter(int n) {
    vend.  The vector is filled in such a way that there are more or
    less the same number of contiguous occurrences of all values in
    [vstart, vend]. */
-void fill(int *v, int n) {
+void fill (int *v, int n) {
     const int vstart = 20, vend = 35;
     const int blk = (n + vend - vstart) / (vend - vstart + 1);
     int tmp = vstart;
@@ -128,7 +128,7 @@ void fill(int *v, int n) {
     }
 }
 
-int main( int argc, char* argv[] ) {
+int main (int argc, char* argv[]) {
 
     int my_rank, comm_sz, i, n = 1024;
     const int max_n = 512*1024*1024;
