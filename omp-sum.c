@@ -21,7 +21,7 @@
 /***
 % HPC - Sum-reduction of an array
 % Alice Girolomini <alice.girolomini@studio.unibo.it>
-% Last updated: 2022-08-24
+% Last updated: 2023-08-24
 
 The file [omp-sum.c](omp-sum.c) contains a serial implementation of an
 OpenMP program that computes the sum of an array of length $N$; indeed,
@@ -51,12 +51,11 @@ Example:
 
 #ifdef SERIAL
 /* Computes the sum of all elements of array `v` of length `n` */
-float sum(float *v, int n)
-{
+float sum (float *v, int n) {
     float sum = 0;
     int i;
 
-    for (i=0; i<n; i++) {
+    for (i = 0; i < n; i++) {
         sum += v[i];
     }
 
@@ -65,13 +64,11 @@ float sum(float *v, int n)
 
 /* Fill the array `v` of length `n`; returns the sum of the
    content of `v` */
-float fill(float *v, int n)
-{
+float fill (float *v, int n) {
     const float vals[] = {1, -1, 2, -2, 0};
     const int NVALS = sizeof(vals)/sizeof(vals[0]);
     int i;
 
-    
     for (i = 0; i < n; i++) {
         v[i] = vals[i % NVALS];
     }
@@ -85,8 +82,7 @@ float fill(float *v, int n)
 
 #else
 /* Parallelized sum of all elements of array `v` of length `n` */
-float sum(float *v, int n)
-{
+float sum (float *v, int n) {
     float sum = 0;
     int i;
 
@@ -100,8 +96,7 @@ float sum(float *v, int n)
 
 /* Parallelized fill of the array `v` of length `n`; returns the sum of the
    content of `v` */
-float fill(float *v, int n)
-{
+float fill (float *v, int n) {
     const float vals[] = {1, -1, 2, -2, 0};
     const int NVALS = sizeof(vals)/sizeof(vals[0]);
     int i;
@@ -130,8 +125,7 @@ float fill(float *v, int n)
 }
 #endif
 
-int main( int argc, char *argv[] )
-{
+int main (int argc, char *argv[]) {
     size_t n = 10000; 
     float s, expected;
     float *v;
