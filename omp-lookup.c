@@ -53,22 +53,20 @@ Example:
 #include <stdio.h>
 #include <assert.h>
 
-void fill(int *v, int n)
-{
+void fill (int *v, int n) {
     int i;
-    for (i=0; i<n; i++) {
+    for (i = 0; i < n; i++) {
         v[i] = (rand() % 100);
     }
 }
 
-int main( int argc, char *argv[] )
-{
+int main (int argc, char *argv[]) {
 
-    int n = 1000;       /* lunghezza array di input */
-    int *v = NULL;      /* array di input */
-    int *result = NULL; /* array degli indici delle occorrenze */
-    int nf = 0;         /* numero di occorrenze trovate */
-    const int KEY = 42; /* valore da cercare */
+    int n = 1000;       /* Lenght of the input array */
+    int *v = NULL;      /* Input array */
+    int *result = NULL; /* Array which contains the indexes of the occurrences */
+    int nf = 0;         /* Total occurrences */
+    const int KEY = 42; /* The value to search for */
     int i;
 
 
