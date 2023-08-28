@@ -104,11 +104,11 @@ Example:
  * n x n in upper triangular form.
  */
 #ifdef SERIAL
-void solve (const float *A, const float *b, float *x, int n ){
+void solve (const float *A, const float *b, float *x, int n ) {
 
-    for (int i=n-1; i>=0; i--){
+    for (int i = n - 1; i >= 0; i--) {
         x[i] = b[i];
-        for (int j=i+1; j<n; j++) {
+        for (int j = i + 1; j < n; j++) {
             x[i] -= A[i*n + j]*x[j];
         }
         x[i] /= A[i*n + i];
@@ -136,7 +136,7 @@ void init (float *A, float *b, int n ) {
 /**
  * Returns nonzero iff Ax = b within some tolerante EPSILON
  */
-int check_ok( const float *A, const float *b, const float *x, int n ) {
+int check_ok ( const float *A, const float *b, const float *x, int n ) {
     const float EPSILON = 1e-3;
     for (int i = 0; i < n; i++) {
         assert( ! isnan(x[i]) );
@@ -153,7 +153,7 @@ int check_ok( const float *A, const float *b, const float *x, int n ) {
     return 1;
 }
 
-void print( const float *A, const float *b, const float *x, int n ) {
+void print ( const float *A, const float *b, const float *x, int n ) {
     printf("A[][] =\n");
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
@@ -172,7 +172,7 @@ void print( const float *A, const float *b, const float *x, int n ) {
     printf("\n\n");
 }
 
-int main( int argc, char *argv[] ) {
+int main (int argc, char *argv[]) {
     int my_rank, comm_sz, n = 10;
     float *A, *b, *x;
 
