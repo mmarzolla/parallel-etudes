@@ -76,7 +76,7 @@ typedef struct {
 } Pivot;
 
 /* Check whether b = mat[1..m,0] is >= 0 */
-void check_b_positive(Tableau *tab) {
+void check_b_positive (Tableau *tab) {
 
     for(int i = 1; i < tab->m; i++){
         if(tab->mat[i * tab->n] < 0){
@@ -97,22 +97,22 @@ void print_tableau(Tableau *tab) {
   }
 }
 
-void print_solution(Tableau *tab) {
+void print_solution (Tableau *tab) {
     int *x = (int*) calloc((tab->m - 1), sizeof(int));
     int *row = (int*) malloc((tab->m - 1) * sizeof(int));
   
     printf("Solutions: \n");
     printf("    Cost: %f\n", tab->mat[0]);
-    for (int i = 1; i < tab->m; i++){
-        for (int j = 1; j < tab->n; j++){
-            if (tab->mat[i * tab->n + j] == 1 && tab->mat[j] == 0 && j < tab->m){
+    for (int i = 1; i < tab->m; i++) {
+        for (int j = 1; j < tab->n; j++) {
+            if (tab->mat[i * tab->n + j] == 1 && tab->mat[j] == 0 && j < tab->m) {
                 x[j-1] ++;
                 row[j-1] = i;
             }
         }
     }
 
-    for (int i = 0; i < tab->m - 1; i++){
+    for (int i = 0; i < tab->m - 1; i++) {
         if (x[i] == 1){
             printf("X%d = %lf\n", i+1, tab->mat[row[i] * tab->n]);
         }
@@ -189,7 +189,7 @@ int find_pivot_col (Tableau *tab) {
         }
     }
 
-    if(highest_val == 0){
+    if(highest_val == 0) {
         return 0;
     }
 
@@ -212,7 +212,7 @@ int find_pivot_row (Tableau *tab, int pivot_col) {
         }
     }
 
-    if (min_ratio == UNBOUNDED){
+    if (min_ratio == UNBOUNDED) {
         return min_ratio;
     }
     printf("    Pivot row %d\n", pivot_row);
@@ -251,7 +251,7 @@ int find_pivot_col (double *tab, int col, int n) {
         }
     }
 
-    if(highest_val == 0){
+    if (highest_val == 0) {
         return 0;
     }
 
@@ -292,7 +292,7 @@ void update_pivot_row (double *tab, double pivot, int n) {
 }
 #endif
 
-int main ( int argc, char *argv[] ) {
+int main (int argc, char *argv[]) {
 
     int my_rank, comm_sz;
     int it = 0, optimal = 0;
@@ -315,7 +315,7 @@ int main ( int argc, char *argv[] ) {
     const double tstart = hpc_gettime();
 #ifdef SERIAL
     if (my_rank == 0) {
-         do {
+        do {
             p.column = find_pivot_col(&tab);
             if (p.column == 0){
                 optimal = 1;
@@ -329,7 +329,7 @@ int main ( int argc, char *argv[] ) {
                 update_pivot_row(&tab, p.row, p.value);
                 update_rows(&tab, p.row, p.column);
             }
-         } while (optimal == 0); 
+        } while (optimal == 0); 
     }
 #else
     int count, m;
@@ -383,7 +383,7 @@ int main ( int argc, char *argv[] ) {
                     highest_val = tab.mat[max_col_index[i]];
                 }
             }
-            if(highest_val == 0){
+            if (highest_val == 0) {
                 p.column = 0;
             }
         }
@@ -408,7 +408,7 @@ int main ( int argc, char *argv[] ) {
             if (my_rank == 0) {
                 double min_ratio = -1;
                 for (int i = 0; i < comm_sz; i++) {
-                    if(min_ratio_index[i] != 0){
+                    if(min_ratio_index[i] != 0) {
                         double ratio = tab.mat[min_ratio_index[i] * count] / tab.mat[min_ratio_index[i] * count + p.column];
                         if ((ratio > 0 && ratio < min_ratio) || min_ratio < 0) {
                             min_ratio = ratio;
@@ -417,7 +417,7 @@ int main ( int argc, char *argv[] ) {
                     }
                 }
                 /* If the min ratio < 0  the problem i unbounded */
-                if (min_ratio == UNBOUNDED){
+                if (min_ratio == UNBOUNDED) {
                     fprintf(stderr, "Unbounded solution\n");
                     return EXIT_FAILURE;
                 }
