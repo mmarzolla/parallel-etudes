@@ -21,7 +21,7 @@
 /***
 % HPC - Parallel Primal Simplex Algorithm
 % Alice Girolomini <alice.girolomini@studio.unibo.it>
-% Last updated: 2023-08-21
+% Last updated: 2023-08-27
 
 Solves LP Problem with Primal Simplex: { minimize cx : Ax <= b, x >= 0 }.
 Input: { m, n, Mat[m x n] } where
