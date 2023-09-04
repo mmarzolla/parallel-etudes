@@ -125,7 +125,6 @@ __global__ void solve_kernel (float *A, float *x, int n) {
         /* Each thread copies the corresponding element of the current row in the shared memory */
         if (j >= i + 1 && j < n) {
             temp[tid] = - A[i * n + j] * x[j];
-            /* printf("x[%d] %f %f blocco %d iterazione %d init\n", j, - A[i * n + j], x[j], blockIdx.x, i);*/
         } else {
             temp[tid] = 0;
         }
@@ -140,9 +139,8 @@ __global__ void solve_kernel (float *A, float *x, int n) {
     
         if (tid == 0) {
             atomicAdd(&x[i], temp[0]);
-          /*  printf("x[%d] = %f parziale\n", i, x[i]); */
         }   
-       __syncthreads();
+        __syncthreads();
 
         if (j == 0) {
             x[i] /= A[i * n + i];
