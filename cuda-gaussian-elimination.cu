@@ -144,7 +144,6 @@ __global__ void solve_kernel (float *A, float *x, int n) {
 
         if (j == 0) {
             x[i] /= A[i * n + i];
-            printf("x[%d] = %f parziale\n", i, x[i]);
         }
         __syncthreads();
 
