@@ -2,7 +2,7 @@
  *
  * mpi-brute-force.c - Brute-force password cracking
  *
- * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,23 +75,23 @@ encryption key.
 The encryption key that has been used in this program is a sequence of
 8 ASCII numeric characters; therefore, the key is a string between
 `"00000000"` and `"99999999"`. Write a program to brute-force the key
-using OpenMP. The program tries every key until a valid message is
-eventually found, i.e., a message that begins with `"0123456789"`. At
-the end, the program must print the plaintext, which is a relevant
-quote from an old film.
+using MPI.
 
-Use an `omp parallel` construct (not `parallel for`) whose body
-contains code that assigns a suitable subset of the key space to each
-OpenMP thread. Recall from the lectures that the `omp parallel`
-construct applies to a _structured block_, that is, a block with a
-single entry and a single exit point. Therefore, the thread who finds
-the correct key can not exit from the block using `return`, `break` or
-`goto` (the compiler should raise a compile-time error if any of these
-constructs are used). However, we certainly do not want to wait until
-all keys have been explored to terminate the program.  Therefore, you
-should devise a clean mechanism to terminate the computation as soon
-as the correct key has been found. You may not terminate the program
-with `exit()`, `abort()` or similar.
+If $P$ MPI processes are used, then the key space is partitioned into
+$P$ blocks, and the lower and upper bounds [_low_, _high_) of the
+blocks to each process. Then, each process tries all keys within its
+block.  This must be done carefully, since a process should
+periodically check whether other processes have found the key. The
+easiest way to achieve this is to explore the keys [_low_, _high_) in
+chunks of size _BLKLEN_ (e.g., _BLKLEN_ = 1024). Every _BLKLEN_ keys,
+each process checks whether the key has been found. If not, the next
+chunk of _BLKLEN_ keys is tried.
+
+To check whether the key has been found, it is possible to use a
+_max-reduction_ operation. Each process sends the value -1 if it found
+no key, or the key value otherwise. All processes compute the maximum
+of the local keys. If the maximum is still -1, then no key has been
+found.
 
 Compile with:
 
@@ -102,7 +102,7 @@ Run with:
         mpirun -n 4 ./mpi-brute-force
 
 **Note**: the execution time of the parallel program might change
-irregularly depending on the number $P$ of processes. Why?
+irregularly depending on the number $P$ of MPI processes. Why?
 
 ## Files
 
@@ -232,11 +232,12 @@ int main( int argc, char *argv[] )
         if (found < 0) {
             fprintf(stderr, "FATAL: key not found\n");
             MPI_Abort(MPI_COMM_WORLD, -1);
+        } else {
+            printf("Key found \"%d\"\n", found);
+            sprintf(key, "%08d", found);
+            xorcrypt(enc, buf, msglen, key, 8);
+            printf("Decrypted message: %s\n", buf);
         }
-        printf("Key found \"%d\"\n", found);
-        sprintf(key, "%08d", found);
-        xorcrypt(enc, buf, msglen, key, 8);
-        printf("Decrypted message: %s\n", buf);
     }
 
     free(buf);
