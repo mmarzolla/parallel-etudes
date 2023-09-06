@@ -21,7 +21,7 @@
 /***
 % HPC - Solution of a system of linear equations in upper triangular form
 % Alice Girolomini <alice.girolomini@studio.unibo.it>
-% Last updated: 2023-09-04
+% Last updated: 2023-09-06
 
 The solution of a linear system $Ax = b$, where $A$ is a square matrix
 of size $n \times n$ in upper triangular form and $b$ is a vector of
@@ -165,7 +165,7 @@ void solve (const float *A, const float *b, float *x, int n) {
     /* Copies b in x */
     cudaMemcpy(d_x, b, size / n, cudaMemcpyHostToDevice);
 
-    solve_kernel<<<n_of_blocks, BLKDIM>>>(d_A, d_x, n);
+    solve_kernel <<<n_of_blocks, BLKDIM>>> (d_A, d_x, n);
 
     /* Copies the result back to host */
     cudaMemcpy(x, d_x, size / n, cudaMemcpyDeviceToHost);
@@ -178,18 +178,26 @@ void solve (const float *A, const float *b, float *x, int n) {
 
 void init (float *A, float *b, int n) {
     const float EPSILON = 1e-5;
+    float *x = (float*) malloc(n * sizeof(*x));
+    for (int i=0; i<n; i++) {
+        x[i] = 1;
+    }
+
     for (int i = 0; i < n; i++) {
-        b[i] = i;
+        float bi = 0;
         for (int j = 0; j < n; j++) {
             if (i > j) {
                 A[i * n + j] = 0;
             } else {
-                A[i * n + j] = i + j + 1;
+                A[i * n + j] = 1;
+                bi += x[j] * A[i * n + j];
             }
         }
+        b[i] = bi;
         /* ensures that matrix A is non-singular */
         assert(fabs(A[i * n + i]) > EPSILON);
     }
+    free(x);
 }
 
 /**
@@ -239,6 +247,11 @@ int main (int argc, const char *argv[]) {
         fprintf(stderr, "Usage: %s [n]\n", argv[0]);
         return EXIT_FAILURE;
     }
+
+    if (BLKDIM & (BLKDIM-1) != 0) {
+        fprintf(stderr, "BLKDIM must be a power of two\n");
+        return EXIT_FAILURE;
+    } 
 
     if (argc == 2) {
         n = atoi(argv[1]);
