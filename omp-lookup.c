@@ -21,7 +21,7 @@
 /***
 % HPC - Parallel linear search
 % Alice Girolomini <alice.girolomini@studio.unibo.it>
-% Last updated: 2023-08-10
+% Last updated: 2023-09-06
 
 Write an OMP program that finds the positions of all occurrences of a
 given `key` in an unsorted integer array `v[]`. For example, if `v[] =
@@ -80,21 +80,19 @@ int main (int argc, char *argv[]) {
 
     const double tstart = omp_get_wtime();
 #ifdef SERIAL
-    int r = 0;
-    /* Count the number of occurrences of `KEY` in `v[]` */
-    
+    /* Counts the number of occurrences of `KEY` in `v[]` */
     for (i = 0; i < n; i++) {
         if (v[i] == KEY){
             nf++;
         }
     }
 
-    /* allocate the result array */
-    result = (int*)malloc(nf * sizeof(*result)); 
+    /* Allocates the result array */
+    result = (int*) malloc(nf * sizeof(*result)); 
     assert(result != NULL);
 
-    /* fill the result array  */
-    r = 0;
+    /* Fills the result array  */
+    int r = 0;
     for (i = 0; i < n; i++) {
         if (v[i] == KEY) {
             result[r] = i;
@@ -116,8 +114,6 @@ int main (int argc, char *argv[]) {
             my_nf[omp_get_thread_num()] = nf;
         }
     }
-
-    printf("nf: %d\n", nf);
 
     result = (int*)malloc(nf * sizeof(*result)); 
     assert(result != NULL);
@@ -155,7 +151,7 @@ int main (int argc, char *argv[]) {
 
     printf("There are %d occurrences of %d\n", nf, KEY);
     printf("Positions: ");
-    for (int i=0; i<nf; i++) {
+    for (int i = 0; i < nf; i++) {
         printf("%d ", result[i]);
         if (v[result[i]] != KEY) {
             fprintf(stderr, "\nFATAL: v[%d]=%d, expected %d\n", result[i], v[result[i]], KEY);
