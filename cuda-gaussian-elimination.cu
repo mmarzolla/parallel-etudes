@@ -116,59 +116,51 @@ void solve (const float *A, const float *b, float *x, int n) {
 }
 #else
 
-__global__ void solve_kernel (float *A, float *x, int n) {
+__global__ void solve_row_kernel (float *Ai, float *x, int n, int i) {
     __shared__ float temp[BLKDIM];
     int tid = threadIdx.x;
     int j = tid + blockIdx.x * blockDim.x;                                                                                                                                                                                                                                                                            
 
-    for (int i = n - 1; i >= 0; i--) {
-        /* Each thread copies the corresponding element of the current row in the shared memory */
-        if (j >= i + 1 && j < n) {
-            temp[tid] = - A[i * n + j] * x[j];
-        } else {
-            temp[tid] = 0;
-        }
-        __syncthreads(); 
-        /* Performs a reduction for each row */
-        for (int offset = blockDim.x / 2; offset > 0; offset /= 2) {
-            if (tid < offset) {
-                temp[tid] += temp[tid + offset];
-            }
-        __syncthreads(); 
-        }
-    
-        if (tid == 0) {
-            atomicAdd(&x[i], temp[0]);
-        }   
-        __syncthreads();
-
-        if (j == 0) {
-            x[i] /= A[i * n + i];
-        }
-        __syncthreads();
-
-       
+    /* Each thread copies the corresponding element of the current row in the shared memory */
+    if (j >= i + 1 && j < n) {
+        temp[tid] = - Ai[j] * x[j];
+    } else {
+        temp[tid] = 0;
     }
+    __syncthreads(); 
+    /* Performs a reduction for each row */
+    for (int offset = blockDim.x / 2; offset > 0; offset /= 2) {
+        if (tid < offset) {
+            temp[tid] += temp[tid + offset];
+        }
+        __syncthreads(); 
+    }
+    
+    if (tid == 0) {
+        atomicAdd(&x[i], temp[0]);
+    }   
    
 }
 
 void solve (const float *A, const float *b, float *x, int n) {
     /* Device copies of A and x */
     float *d_A, *d_x;
-    const size_t size = n * n * sizeof(*A);
+    const size_t size = n * sizeof(*A);
     const int n_of_blocks = (n + BLKDIM - 1) / BLKDIM;
 
     cudaMalloc((void **)&d_A, size);
-    cudaMalloc((void **)&d_x, size / n);
+    cudaMalloc((void **)&d_x, size);
 
-    cudaMemcpy(d_A, A, size, cudaMemcpyHostToDevice);
     /* Copies b in x */
-    cudaMemcpy(d_x, b, size / n, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_x, b, size, cudaMemcpyHostToDevice);
 
-    solve_kernel <<<n_of_blocks, BLKDIM>>> (d_A, d_x, n);
-
-    /* Copies the result back to host */
-    cudaMemcpy(x, d_x, size / n, cudaMemcpyDeviceToHost);
+    for (int i = n - 1; i >= 0; i--) {
+        cudaMemcpy(d_A, &A[i * n], size, cudaMemcpyHostToDevice);
+        solve_row_kernel <<<n_of_blocks, BLKDIM>>> (d_A, d_x, n, i);
+        cudaMemcpy(&x[i], &d_x[i], sizeof(x[i]), cudaMemcpyDeviceToHost);
+        x[i] /= A[i *n + i];
+        cudaMemcpy(&d_x[i], &x[i], sizeof(x[i]), cudaMemcpyHostToDevice);
+    }
     
     cudaFree(d_A); 
     cudaFree(d_x);
