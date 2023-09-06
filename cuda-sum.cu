@@ -21,7 +21,7 @@
 /***
 % HPC - Sum-reduction of an array
 % Alice Girolomini <alice.girolomini@studio.unibo.it>
-% Last updated: 2023-08-29
+% Last updated: 2023-09-06
 
 The file [cuda-sum.cu](cuda-sum.cu) contains a serial implementation of a
 CUDA program that computes the sum of an array of length $N$; indeed,
