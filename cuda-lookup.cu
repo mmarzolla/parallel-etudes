@@ -68,6 +68,7 @@ __global__ void count_kernel (int *v, int n, int *nf, int KEY) {
     } 
     __syncthreads(); 
 
+    /* All threads within the block cooperate to compute the number of occurrences */
     for (int offset = blockDim.x / 2; offset > 0; offset /= 2) {
         if (tid < offset) {
             temp[tid] += temp[tid + offset];
@@ -144,10 +145,11 @@ int main (int argc, char *argv[]) {
     }
 #else
 
-    int *d_v, *d_result, *d_nf, *d_r = 0;
+    int *d_v, *d_result, *d_nf, *d_r;
     const size_t size = n * sizeof(*v);
     const int n_of_blocks = (n + BLKDIM - 1) / BLKDIM;
 
+    /* Allocates space for device copies */  
     cudaMalloc((void **)&d_v, size);
     cudaMalloc((void **)&d_nf, sizeof(*d_nf));
     cudaMalloc((void **)&d_r, sizeof(*d_r));
@@ -156,11 +158,13 @@ int main (int argc, char *argv[]) {
     cudaMemcpy(d_nf, &nf, sizeof(nf), cudaMemcpyHostToDevice);
     cudaMemcpy(d_r, &nf, sizeof(nf), cudaMemcpyHostToDevice);
 
+    /* Counts the number of occurrences */  
     count_kernel <<<n_of_blocks, BLKDIM>>> (d_v, n, d_nf, KEY);
 
     cudaMemcpy(&nf, d_nf, sizeof(nf), cudaMemcpyDeviceToHost);
     cudaMalloc((void **)&d_result, nf * sizeof(result));
 
+    /* Finds the indexes of the occurrences */
     find_indexes_kernel <<<n_of_blocks, BLKDIM>>> (d_v, d_result, n, nf, KEY, d_r);
     result = (int*) malloc(nf * sizeof(*result)); 
     assert(result != NULL);
