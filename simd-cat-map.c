@@ -25,8 +25,8 @@
 
 ![](cat-map.png)
 
-The goal of this esercise is to write a SIMD version of a program that
-computes the iterate of _Arnold's cat map_. We have already seen this
+The goal of this exercise is to write a SIMD version of a program to
+compute the iterate of _Arnold's cat map_. We have already seen this
 problem in other lab sessions; to make this exercise self-contained,
 we report here the problem specification.
 
@@ -103,14 +103,14 @@ the cat map is very simple:
 ```C
 for (y=0; y<N; y++) {
 	for (x=0; x<N; x++) {
-		\/\* copmpute the coordinates (xnew, ynew) of point (x, y)
+		\/\* compute the coordinates (xnew, ynew) of point (x, y)
                      after k iterations of the cat map \*\/
 		next[xnew + ynew*N] = cur[x+y*N];
 	}
 }
 ```
 
-To make use of SIMD parallelism we can proceed as follows: instead of
+To make use of SIMD parallelism we proceed as follows: instead of
 computing the new coordinates of a single point at a time, we compute
 the new coordinates of all adjacent points $(x, y)$, $(x+1,y)$,
 $(x+2,y)$, $(x+3,y)$ using the compiler's _vector datatype_. To this
