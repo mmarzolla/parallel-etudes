@@ -2,7 +2,7 @@
  *
  * simd-cat-map.c - Arnold's cat map
  *
- * Copyright (C) 2016--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2016--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,102 +19,132 @@
  ****************************************************************************/
 
 /***
-% HPC - La mappa del gatto di Arnold
+% HPC - Ardnold's cat map
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Ultimo aggiornamento: 2022-11-26
+% Last updated: 2023-09-18
 
 ![](cat-map.png)
 
-Scopo di questo esercizio è sviluppare una versione SIMD di una
-funzione che calcola l'iterata della _mappa del gatto di Arnold_, una
-vecchia conoscenza che abbiamo già incontrato in altre esercitazioni.
-Riportiamo nel seguito la descrizione del problema.
+The goal of this exercise is to write a SIMD version of a program to
+compute the iterate of _Arnold's cat map_. We have already seen this
+problem in other lab sessions; to make this exercise self-contained,
+we report here the problem specification.
 
-La mappa del gatto trasforma una immagine $P$ di dimensione $N \times
-N$ in una nuova immagine $P'$ delle stesse dimensioni. Per ogni $0
-\leq x < N,\ 0 \leq y < N$, il pixel di coordinate $(x,y)$ in $P$
-viene collocato nella posizione $(x',y')$ di $P'$ dove:
+[Arnold's cat map](https://en.wikipedia.org/wiki/Arnold%27s_cat_map)
+is a continuous chaotic function that has been studied in the '60s by
+the Russian mathematician [Vladimir Igorevich
+Arnold](https://en.wikipedia.org/wiki/Vladimir_Arnold). In its
+discrete version, the function can be understood as a transformation
+of a bitmap image $P$ of size $N \times N$ into a new image $P'$ of
+the same size. For each $0 \leq x, y < N$, the pixel of coordinates
+$(x,y)$ in $P$ is mapped into a new position $C(x, y) = (x', y')$ in
+$P'$ where
 
 $$
 x' = (2x + y) \bmod N, \qquad y' = (x + y) \bmod N
 $$
 
-("mod" è l'operatore modulo, corrispondente all'operatore `%` del
-linguaggio C). Si può assumere che le coordinate $(0, 0)$ indichino il
-pixel in alto a sinistra e le coordinate $(N-1, N-1)$ quello in basso
-a destra, in modo da poter indicizzare l'immagine come se fosse una
-matrice in linguaggio C. La Figura 1 mostra graficamente la
-trasformazione.
+("mod" is the integer remainder operator, i.e., operator `%` of the C
+language). We may assume that $(0, 0)$ is top left and $(N-1, N-1)$
+bottom right, so that the bitmap can be encoded as a regular
+two-dimensional C matrix.
 
-![Figura 1: La mappa del gatto di Arnold](cat-map.svg)
+The transformation corresponds to a linear "stretching" of the image,
+that is then broken down into triangles that are rearranged as shown
+in Figure 1.
 
-La mappa del gatto ha proprietà sorprendenti. Applicata ad una
-immagine ne produce una versione molto distorta. Applicata nuovamente
-a quest'ultima immagine, ne produce una ancora più distorta, e così
-via. Tuttavia, dopo un certo numero di iterazioni (il cui valore
-dipende da $N$, ma che in ogni caso è sempre minore o uguale a $3N$)
-ricompare l'immagine di partenza! (si veda la Figura 2).
+![Figure 1: Arnold's cat map](cat-map.svg)
 
-![Figura 2: Alcune immagini ottenute iterando la mappa del gatto $k$ volte](cat-map-demo.png)
+Arnold's cat map has interesting properties. Let $C^k(x, y)$ be the
+result of iterating $k$ times the function $C$, i.e.:
 
-Il _tempo minimo di ricorrenza_ per l'immagine
-[cat1368.pgm](cat1368.pgm) di dimensione $1368 \times 1368$ fornita
-come esempio è $36$: iterando $k$ volte della mappa del gatto si
-otterrà l'immagine originale se e solo se $k$ è multiplo di 36. Non è
-nota alcuna formula analitica che leghi il tempo minimo di ricorrenza
-alla dimensione $N$ dell'immagine.
+$$
+C^k(x, y) = \begin{cases}
+(x, y) & \mbox{if $k=0$}\\
+C(C^{k-1}(x,y)) & \mbox{if $k>0$}
+\end{cases}
+$$
 
-Viene fornito un programma sequenziale che calcola la $k$-esima iterata
-della mappa del gatto usando la CPU. Il programma viene invocato
-specificando sulla riga di comando il numero di iterazioni $k$. Il
-programma legge una immagine in formato PGM da standard input, e
-produce una nuova immagine su standard output ottenuta applicando $k$
-volte la mappa del gatto. Occorre ricordarsi di redirezionare lo
-standard output su un file, come indicato nelle istruzioni nel
-sorgente.  La struttura della funzione che calcola la k-esima iterata
-della mappa del gatto è molto semplice:
+Therefore, $C^2(x,y) = C(C(x,y))$, $C^3(x,y) = C(C(C(x,y)))$, and so
+on.
+
+If we take an image and apply $C$ once, we get a severely distorted
+version of the input. If we apply $C$ on the resulting image, we get
+an even more distorted image. As we keep applying $C$, the original
+image is no longer discernible. However, after a certain number of
+iterations that depends on $N$ and has been proved to never exceed
+$3N$, we get back the original image! (Figure 2).
+
+![Figure 2: Some iterations of the cat map](cat-map-demo.png)
+
+The _minimum recurrence time_ for an image is the minimum positive
+integer $k \geq 1$ such that $C^k(x, y) = (x, y)$ for all $(x, y)$. In
+simple terms, the minimum recurrence time is the minimum number of
+iterations of the cat map that produce the starting image.
+
+For example, the minimum recurrence time for
+[cat1368.pgm](cat1368.pgm) of size $1368 \times 1368$ is $36$. As said
+before, the minimum recurrence time depends on the image size $N$.
+Unfortunately, no closed formula is known to compute the minimum
+recurrence time as a function of $N$, although there are results and
+bounds that apply to specific cases.
+
+You are given sequential program that computes the $k$-th iterate of
+the cat map using the CPU. The number of iterations $k$ to compute is
+passed on the command line. The program reads an image in PGM format
+from standard input, and produces to standard output the image that is
+produced after $k$ iterations of the cat map. You should redirect the
+standard output to a file, as shown in the comments to the source
+code.
+
+The structure of the function that calculates the $k$-th iterate of
+the cat map is very simple:
 
 ```C
 for (y=0; y<N; y++) {
 	for (x=0; x<N; x++) {
-		\/\* calcola le coordinate (xnew, ynew) del punto (x, y)
-			dopo k applicazioni della mappa del gatto \*\/
+		\/\* compute the coordinates (xnew, ynew) of point (x, y)
+                     after k iterations of the cat map \*\/
 		next[xnew + ynew*N] = cur[x+y*N];
 	}
 }
 ```
 
-Per sfruttare il parallelismo SIMD possiamo ragionare come segue:
-anziché calcolare le nuove coordinate di un punto alla volta,
-calcoliamo le coordinate di quattro punti adiacenti $(x, y)$,
-$(x+1,y)$, $(x+2,y)$, $(x+3,y)$ usando i _vector datatype_ del
-compilatore. Per fare questo, definiamo le seguenti variabili di tipo
-`v4i` (vettori SIMD di 4 interi):
+To make use of SIMD parallelism we proceed as follows: instead of
+computing the new coordinates of a single point at a time, we compute
+the new coordinates of all adjacent points $(x, y)$, $(x+1,y)$,
+$(x+2,y)$, $(x+3,y)$ using the compiler's _vector datatype_. To this
+aim, we define the following variables of type `v4i` (i.e., SIMD array
+of four integers):
 
-- `vx`, `vy`: coordinate di quattro punti adiacenti, prima
-  dell'applicazione della mappa del gatto;
+- `vx`, `vy`: $x$ and $y$ coordinates of four adjacent points, before
+  the application of the cat map; the coordinates of point $i=0,
+  \ldots 3$ are `(vx[i], vy[i])`.
 
-- `vxnew`, `vynew`: nuova coordinate dei punti di cui sopra dopo
-  l'applicazione della mappa del gatto.
+- `vxnew`, `vynew`: new coordinates of four adjacent points, after
+  application of the cat map.
 
-Ricordiamo che il tipo `v4i` si definisce con `gcc` come
+Type `v4i` is defined as:
 
 ```C
 	typedef int v4i __attribute__((vector_size(16)));
 	#define VLEN (sizeof(v4i)/sizeof(int))
 ```
 
-Posto $vx = \{x, x+1, x+2, x+3\}$, $vy = \{y, y, y, y\}$, possiamo
-applicare ad essi le stesse operazioni aritmetiche applicate agli
-scalari _x_ e _y_ per ottenere le nuove coordinate _vxnew_, _vynew_.
-Fatto questo, al posto della singola istruzione:
+Let $vx = \{x, x+1, x+2, x+3\}$, $vy = \{y, y, y, y\}$; we can apply
+the cat map to all $vx$, $vy$ using the usual C operators, i.e., you
+should not need to change the instructions that actually compute the
+new coordinates.
+
+There is, however, one exception. The following scalar instruction:
 
 ```C
 	next[xnew + ynew*N] = cur[x+y*N];
 ```
 
-per spostare materialmente i pixel nella nuova posizione occorre
-eseguire quattro istruzioni scalari:
+can not be parallelized automatically by the compiler if `x`, `y`,
+`xnew`, `ynew` are SIMD vectors. Instead, you must expand the
+instruction into the following four lines of code:
 
 ```C
 	next[vxnew[0] + vynew[0]*N] = cur[vx[0] + vy[0]*N];
@@ -123,45 +153,45 @@ eseguire quattro istruzioni scalari:
 	next[vxnew[3] + vynew[3]*N] = cur[vx[3] + vy[3]*n];
 ```
 
-Si assuma che la dimensione $N$ dell'immagine sia sempre multipla di 4.
+You can assume that the size $N$ of the image is always
+an integer multiple of the SIMD vector length, i.e., an integer
+multiple of 4.
 
-Compilare con:
+To compile:
 
         gcc -std=c99 -Wall -Wpedantic -O2 -march=native simd-cat-map.c -o simd-cat-map
 
-Eseguire con:
+To execute:
 
         ./simd-cat-map k < input_file > output_file
 
-Esempio:
+Example:
 
         ./simd-cat-map 100 < cat368.pgm > cat1368-100.pgm
 
-## Estensione
+## Extension
 
-Le prestazioni della versione SIMD dell'algoritmo della mappa del
-gatto dovrebbero risultare solo marginalmente migliori della versione
-scalare (potrebbero addirittura essere peggiori). Analizzando il
-codice assembly prodotto dal compilatore, si scopre che il calcolo del
-modulo nelle due espressioni
+The performance of the SIMD version should be only marginally better
+than the version scale (actually, the SIMD version could even be
+_worse_ than the serial version). Analyzing the assembly code produced
+by the compiler, it turns out that the computation of the modulus
+operator in the expressions
 
 ```C
 	vxnew = (2*vxold+vyold) % N;
 	vynew = (vxold + vyold) % N;
 ```
 
-viene realizzato usando operazioni scalari. Consultando la lista dei
-_SIMD intrinsics_ sul [sito di
-Intel](https://software.intel.com/sites/landingpage/IntrinsicsGuide/)
-si scopre che non esiste una istruzione SIMD che realizzi la divisione
-intera. Per migliorare le prestazioni del programma occorre quindi
-ingegnarsi per calcolare i moduli senza fare uso della
-divisione. Ragionando in termini scalari, osserviamo che se $0 \leq
-xold < N$ e $0 \leq yold < N$, allora si ha necessariamente che $0
-\leq 2 \times xold + yold < 3N$ e $0 \leq xold+yold < 2N$.
+is done using scalar operations. By consulting the list of _SIMD
+intrinsics_ on [Intel's web
+site](https://software.intel.com/sites/landingpage/IntrinsicsGuide/),
+we see that there is no SIMD instruction for integer division.
+Therefore, to get better performance it is essential to compute the
+modulus without using division at all.
 
-Pertanto, sempre in termini scalari, possiamo realizzare il calcolo di
-`xnew` e `ynew` come segue:
+Analyzing the scalar code, we realize that if $0 \leq xold < N$ and $0
+\leq yold < N$, then we have $0 \leq 2 \times xold + yold < 3N$ and $0
+\leq xold+yold < 2N$. Therefore, the scalar code can be rewritten as:
 
 ```C
 	xnew = (2*xold + yold);
@@ -171,50 +201,50 @@ Pertanto, sempre in termini scalari, possiamo realizzare il calcolo di
 	if (ynew >= N) { ynew = ynew - N; }
 ```
 
-Il codice precedente è meno leggibile della versione che usa
-l'operatore modulo, ma ha il vantaggio di poter essere vettorizzato
-ricorrendo al meccanismo di "selection and masking" visto a
-lezione. Ad esempio, l'istruzione
+The code above is certainly more verbose and less readable than the
+original version that uses the modulus operator, but it has the
+advantage of not requiring the modulus operator nor integer division.
+Furthermore, we can use the "selection and masking" technique to
+parallelize the conditional statements. Indeed, the instruction
 
 ```C
 	if (xnew >= N) { xnew = xnew - N; }
 ```
 
-può essere riscritta come
+can be rewritten as
 
 ```C
 	const v4i mask = (xnew >= N);
 	xnew = (mask & (xnew - N)) | (mask & xnew);
 ```
 
-che può essere ulteriormente semplificata come:
+that tan be further simplified as:
 
 ```C
 	const v4i mask = (xnew >= N);
 	xnew = xnew - (mask & N);
 ```
 
-Si ottiene in questo modo un programma più complesso della versione
-scalare, ma più veloce in quanto si riesce a sfruttare al meglio le
-istruzioni SIMD.
+The SIMD program becomes more complex, but at the same time more
+efficient than the serial program.
 
-Per compilare:
+To compile:
 
         gcc -std=c99 -Wall -Wpedantic -march=native -O2 simd-cat-map.c -o simd-cat-map
 
-Per eseguire:
+To execute:
 
         ./simd-cat-map [niter] < in.pgm > out.pgm
 
-Esempio:
+Example:
 
         ./simd-cat-map 1024 < cat1368.pgm > cat1368-1024.pgm
 
-## File
+## Files
 
 - [simd-cat-map.c](simd-cat-map.c)
 - [hpc.h](hpc.h)
-- [cat1368.pgm](cat1368.pgm) (il tempo di ricorrenza di questa immagine è 36)
+- [cat1368.pgm](cat1368.pgm) (the minimum recurrence time of this image is 36)
 
  ***/
 

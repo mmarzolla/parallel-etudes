@@ -2,7 +2,7 @@
  *
  * mpi-first-pos.c - First occurrence of a value in a vector
  *
- * Copyright (C) 2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2022, 2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,56 +19,41 @@
  ****************************************************************************/
 
 /***
-% HPC - Prima posizione di un valore in un array
+% HPC - First occurrence of a value in a vector
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Ultimo aggiornamento: 2022-02-09
+% Last updated: 2023-09-18
 
-[Domanda d'esame appello 2022-02-09]
+Write a MPI program that solves the following problem. Given a
+non-empty integer array `v[0..N-1]` of length $N$, and an integer
+value $k$, find the position (index) of the first occurrence of $k$ in
+`v[]`; if $k$ is not present, the result will be $N$ (which is not a
+valid index of the array, so we know that $N$ is not a valid result).
 
-Descrivere un algoritmo parallelo basato su MPI per risolvere il
-problema seguente su una architettura a memoria distribuita. È dato un
-array di interi `v[0..N-1]` non vuoto di lunghezza $N$, e un intero
-$k$. Vogliamo determinare la posizione (indice) della prima occorrenza
-di $k$ in `v[]`; se $k$ non è presente, il risultato sarà $N$ (si noti
-che gli indici di `v[]` iniziano da 0, quindi sappiamo che $N$ non può
-rappresentare l'indice di un elemento valido).
+For example, if `v[] = {3, 15, -1, 15, 21, 15, 7}` and `k = 15`, the
+result is 1, since `v[1]` is the first occurrence of `15`. If $k$ were
+37, the result is 7, since 37 is not present and the length of the
+array must be returned.
 
-Ad esempio, se `v[] = {3, 15, -1, 15, 21, 15, 7}` e `k = 15`, il
-risultato deve essere 1, dato che `v[1]` è la prima occorrenza del
-valore `15`. Se $k$ fosse 37 il risultato deve essere 7, dato che il
-valore 37 non è presente e si deve restituire la lunghezza dell'array.
+You may assume that:
 
-Si assuma che:
+- the array length $N$ is much larger than the number of MPI processes $P$.
 
-- la lunghezza $N$ dell'array sia molto maggiore del numero $P$ di
-  processi MPI;
+- The array length $N$ is an integer multiple of $P$.
 
-- la lunghezza $N$ dell'array sia multipla di $P$;
+- At the beginning, the array length $N$, the value of $k$ and the
+  content of `v[]` are all known by process 0 only.
 
-- inizialmente solo il processo 0 (il master) conosca i valore di $N$ e
-  $k$, e il contenuto dell'array `v[]`;
+- At the end, process 0 should receive the result.
 
-- al termine dell'esecuzione il processo 0 debba ricevere il
-  risultato; si ricorda che il risultato deve essere compreso tra 0 e
-  $N$ (estremi inclusi), dove $N$ indica che il valore non è presente.
-
-> Dato che all'esame non viene chiesto di scrivere codice, la domanda
-> proseguiva con: "Si descriva nel modo più preciso possibile il
-> comportamento di ciascun processo MPI. Non è richiesto di scrivere
-> codice; è possibile usare pseudocodice e/o linguaggio naturale,
-> purché la spiegazione sia il più precisa possibile. In particolare,
-> si indichi quale/i funzioni MPI si userebbero nei vari passi, e
-> quali buffer di memoria è necessario usare/allocare."
-
-Per compilare:
+To compile:
 
         mpicc -std=c99 -Wall -Wpedantic mpi-first-pos.c -o mpi-first-pos
 
-Per eseguire:
+To execute:
 
         mpirun -n 4 ./mpi-first-pos [N [k]]
 
-## File
+## Files
 
 - [mpi-first-pos.c](mpi-first-pos.c)
 
@@ -113,7 +98,7 @@ int main( int argc, char *argv[] )
         MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
     }
 
-    /* Il master inizializza l'array */
+    /* The array is initialized by process 0 */
     if ( 0 == my_rank ) {
         v = (int*)malloc(N * sizeof(*v));
         assert(v != NULL);
@@ -125,12 +110,11 @@ int main( int argc, char *argv[] )
         printf("]\n");
     }
 
-    /* Sebbene i valori di N e k siano passati sulla riga di comando,
-       e quindi conosciuti a tutti i processi, la specifica
-       dell'esercizio dice che solo il master li conosce. Di
-       conseguenza, facciamo due broadcast per comunicarli anche agli
-       altri processi, sebbene tecnicamente queste operazioni siano
-       inutili. */
+    /* This implementation receives the values `N` and `k` from the
+       command line. These value could therefore be accessed by all
+       processes. However, the specification asserts that only process
+       0 knows then, so we need to broadcast the values to all other
+       processes. */
     MPI_Bcast(&N,       /* buffer       */
               1,        /* count        */
               MPI_INT,  /* datatype     */
@@ -143,12 +127,12 @@ int main( int argc, char *argv[] )
               0,        /* root         */
               MPI_COMM_WORLD );
 
-    /* Tutti i processi inizializzano il buffer locale */
+    /* All processes initialize the local buffers */
     const int local_N = N / comm_sz;
     int *local_v = (int*)malloc(local_N * sizeof(*local_v));
     assert(local_v != NULL);
 
-    /* Il master distribuisce l'array `v[]` agli altri processi */
+    /* The master distributes `v[]` to the other processes */
     MPI_Scatter( v,             /* senfbuf      */
                  local_N,       /* sendcount    */
                  MPI_INT,       /* sendtype     */
@@ -159,24 +143,23 @@ int main( int argc, char *argv[] )
                  MPI_COMM_WORLD /* comm         */
                  );
 
-    /* Ogni processo effettua la ricerca. Occorre prestare attenzione
-       al fatto che, in caso di valore non trovato, i processi debbano
-       comunicare il valore N al master. Solo in questo modo il master
-       può determinare il valore corretto in caso di chiave non
-       presente. Un ulteriore punto di attenzione è che la posizione
-       da comunicare al master non è quella nell'array locale, ma
-       nell'array globale. */
+    /* Every process performs a local sequential search on the local
+       portion of `v[]`. There are two problems: (i) all local indices
+       must be mapped to the corresponding global indices; (ii) since
+       the result is computed as the min-reduction of the partial
+       results, if a process does not find the key on the local array,
+       it must send `N` to process 0. */
     i = 0;
     while (i<local_N && local_v[i] != k) {
         i++;
     }
     if (i<local_N) {
-        pos = my_rank * local_N + i; /* attenzione... */
+        pos = my_rank * local_N + i; /* map local indices to global indices */
     } else {
         pos = N;
     }
 
-    /* I processi effettuano una riduzione sul minimo di pos */
+    /* Performs a min-reduction of the local results */
     MPI_Reduce(&pos,    /* sendbuf      */
                &minpos, /* recvbuf      */
                1,       /* count        */

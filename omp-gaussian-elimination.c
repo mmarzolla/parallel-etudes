@@ -127,18 +127,32 @@ void solve( const float *A, const float *b, float *x, int n )
 void init( float *A, float *b, int n )
 {
     const float EPSILON = 1e-5;
+    float *x = (float*)malloc(n * sizeof(*x));
     for (int i=0; i<n; i++) {
-        b[i] = i;
+        x[i] = 1;
+    }
+    for (int i=0; i<n; i++) {
+        float bi = 0.0;
         for (int j=0; j<n; j++) {
+            /*
             if (i > j) {
                 A[i*n + j] = 0;
             } else {
                 A[i*n + j] = i+j + 1;
             }
+            */
+            if (j < i) {
+                A[i*n + j] = 0;
+            } else {
+                A[i*n + j] = 1;
+                bi += x[j] * A[i*n + j];
+            }
         }
+        b[i] = bi;
         /* ensures that matrix A is non-singular */
         assert( fabs(A[i*n + i]) > EPSILON );
     }
+    free(x);
 }
 
 /**
@@ -204,7 +218,7 @@ int main( int argc, const char *argv[] )
     init(A, b, n);
     printf("Solving...\n");
     solve(A, b, x, n);
-    print(A, b, x, n);
+    //print(A, b, x, n);
     if (check_ok(A, b, x, n)) {
         printf("Check OK\n");
     } else {
