@@ -200,8 +200,8 @@ solutions/%.cl: %.cl
 	unifdef -x2 -USERIAL $< > $@
 
 pub: ALL
-	rsync -av --delete-after handouts/ ~/public_html/teaching/high-performance-computing/2022-2023/handouts && \
-	rsync -av --delete-after solutions/ ~/public_html/teaching/high-performance-computing/2022-2023/solutions && \
+	rsync -av --delete-after handouts/ ~/public_html/teaching/high-performance-computing/2023-2024/handouts && \
+	rsync -av --delete-after solutions/ ~/public_html/teaching/high-performance-computing/2023-2024/solutions && \
 	put-aruba.sh
 
 clean:
