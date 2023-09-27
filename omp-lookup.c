@@ -21,7 +21,7 @@
 /***
 % HPC - Parallel linear search
 % Alice Girolomini <alice.girolomini@studio.unibo.it>
-% Last updated: 2023-09-06
+% Last updated: 2023-09-27
 
 Write an OMP program that finds the positions of all occurrences of a
 given `key` in an unsorted integer array `v[]`. For example, if `v[] =
@@ -103,6 +103,11 @@ int main (int argc, char *argv[]) {
     const int max_threads = omp_get_max_threads();
     int *my_nf = (int*)calloc(max_threads, max_threads * sizeof(int));
     
+    /** 
+     * Every thread counts the local number of occurrences of `KEY` in `v[]`, 
+     * then stores the value in my_nf[id_thread] 
+     * and eventually performs a reduction 
+     */
     #if __GNUC__ < 9 
     #pragma omp parallel for default(none) shared(n, v, my_nf) reduction(+ : nf)
     #else
@@ -117,6 +122,11 @@ int main (int argc, char *argv[]) {
 
     result = (int*)malloc(nf * sizeof(*result)); 
     assert(result != NULL);
+
+    /** 
+     * Every thread computes its portion of the result array and then fills it 
+     * with the positions of the occurrences 
+     */
     #if __GNUC__ < 9 
     #pragma omp parallel default(none) shared(n, result, v, nf, my_nf) private(i)
     #else
@@ -128,7 +138,6 @@ int main (int argc, char *argv[]) {
         int my_start = n * id_thread / n_threads;
         int my_end = n * (id_thread + 1) / n_threads;
         int my_r = 0;
-
 
         for(i = 0; i < id_thread; i++){
             my_r += my_nf[i];
