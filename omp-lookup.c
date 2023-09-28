@@ -21,7 +21,7 @@
 /***
 % HPC - Parallel linear search
 % Alice Girolomini <alice.girolomini@studio.unibo.it>
-% Last updated: 2023-09-27
+% Last updated: 2023-09-28
 
 Write an OMP program that finds the positions of all occurrences of a
 given `key` in an unsorted integer array `v[]`. For example, if `v[] =
@@ -128,25 +128,23 @@ int main (int argc, char *argv[]) {
      * with the positions of the occurrences 
      */
     #if __GNUC__ < 9 
-    #pragma omp parallel default(none) shared(n, result, v, nf, my_nf) private(i)
+    #pragma omp parallel default(none) shared(n, result, v, my_nf) private(i)
     #else
-    #pragma omp parallel default(none) shared(n, result, v, nf, my_nf, KEY) private(i)
+    #pragma omp parallel default(none) shared(n, result, v, my_nf, KEY) private(i)
     #endif
     {
         const int id_thread = omp_get_thread_num();
-        const int n_threads = omp_get_num_threads();
-        int my_start = n * id_thread / n_threads;
-        int my_end = n * (id_thread + 1) / n_threads;
         int my_r = 0;
 
-        for(i = 0; i < id_thread; i++){
+        for (i = 0; i < id_thread; i++){
             my_r += my_nf[i];
         }
 
         int end_r = my_r + my_nf[id_thread];
 
-        for (i = my_start; i < my_end; i++) {
-            if (v[i] == KEY && my_r <  end_r){
+        #pragma omp for
+        for (i = 0; i < n; i++) {
+            if (v[i] == KEY && my_r < end_r){
                 result[my_r] = i;
                 my_r++;
             }
