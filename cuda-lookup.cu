@@ -21,7 +21,7 @@
 /***
 % HPC - Parallel linear search
 % Alice Girolomini <alice.girolomini@studio.unibo.it>
-% Last updated: 2023-09-06
+% Last updated: 2023-09-28
 
 Write an CUDA program that finds the positions of all occurrences of a
 given `key` in an unsorted integer array `v[]`. For example, if `v[] =
@@ -57,6 +57,10 @@ Example:
 
 #ifdef SERIAL
 #else
+/**
+* All threads within the block cooperate to compute the number of 
+* occurrences, then each block performs a reduction
+*/
 __global__ void count_kernel (int *v, int n, int *nf, int KEY) {
     __shared__ int temp[BLKDIM];
     const int tid = threadIdx.x;
@@ -68,7 +72,7 @@ __global__ void count_kernel (int *v, int n, int *nf, int KEY) {
     } 
     __syncthreads(); 
 
-    /* All threads within the block cooperate to compute the number of occurrences */
+    
     for (int offset = blockDim.x / 2; offset > 0; offset /= 2) {
         if (tid < offset) {
             temp[tid] += temp[tid + offset];
@@ -81,6 +85,10 @@ __global__ void count_kernel (int *v, int n, int *nf, int KEY) {
     }   
 }
 
+/**
+* All threads within the block cooperate to compute the number of 
+* occurrences, then each block performs a reduction
+*/
 __global__ void find_indexes_kernel (int *v, int *result, int n, int nf, int KEY, int *r) {
     const int tid = threadIdx.x;
     const int i = tid + blockIdx.x * blockDim.x;
@@ -89,13 +97,12 @@ __global__ void find_indexes_kernel (int *v, int *result, int n, int nf, int KEY
         int idx = atomicAdd(r, 1);
         result[idx] = i;
     }
-
 }
 #endif
 
 void fill (int *v, int n) {
-    int i;
-    for (i = 0; i < n; i++) {
+
+    for (int i = 0; i < n; i++) {
         v[i] = (rand() % 100);
     }
 }
