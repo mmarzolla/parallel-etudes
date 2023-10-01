@@ -2,7 +2,7 @@
  *
  * omp-denoise.c - Image denoising
  *
- * Copyright 2018--2022 Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright 2018--2023 Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Image denoising
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-08-16
+% Last updated: 2023-10-01
 
 ![Figure 1: Denoising example (original image by Simpsons, CC BY-SA 3.0, <https://commons.wikimedia.org/w/index.php?curid=8904364>)](denoise.png)
 
@@ -116,6 +116,7 @@ void denoise( unsigned char *bmap, int width, int height )
     assert(out != NULL);
 
     memcpy(out, bmap, width*height);
+    /* Note that the pixels on the border are left unchanged */
 #ifndef SERIAL
 #pragma omp parallel for collapse(2) default(none) shared(width, height, bmap, out) private(v)
 #endif

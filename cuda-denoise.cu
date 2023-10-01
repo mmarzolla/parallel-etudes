@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * cuda-denoise.cu -- Rimozione del rumore da una immagine
+ * cuda-denoise.cu -- Image denoising
  *
- * Copyright 2018--2021 Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright 2018--2023 Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,39 +19,49 @@
  ****************************************************************************/
 
 /***
-% HPC - Rimozione del rumore da una immagine
+% HPC - Image denoising
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Ultimo aggiornamento 2021-11-26
+% Last updated: 2023-10-01
 
-Il file [cuda-denoise.cu](cuda-denoise.cu) contiene una
-implementazione seriale di un programma per effettuare il _denoising_,
-cioè per rimuovere il "rumore", da una immagine a colori. L'algoritmo
-di denoising è molto semplice, e consiste nell'impostare il colore di
-ciascun pixel come la mediana dei colori dei quattro pixel adiacenti
-più il pixel stesso (_median-of-five_). Questa operazione viene
-ripetuta separatamente per ciascuno dei tre canali di colore (rosso,
-verde, blu).
+![Figure 1: Denoising example (original image by Simpsons, CC BY-SA 3.0, <https://commons.wikimedia.org/w/index.php?curid=8904364>)](denoise.png)
 
-Il programma legge l'immagine di input da standard input in formato
-[PPM](http://netpbm.sourceforge.net/doc/ppm.html) (Portable Pixmap), e
-produce il risultato su standard output nello stesso formato.
+The file [omp-denoise.c](omp-denoise.c) contains a serial
+implementation of an _image denoising_ algorithm that (to some extent)
+can be used to "cleanup" color images. The algorithm replaces the
+color of each pixel with the _median_ of the four adjacent pixels plus
+itself (_median-of-five_).  The median-of-five algorithm is applied
+separately for each color channel (red, green, and blue).
 
-Per compilare:
+This is particularly useful for removing "hot pixels", i.e., pixels
+whose color is way off its intended value, for example due to problems
+in the sensor used to acquire the image. However, depending on the
+amount of noise, a single pass could be insufficient to remove every
+hot pixel; see Figure 1.
+
+The goal of this exercise is to parallelize the denoising algorithm on
+the GPU using CUDA. You should launch as many CUDA threads as pixels
+in the image, so that each thread is mapped onto a different pixel.
+
+The input image is read from standard input in
+[PPM](http://netpbm.sourceforge.net/doc/ppm.html) (Portable Pixmap)
+format; the result is written to standard output in the same format.
+
+To compile:
 
         nvcc cuda-denoise.cu -o cuda-denoise
 
-Per eseguire:
+To execute:
 
         ./cuda-denoise < input > output
 
-Esempio:
+Example:
 
         ./cuda-denoise < giornale.ppm > giornale-denoised.ppm
 
-## File
+## Files
 
 - [cuda-denoise.cu](cuda-denoise.cu)
-- [giornale.ppm](giornale.ppm) (input di esempio)
+- [giornale.ppm](giornale.ppm) (sample input)
 
  ***/
 #include "hpc.h"
@@ -121,7 +131,7 @@ void denoise( unsigned char *bmap, int width, int height )
     assert(out != NULL);
 
     memcpy(out, bmap, width*height);
-    /* Pay attention to the indexes! */
+    /* Note that the pixels on the border are left unchanged */
     for (int i=1; i<height - 1; i++) {
         for (int j=1; j<width - 1; j++) {
             v[0] = *PTR(bmap, width, i  , j  );
@@ -143,6 +153,7 @@ __global__ void denoise_kernel( unsigned char *bmap, unsigned char *out, int wid
     const int j = threadIdx.x + blockIdx.x * blockDim.x;
 
     if (i<height && j<width) {
+        /* Note that the pixels on the border are left unchanged */
         if ((i>0) && (i<height-1) && (j>0) && (j<width-1)) {
             unsigned char v[5];
             v[0] = *PTR(bmap, width, i  , j  );
