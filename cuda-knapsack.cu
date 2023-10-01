@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * cuda-knapsack.c - Solve the 01 integer knapsack problem using CUDA
+ * cuda-knapsack.c - 0-1 knapsack problem
  *
- * Copyright (C) 2017--2021 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,114 +19,118 @@
  ****************************************************************************/
 
 /***
-% HPC - Problema dello zaino 0-1
+% HPC - 0-1 knapsack problem
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Ultimo aggiornamento: 2021-05-15
+% Last updated: 2023-10-01
 
-Il _problema dello zaino_ (_knapsack problem_) è un famiglia di
-problemi di ottimizzazione combinatoria. In questo esercizio
-consideriamo la formulazione seguente, detta problema dello zaino 0/1.
-Disponiamo di $n$ oggetti di pesi interi $w_0, \ldots, w_{n-1}$ e
-valori reali $v_0, \ldots, v_{n-1}$. Vogliamo determinare il
-sottoinsieme di oggetti di peso complessivo minore o uguale a $C$ il
-cui valore totale sia massimo possibile.
+![](knapsack.png)
 
-Questo problema si risolve usando la programmazione dinamica. Per
-farlo, consideriamo la famiglia di problemi $P(i,j)$, $i=0, \ldots,
-(n-1)$, $j=0, \ldots, C$ definiti nel modo seguente:
+The 0/1 Knapsack problem is a well-known optimization problem that is
+part of the general family of _Knapsack problems_. The input consists
+of $n$ items of positive integer weights $w_0, \ldots, w_{n-1}$ and
+real, nonnegative values $v_0, \ldots, v_{n-1}$. We are also given a
+knapsack that can hold any number of items, provided that the total
+weight does not exceed a given capacity $C$.  The goal is to identify
+the subset of items of maximum total values whose total weight is less
+than or equal to $C$. The following explanation of the algorithm is
+not required to solve this exercise; however, I suggest you to read it
+to grasp at least the main idea behind the code.
 
-> $P(i,j)$ consiste nel determinare il sottoinsieme degli oggetti
-> scelti tra $\{0, \ldots, i\}$ aventi peso complessivo minore o
-> uguale a $j$ e valore totale massimo possibile.
+This problem can be solved using dynamic programming. Let $P(i,j)$,
+$i=0, \ldots, (n-1)$, $j=0, \ldots, C$ be a family of problems defined
+as follows:
 
-La soluzione del nostro problema è $P(n-1, C)$.
+> $P(i,j)$ consists of finding the subset of items chosen among $\{0,
+> \ldots, i\}$ whose total weight is less than or equal to $j$ and
+> whose total value is maximum possible.
 
-Sia $V(i,j)$ la soluzione di $P(i,j)$; in altre parole, $V(i,j)$ è il
-massimo valore ottenibile da un opportuno sottoinsieme di oggetti
-scelti tra $\{0, \ldots, i\}$ il cui peso totale sia minore o uguale a
-$j$.
+The solution of the 0-1 Knapsack problem is then the solution of
+$P(n-1, C)$.
 
-Sappiamo che $V(i,0) = 0$ per ogni $i$ (in un contenitore di capienza
-zero non possiamo inserire alcun oggetto, per cui il valore totale
-sarà zero).
+Let $V(i,j)$ the maximum value of a subset of items $\{0, \ldots, i\}$
+whose total weight is less than or equal to $j$ (in other word,
+let $V(i,j)$ be the solution of problem $P(i,j)$). 
 
-Che cosa possiamo dire di $V(0,j)$? Avendo a disposizione solo il
-primo oggetto, di peso $w_0$ e valore $v_0$, l'unica scelta è di
-usarlo oppure no. Lo possiamo inserire nel contenitore se la capienza
-$j$ è maggiore o uguale a $w_0$, e in tal caso il valore massimo
-ottenibile è $v_0$. Possiamo quindi scrivere:
+We know that $V(i,0) = 0$; indeed, in a container of zero capacity no
+item can be inserted.
+
+Regarding $V(0,j)$, only the first item with weight $w_0$ and value
+$v_0$ is available. Therefore, the only possibilities is to insert the
+item into the knapsack or not. If the capacity of the knapsack is at
+least $j$, the maximum value can be obtained by inserting the
+item. Otherwise, the maximum value is zero. Therefore, we can write:
 
 $$
 V(0,j) = \begin{cases}
-0 & \mbox{se}\ j < w_0\\
-v_0 & \mbox{altrimenti}
+0 & \mbox{if}\ j < w_0\\
+v_0 & \mbox{otherwise}
 \end{cases}
 $$
 
-Cosa possiamo dire di $V(i,j)$ nel caso generale? Supponiamo di
-conoscere le soluzioni di tutti i problemi "più piccoli", e
-concentriamoci sull'oggetto $i$-esimo. Abbiamo due possibilità:
+The general case is a bit tricky. The solution of $P(i,j)$ may or may
+not use item $i$. We have the following cases:
 
-1. Se il peso $w_i$ dell'oggetto $i$ è maggiore della capienza $j$,
-   allora sicuramente non possiamo inserirlo nello zaino.  Di
-   conseguenza il valore ottimo della soluzione $V(i,j)$ coincide con
-   il valore della soluzione $V(i-1, j)$, in cui  ci limitiamo
-   a scegliere tra gli oggetti $\{0, 1, \ldots, i-1\}$:
+1. If $w_i >j$, the weight of item $i$ exceeds by itself the capacity
+   of the knapsack, so that item $i$ can definitely not be used.
+   Therefore, the optimal solution $V(i,j)$ of problem $P(i,j)$ will
+   not contain item $i$, and will then be the same as the optimal
+   solution $V(i-1,j)$ of problem $P(i-1,j)$.
 
-2. Se il peso $w_i$ dell'oggetto $i$ è minore o uguale alla capienza
-   $j$, allora potremmo usarlo oppure no.
+2. If $w_i \leq j$, then we may or may not use item $i$. The choice
+   depends on which alternative provides the better value.
 
-    a. Se usiamo l'oggetto $i$, il valore massimo degli oggetti nello
-       zaino sarà uguale a $v_i$ più il valore massimo che possiamo
-       ottenere inserendo un sottoinsieme dei rimanenti $i-1$ oggetti
-       nel contenitore, che a questo punto ha capienza residua $j -
-       w_i$. Quindi, se usiamo l'oggetto $i$, il valore massimo
-       ottenibile è $V(i-1,j-w_i)+v_i$.
+    a. If we choose to use item $i$, then the optimal solution
+       $V(i,j)$ of problem $P(i,j)$ is $V(i-1,j-w_i)+v_i$: in fact, we
+       use item $i$ of value $v_i$, and we fill the residual capacity
+       $j - w_i$ of the knapsack with the items chosen among the
+       remaining $\{9, 1, \ldost,k i-1\]$ that provide the maximum
+       value. Such maximum value is precisely the solution $V(i-1,
+       j-w_i)$ of problem $P(i-1, j-w_i)$.
 
-    b. Se non usiamo l'oggetto $i$, il valore massimo ottenibile è
-       $V(i-1,j)$ (come il caso 1 sopra).
+    b. If we choose not to use item $i$, the maximum value that we can
+       insert into the knapsack is $V(i-1, j)$ as in case 1 above.
 
-Tra le due opzioni 2.a e 2.b scegliamo quella che produce il valore
-massimo. Otteniamo quindi la seguente relazione generale, che vale per
-ogni $i=1, \ldots, (n-1)$, $j=0, \ldots, C$:
+So, should be use item $i$ or not? We choose the alternative among 2.a
+and 2.b that maximizes the total value.  Therefore, for any $i=1,
+\ldots, (n-1)$, $j=0, \ldots, C$ we write:
 
 $$
 V(i,j) = \begin{cases}
-V(i-1, j) & \mbox{se}\ j < w_i\\
-\max\{V(i-1, j), V(i-1, j-w_i) + v_i\} & \mbox{altrimenti}
+V(i-1, j) & \mbox{if}\ j < w_i\\
+\max\{V(i-1, j), V(i-1, j-w_i) + v_i\} & \mbox{otherwise}
 \end{cases}
 $$
 
-In questo esercizio ci limitiamo a calcolare il valore complessivo
-degli oggetti appartenenti alla soluzione ottima, piuttosto che la
-lista degli oggetti che fanno parte della soluzione.
+With a slight modification of the algorithm above it is possible to
+keep track of _which_ items belong to the optimal solution.  For the
+sake of simplicity, in this exercise we want to compute only the value
+of the optimal solution.
 
-Il file [cuda-knapsack.cu](cuda-knapsack.cu) risolve il problema dello
-zaino usando solo la CPU. Il programma legge una istanza del problema
-da un file il cui nome deve essere passato come unico parametro sulla
-riga di comando, e visualizza su standard output il valore massimo
-degli oggetti che è possibile inserire nello zaino. Il file di input
-ha una struttura molto semplice: le prime due righe contengono i
-valori di $C$ ed $n$, rispettivamente; seguono $n$ righe ciascuna
-delle quali contenente il peso $w_i$ (intero) e il valore $v_i$
-(reale) dell'oggetto $i$. Il programma
-[knapsack-gen.c](knapsack-gen.c) può essere usato per generare altre
-istanze di input.
+The file [cuda-knapsack.cu](cuda-knapsack.cu) solves the problem using
+the CPU only. The program reads a problem instance from an input file
+whose name is passed on the command line; at the end, the maximum
+total value of the objects that can be inserted into the knapsack is
+printed to standard output.  The input file has a simple structure:
+the first two lines contain the values $C$ and $n$; $n$ rows follow,
+each containing the integer weight $w_i$ and real value $v_i$ of
+object $i$. The program [knapsack-gen.c](knapsack-gen.c) can be used
+to generate a random input file.
 
-Modificare il programma fornito definendo un kernel CUDA per il
-calcolo delle righe della matrice $V$. Poiché il kernel deve riempire
-una riga per volta della matrice $V$, occorre usare _thread block_ in
-una dimensione.
+You are required to modify the program and define suitable CUDA
+kernels to compute the rows of matrix $V$. Due to data dependences,
+only the values on the same row of $V$ can be computed concurrently.
+Therefore, you should define a 1D thread block and map threads to a
+row of $V$. The kernel should be invoked for each row.
 
-Compilare con:
+To compile:
 
         nvcc cuda-knapsack.cu -o cuda-knapsack -lm
 
-Eseguire con:
+To execute:
 
         ./cuda-knapsack knap-100-100.in
 
-## File
+## Files
 
 - [cuda-knapsack.cu](cuda-knapsack.cu)
 - [hpc.h](hpc.h)
