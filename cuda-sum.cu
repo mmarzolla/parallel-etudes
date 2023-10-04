@@ -52,7 +52,9 @@ Example:
 #define BLKDIM 1024
 
 #ifdef SERIAL
-/* Computes the sum of all elements of array `v` of length `n` */
+/** 
+ * Computes the sum of all elements of array `v` of length `n` 
+*/
 float sum (float *v, int n) {
     float sum = 0;
     int i;
@@ -64,8 +66,10 @@ float sum (float *v, int n) {
     return sum;
 }
 
-/* Fill the array `v` of length `n`; returns the sum of the
-   content of `v` */
+/**
+ * Fills the array `v` of length `n`; returns the sum of the
+ * content of `v`
+*/
 float fill (float *v, int n) {
     const float vals[] = {1, -1, 2, -2, 0};
     const int NVALS = sizeof(vals)/sizeof(vals[0]);
@@ -84,6 +88,10 @@ float fill (float *v, int n) {
 }
 
 #else
+/** 
+ * All threads within the block cooperate to compute the local sum,
+ * then thread 0 of each block performs an atomic add
+*/
 __global__ void sum (float *v, int n, float *s) {
     __shared__ float temp[BLKDIM];
     int tid = threadIdx.x;
@@ -97,7 +105,6 @@ __global__ void sum (float *v, int n, float *s) {
     }
     __syncthreads(); 
 
-    /* All threads within the block cooperate to compute the local sum */
     while (bsize > 0) {
         if (tid < bsize) {
             temp[tid] += temp[tid + bsize];
@@ -111,6 +118,10 @@ __global__ void sum (float *v, int n, float *s) {
     }
 }
 
+/** 
+ * Each thread fills its portion of the array `v` of length `n`; 
+ * returns the sum of the content of `v` 
+*/
 __global__ void fill (float *v, int n, float *expected) {
     int i = threadIdx.x + blockIdx.x * blockDim.x;
     const float vals[] = {1, -1, 2, -2, 0};
@@ -157,17 +168,21 @@ int main (int argc, char *argv[]) {
     const size_t size = n * sizeof(*v);
     const int n_of_blocks = (n + BLKDIM - 1) / BLKDIM;
 
+    /**
+     * Allocates space for device copies of v, s, expected
+    */
     cudaMalloc((void **)&d_v, size);
     cudaMalloc((void **)&d_s, sizeof(*d_s));
     cudaMalloc((void **)&d_expected, sizeof(*d_expected));
 
     cudaMemcpy(d_s, &s, sizeof(s), cudaMemcpyHostToDevice);
-    /* Fills the array */
+
     fill <<<n_of_blocks, BLKDIM>>> (d_v, n, d_expected);
-    /* Performs reduction */
     sum <<<n_of_blocks, BLKDIM>>> (d_v, n, d_s);
 
-    /* Copies the result from device memory to host memory */
+    /**
+     * Copies the result from device memory to host memory
+    */
     cudaMemcpy(&expected, d_expected, sizeof(expected), cudaMemcpyDeviceToHost);
     cudaMemcpy(&s, d_s, sizeof(s), cudaMemcpyDeviceToHost);
 
