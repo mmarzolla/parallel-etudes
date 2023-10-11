@@ -110,19 +110,12 @@ float fill (float *v, int n) {
     int i;
 
     #if __GNUC__ < 9 
-    #pragma omp parallel default(none) shared(n, vals, v) private(i)
+    #pragma omp parallel for default(none) shared(n, vals, v) private(i)
     #else
-    #pragma omp parallel default(none) shared(n, vals, NVALS, v) private(i)
+    #pragma omp parallel for default(none) shared(n, vals, NVALS, v) private(i)
     #endif
-    {
-        const int id_thread = omp_get_thread_num();
-        const int n_threads = omp_get_num_threads();
-        int my_start = n * id_thread / n_threads;
-        int my_end = n * (id_thread + 1) / n_threads;
-
-        for (i = my_start; i < my_end; i++) {
-            v[i] = vals[i % NVALS];
-        }
+    for (i = 0; i < n; i++) {
+        v[i] = vals[i % NVALS];
     }
 
     switch(n % NVALS) {
