@@ -110,11 +110,7 @@ int dot(const int *v1, const int *v2, size_t n)
        avoided in practice. */
     const int P = omp_get_max_threads();
     int partial_p[P];
-#if __GNUC__ < 9
-#pragma omp parallel default(none) shared(v1, v2, n, partial_p)
-#else
 #pragma omp parallel default(none) shared(P, v1, v2, n, partial_p)
-#endif
     {
         const int my_id = omp_get_thread_num();
         const size_t my_start = (n * my_id) / P;
