@@ -2,7 +2,7 @@
  *
  * omp-dot.c - Dot product
  *
- * Copyright (C) 2018--2021 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2018--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,46 +21,45 @@
 /***
 % HPC - Dot product
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-09-14
+% Last updated: 2023-10-15
 
 The file [omp-dot.c](omp-dot.c) contains a serial program that
 computes the dot product of two arrays `v1[]` and `v2[]`. The program
-accepts the array lengths $n$ as the only command line parameter. The
-arrays are initialized deterministically in order to know their scalar
-product without the need to compute it; this is useful for
-testing.. Recall that the dot product of `v1[]` and `v2[]` is
-defined as:
+receives the array lengths $n$ as the only parameter on the command
+line. The arrays are initialized deterministically, so that their
+scalar product is known awithout computing it explicitly.  The dot
+product of `v1[]` and `v2[]` is defined as:
 
 $$
 \sum_{i = 0}^{n-1} v1[i] \times v2[i]
 $$
 
-Parallelize the serial program using the `omp parallel` construct with
-the appropriate clauses. It is instructive to begin without using the
-`omp parallel for` directive, and calculating the endpoints of the
-iterations by hand as follows: let $P$ be the size of the OpenMP
-thread pool, partition the arrays into $P$ blocks of approximately
-uniform size. Thread $p$ ($0 \leq p < P$) computes the dot product
-`my_p` of the subvectors with indices $\texttt{my_start}, \ldots,
-\texttt {my_end}-1$:
+The goal of this exercise is to parallelize the serial program using
+the `omp parallel` construct with the appropriate clauses. It is
+instructive to begin without using the `omp parallel for` directive
+and computing the endpoints of the iterations explicitly.  To this
+aim, let $P$ be the size of the OpenMP thread pool; partition the
+arrays into $P$ blocks of approximately uniform size. Thread $p$ ($0
+\leq p < P$) computes the dot product `my_p` of the subvectors with
+indices $\texttt{my_start}, \ldots, \texttt {my_end}-1$:
 
 $$
 \texttt{my_p}: = \sum_{i=\texttt{my_start}}^{\texttt{my_end}-1} v1[i] \times v2[i]
 $$
 
 There are several ways to accumulate partial results. One possibility
-is to make sure that the value calculated by thread $p$ is stored in
-`partial_p[p]`, where `partial_p[]` is an array of length $P$; in this
-way each thread handles a different element of `partial_p[]` and does
-not check _race condition_. The master computes the final result as
-the sum of the values ​​in `partial_p[]`. Be careful to manage correctly
-the case where the length $n$ of the arrays is not a multiple of $P$.
+is to store the value computed by thread $p$ on `partial_p[p]`, where
+`partial_p[]` is an array of length $P$. In this way each thread
+writes on different elements of `partial_p[]` and no race conditions
+are possible. After the parallel region completes, the master thread
+computes the final result by summing the content of `partial_p[]`. Be
+sure to handle the case where $n$ is not an integer multiple of $P$
+correctly.
 
-
-The solution above is instructive but very tedious. In fact, unless
-there are specific reasons to do otherwise, you should use the `omp
-parallel for` directive with the `reduction()` clause, and let the
-compiler take care of everything. 
+The solution above is instructive but tedious and inefficient.  Unless
+there are specific reasons to do so, in practice you should use the
+`omp parallel for` directive with the `reduction()` clause, and let
+the compiler take care of everything.
 
 To compile:
 
@@ -100,17 +99,15 @@ int dot(const int *v1, const int *v2, size_t n)
 {
 #ifdef SERIAL
     /* [TODO] Parallelize the following loop */
-    result = 0;
+    int result = 0;
     for (int i=0; i<n; i++) {
         result += v1[i] * v2[i];
     }
 #else
-    /* The serial code should be parallelized using
-
-#pragma omp parallel for default(none) shared(v1,v2,n) reduction(+:dotprod)
-
-       since we have not seen the "for" clause so far, we
-       parallelize the loop "by hand". */
+#if 0
+    /* This version uses neither "parallel for" nor "reduction"
+       directives, and although it is useful to try this, it should be
+       avoided in practice. */
     const int P = omp_get_max_threads();
     int partial_p[P];
 #if __GNUC__ < 9
@@ -137,6 +134,15 @@ int dot(const int *v1, const int *v2, size_t n)
     for (int i=0; i<P; i++) {
         result += partial_p[i];
     }
+#else
+    /* This is the efficient solution that relies on the "parallel
+       for" and "reduction" directives */
+    int result = 0;
+#pragma omp parallel for default(none) shared(v1, v2, n) reduction(+:result)
+    for (int i=0; i<n; i++) {
+        result += v1[i] * v2[i];
+    }
+#endif
 #endif
     return result;
 }
