@@ -126,6 +126,7 @@ OpenMP threads and $N=20000$ points:
 unsigned int generate_points( unsigned int n )
 {
 #ifdef SERIAL
+    /* [TODO] parallelize the body of this function */
     unsigned int n_inside = 0;
     /* The C function rand() is _NOT_ thread-safe, since it uses a
        global (shared) seed. Therefore, it can not be used inside an

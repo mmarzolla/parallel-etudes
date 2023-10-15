@@ -2,7 +2,7 @@
  *
  * omp-letters.c - Character counts
  *
- * Copyright (C) 2018--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2018--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Character counts
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-08-12
+% Last updated: 2023-10-15
 
 ![By Willi Heidelbach, CC BY 2.5, <https://commons.wikimedia.org/w/index.php?curid=1181525>](letters.jpg)
 
@@ -39,14 +39,14 @@ language-dependent and more or less author-independent. You may
 experiment with other free books in other languages that are available
 on [Project Gutenberg Web site](https://www.gutenberg.org/).
 
-In this exercise you are required to modify the function
-`make_hist(text, hist)` to make use of shared-memory parallelism using
-OpenMP. The function takes as parameter a pointer `text` to the whole
-text, represented as a zero-terminated C string, and an array
-`hist[26]` of counts. The array `hist` is not initialized. At the end,
-`hist[0]` contains the occurrences of the letter `a` in the text,
-`hist[1]` the occurrences of the letter `b`, up to `hist[25]` that
-represents the occurrences of the letter `z`.
+The goal of this exercise is to modify the function `make_hist(text,
+hist)` to make use of OpenMP parallelism. The function takes as
+parameter a pointer `text` to the whole text, represented as a
+zero-terminated C string, and an array `hist[26]` of counts. The array
+`hist` is not initialized. At the end, `hist[0]` contains the
+occurrences of the letter `a` in the text, `hist[1]` the occurrences
+of the letter `b`, up to `hist[25]` that represents the occurrences of
+the letter `z`.
 
 A shared-memory parallel version can be developed as follows. The text
 is partitioned into `num_threads` chunks, where `num_threads` is the
@@ -74,6 +74,18 @@ occurrences of `a` is
         local_hist[0][0] + local_hist[1][0] + ... + local_hist[num_threads-1][0]
 
 and so on.
+
+Don't forget that there is a reduction on the counter `nlet` that
+reports the number of letters!
+
+There is actually a better and simpler solution, that however relies
+on array reductions that are only available with OpenMP 4.5 and later
+and that we did not discuss in the class. Suppose that each thread has
+a private copy of `hist[ALPHA_SIZE]`, so that it computes a portion of
+the histogram. We want to compute the vector sum of all private copies
+of `hist[]` to get the final histogram. The syntax is the following:
+
+        #pragma omp parallel for ... reduction(+:hist[:ALPHA_SIZE])
 
 Compile with:
 
@@ -103,9 +115,10 @@ Run with:
 
 /**
  * Count occurrences of letters 'a'..'z' in `text`; uppercase
- * characters are transformed to lowercase, and all other symbols are
- * ignored. `text` must be zero-terminated. `hist` will be filled with
- * the computed counts. Returns the total number of letters found.
+ * characters are transformed into lowercase, and all other symbols
+ * are ignored. `text` must be zero-terminated. `hist` will be filled
+ * with the computed counts. Returns the total number of letters
+ * found.
  */
 int make_hist( const char *text, int hist[ALPHA_SIZE] )
 {
@@ -118,6 +131,7 @@ int make_hist( const char *text, int hist[ALPHA_SIZE] )
     for (j=0; j<ALPHA_SIZE; j++) {
         hist[j] = 0;
     }
+
     /* Count occurrences */
     for (i=0; i<strlen(text); i++) {
         const char c = text[i];
@@ -127,6 +141,23 @@ int make_hist( const char *text, int hist[ALPHA_SIZE] )
         }
     }
 #else
+    /* Note: this solution can be simplified using array reductions
+       (available on OpenMP >= 4.5). We can define a 1D array
+       local_hist[ALPHA_SIZE] and then compute the element-by-element
+       sum reduction using the clause:
+
+       reduction(+:local_hist[:ALPHA_SIZE])
+
+       That would be more efficient and would also lead to simpler code:
+       just add the following clause before the second "for" loop
+       of the serial version:
+
+       #pragma omp parallel for \
+           default(none) private(i) shared(text) \
+           reduction(+:hist[:ALPHA_SIZE]) \
+           reduction(+:nlet)
+
+    */
     const int num_threads = omp_get_max_threads();
     int local_hist[num_threads][ALPHA_SIZE]; /* one histogram per OpenMP thread */
 
@@ -136,11 +167,7 @@ int make_hist( const char *text, int hist[ALPHA_SIZE] )
         }
     }
 
-#if __GNUC__ < 9
-#pragma omp parallel default(none) reduction(+:nlet) private(i) shared(local_hist, text)
-#else
 #pragma omp parallel default(none) reduction(+:nlet) private(i) shared(local_hist, text, num_threads)
-#endif
     {
         const int my_id = omp_get_thread_num();
         const int my_start = strlen(text) * my_id / num_threads;
