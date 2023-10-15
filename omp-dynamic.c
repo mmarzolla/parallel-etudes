@@ -177,11 +177,7 @@ int main( int argc, char* argv[] )
 #else
     int idx = 0; /* shared index */
     const int chunk_size = 1; /* can be set to any value >= 1 */
-#if __GNUC__ < 9
-#pragma omp parallel default(none) shared(idx,vin,vout,n)
-#else
 #pragma omp parallel default(none) shared(idx,vin,vout,n,chunk_size)
-#endif
     {
         /* This implementation simulates the behavior of a
            schedule(dynamic,chunk_size) clause for any chunk_size>=1. */

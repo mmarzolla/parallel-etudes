@@ -174,11 +174,7 @@ int sat( const problem_t *p)
     bool v[MAXLITERALS];
 
     assert( sizeof(cur_value) < nlit );
-#if __GNUC__ < 9
-#pragma omp parallel for default(none) private(v) shared(p) reduction(+:nsat)
-#else
 #pragma omp parallel for default(none) private(v) shared(p, maxval) reduction(+:nsat)
-#endif
     for (cur_value=0; cur_value<maxval; cur_value++) {
         /* convert cur in binary */
         int idx = 1;

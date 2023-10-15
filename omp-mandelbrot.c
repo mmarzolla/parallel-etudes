@@ -138,11 +138,7 @@ int iterate( float cx, float cy )
 void draw_lines( pixel_t* bmap, int xsize, int ysize )
 {
 #ifndef SERIAL
-#if __GNUC__ < 9
-#pragma omp parallel for schedule(dynamic) default(none) shared(bmap, xsize, ysize)
-#else
 #pragma omp parallel for schedule(dynamic) default(none) shared(bmap, xsize, ysize, MAXIT, NCOLORS, COLORS)
-#endif
 #endif
     for ( int y = 0; y < ysize; y++) {
         for ( int x = 0; x < xsize; x++ ) {

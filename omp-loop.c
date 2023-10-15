@@ -156,11 +156,7 @@ void vec_shift_right_par2(int *a, int n)
 #ifndef SERIAL
     const int num_threads = omp_get_max_threads();
     int rightmost[num_threads];
-#if __GNUC__ < 9
-#pragma omp parallel default(none) shared(rightmost,a,n)
-#else
 #pragma omp parallel default(none) shared(num_threads,rightmost,a,n)
-#endif
     {
         const int my_id = omp_get_thread_num();
         const int my_start = n * my_id / num_threads;
@@ -308,11 +304,7 @@ void test3_par(int *A, int n)
 #else
     for (int slice=0; slice < 2*n - 1; slice++) {
 	const int z = slice < n ? 0 : slice - n + 1;
-#if __GNUC__ < 9
-#pragma omp parallel for default(none) shared(A, n, slice)
-#else
 #pragma omp parallel for default(none) shared(A, n, slice, z)
-#endif
 	for (int i = slice - z; i >= z; i--) {
             const int j = slice - i;
             if (i>0 && j>0) {

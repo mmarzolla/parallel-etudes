@@ -151,11 +151,7 @@ int main( int argc, char *argv[] )
 #else
     /* The "schedule(dynamic,64)" clause is here as an example only;
        the chunk size (64) might not be the best. */
-#if __GNUC__ < 9
-#pragma omp parallel for collapse(2) default(none) shared(npoints) reduction(+:ninside) schedule(dynamic, 64)
-#else
 #pragma omp parallel for collapse(2) default(none) shared(npoints,EPS,XMIN,XMAX,YMIN,YMAX) reduction(+:ninside) schedule(dynamic, 64)
-#endif
 #endif
     for (i=0; i<npoints; i++) {
         for (j=0; j<npoints; j++) {

@@ -151,19 +151,11 @@ void mergesort_rec(int* v, int i, int j, int* tmp)
            interval from task creation to task execution, so they can
            be made all shared. Note the usual GCC annoyance related to
            the constant m that is predetermined shared by GCC < 9.x*/
-#if __GNUC__ < 9
-#pragma omp task shared(v, i, tmp)
-#else
 #pragma omp task shared(v, i, m, tmp)
-#endif
 #endif
         mergesort_rec(v, i, m, tmp);
 #ifndef SERIAL
-#if __GNUC__ < 9
-#pragma omp task shared(v, j, tmp)
-#else
 #pragma omp task shared(v, j, m, tmp)
-#endif
 #endif
         mergesort_rec(v, m+1, j, tmp);
         /* When using OpenMP, we must wait here for the recursive

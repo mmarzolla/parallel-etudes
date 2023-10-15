@@ -180,11 +180,7 @@ void compute_force(const float *x,
                    int n)
 {
 #ifndef SERIAL
-#if __GNUC__ < 9
-#pragma omp parallel for default(none) shared(x, y, z, vx, vy, vz, dt, n)
-#else
 #pragma omp parallel for default(none) shared(x, y, z, vx, vy, vz, dt, n, EPSILON)
-#endif
 #endif
     for (int i = 0; i < n; i++) {
         float Fx = 0.0f, Fy = 0.0f, Fz = 0.0f;

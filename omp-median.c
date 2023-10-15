@@ -116,11 +116,7 @@ void median_filter( int radius, data_t *bmap, int width, int height )
     data_t *out = (data_t*)malloc(width*height*sizeof(data_t));
     assert(out != NULL);
 
-#if __GNUC__ < 9
-#pragma omp parallel default(none) shared(width, height, bmap, out, radius)
-#else
 #pragma omp parallel default(none) shared(width, height, bmap, out, radius, tmp_len)
-#endif
     {
         data_t *tmp = (data_t*)malloc(tmp_len*sizeof(data_t));
         assert(tmp != NULL);

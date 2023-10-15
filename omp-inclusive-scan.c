@@ -122,11 +122,7 @@ void inclusive_scan(int *v, int n, int *s)
     int blksum[n_threads];
     int blksum_s[n_threads];
 
-#if __GNUC__ < 9
-#pragma omp parallel num_threads(n_threads) default(none) shared(v,s,n,blksum) private(i)
-#else
 #pragma omp parallel num_threads(n_threads) default(none) shared(v,s,n,blksum,n_threads) private(i)
-#endif
     {
         const int thread_id = omp_get_thread_num();
         const int local_start = n * thread_id / n_threads;
@@ -147,11 +143,7 @@ void inclusive_scan(int *v, int n, int *s)
     }
 
     /* Each process increments all values of its portion of array */
-#if __GNUC__ < 9
-#pragma omp parallel num_threads(n_threads) default(none) shared(s,n,blksum_s) private(i)
-#else
 #pragma omp parallel num_threads(n_threads) default(none) shared(s,n,blksum_s,n_threads) private(i)
-#endif
     {
         const int thread_id = omp_get_thread_num();
         const int local_start = n * thread_id / n_threads;

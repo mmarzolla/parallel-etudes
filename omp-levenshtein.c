@@ -174,11 +174,7 @@ int levenshtein(const char* s, const char* t)
         const int z1 = slice < m ? 0 : slice - m + 1;
         const int z2 = slice < n ? 0 : slice - n + 1;
         int ii;
-#if __GNUC__ < 9
-#pragma omp parallel for default(none) shared(slice,L,s,t) private(i,j)
-#else
 #pragma omp parallel for default(none) shared(slice,L,s,t,z1,z2,m) private(i,j)
-#endif
 	for (ii = slice - z2; ii >= z1; ii--) {
             const int jj = slice - ii;
             i = ii + 1;

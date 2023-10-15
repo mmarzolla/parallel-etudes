@@ -312,11 +312,7 @@ void dijkstra(const graph_t* g, int s, float *d)
     do {
         best_dist = INFINITY;
         best_node = -1;
-#if __GNUC__ < 9
-#pragma omp parallel default(none) shared(g,d,best_dist,best_node)
-#else
 #pragma omp parallel default(none) shared(g,d,best_dist,best_node,m)
-#endif
         {
             float my_best_dist = INFINITY;
             int my_best_node = -1;
@@ -388,11 +384,7 @@ void bellmanford_atomic(const graph_t* g, int s, float *d)
     const int m = g->m;
     int i, j, updated, niter = 0;
 
-#if __GNUC__ < 9
-#pragma omp parallel for default(none) shared(d)
-#else
 #pragma omp parallel for default(none) shared(d,n)
-#endif
     for (i=0; i<n; i++) {
         d[i] = INFINITY;
     }
@@ -400,11 +392,7 @@ void bellmanford_atomic(const graph_t* g, int s, float *d)
     do {
         updated = 0;
         niter++;
-#if __GNUC__ < 9
-#pragma omp parallel for default(none) shared(g, d) reduction(|:updated)
-#else
 #pragma omp parallel for default(none) shared(g, d, m) reduction(|:updated)
-#endif
         for (j=0; j<m; j++) {
             const int src = g->edges[j].src;
             const int dst = g->edges[j].dst;
@@ -431,11 +419,7 @@ void bellmanford_atomic_inlined(const graph_t* g, int s, float *d)
     do {
         updated = 0;
         niter++;
-#if __GNUC__ < 9
-#pragma omp parallel for default(none) shared(g, d) reduction(|:updated)
-#else
 #pragma omp parallel for default(none) shared(g, d, m) reduction(|:updated)
-#endif
         for (j=0; j<m; j++) {
             const int src = g->edges[j].src;
             const int dst = g->edges[j].dst;
@@ -480,11 +464,7 @@ void bellmanford_none(const graph_t* g, int s, float *d)
     do {
         updated = 0;
         niter++;
-#if __GNUC__ < 9
-#pragma omp parallel for default(none) shared(g, d) reduction(|:updated)
-#else
 #pragma omp parallel for default(none) shared(g, d, m) reduction(|:updated)
-#endif
         for (j=0; j<m; j++) {
             const int src = g->edges[j].src;
             const int dst = g->edges[j].dst;

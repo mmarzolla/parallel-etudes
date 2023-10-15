@@ -161,11 +161,7 @@ void do_static(const int *vin, int *vout, int n)
     }
 #else
     const int chunk_size = 1; /* can be set to any value >= 1 */
-#if __GNUC__ < 9
-#pragma omp parallel default(none) shared(vin,vout,n) private(i)
-#else
 #pragma omp parallel default(none) shared(vin,vout,n,chunk_size) private(i)
-#endif
     {
         /* This implementation simulates the behavior of a
            schedule(static,chunk_size) clause for any chunk_size>=1. */
@@ -200,11 +196,7 @@ void do_dynamic(const int *vin, int *vout, int n)
 #else
     int idx = 0; /* shared index */
     const int chunk_size = 1; /* can be set to any value >= 1 */
-#if __GNUC__ < 9
-#pragma omp parallel default(none) shared(idx,vin,vout,n) private(i)
-#else
 #pragma omp parallel default(none) shared(idx,vin,vout,n,chunk_size) private(i)
-#endif
     {
         /* This implementation simulates the behavior of a
            schedule(dynamic,chunk_size) clause for any chunk_size>=1. */

@@ -71,11 +71,7 @@ int omp_bsearch(const int *x, int n, int key)
     int cmp[P];
     size_t m[P];
     int start = 0, end = n-1;
-#if __GNUC__ < 9
-#pragma omp parallel default(none) shared(start, end, cmp, m, x, key)
-#else
 #pragma omp parallel default(none) shared(start, end, cmp, m, x, key, P)
-#endif
     {
         const int my_id = omp_get_thread_num();
 

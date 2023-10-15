@@ -199,11 +199,7 @@ float knapsack(knapsack_t *k)
     /* Compute the DP matrix row-wise */
     for (i=1; i<NROWS; i++) {
 #ifndef SERIAL
-#if __GNUC__ < 9
-#pragma omp parallel for default(none) shared(Vcur, Vnext, w, v, i)
-#else
 #pragma omp parallel for default(none) shared(Vcur, Vnext, w, v, i, NCOLS)
-#endif
 #else
         /* [TODO] Parallelize the loop below using the appropriate
            OpenMP directives. */

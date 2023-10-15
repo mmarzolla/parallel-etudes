@@ -213,11 +213,7 @@ int main( int argc, char *argv[] )
     free(tmp);
 
     const double tstart = omp_get_wtime();
-#if __GNUC__ < 9
-#pragma omp parallel default(none) shared(found)
-#else
 #pragma omp parallel default(none) shared(found,check,enc,msglen,n,CHECK_LEN,KEY_LEN)
-#endif
     {
         char* buf = (char*)malloc(msglen);
         char key[KEY_LEN+1];
