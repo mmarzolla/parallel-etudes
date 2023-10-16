@@ -109,9 +109,10 @@ Run with:
 ## Files
 
 * [omp-letters.c](omp-letters.c)
-* [War and Peace](war-and-peace.txt) by L. Tolstoy
-* [The Hound of the Baskervilles](the-hound-of-the-baskervilles.txt) by A. C. Doyle
-* [The War of the Worlds](the-war-of-the-worlds.txt) by H. G. Wells
+* Some sample texts
+  - [War and Peace](war-and-peace.txt) by L. Tolstoy
+  - [The Hound of the Baskervilles](the-hound-of-the-baskervilles.txt) by A. C. Doyle
+  - [The War of the Worlds](the-war-of-the-worlds.txt) by H. G. Wells
 
 ***/
 
