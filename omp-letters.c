@@ -79,7 +79,7 @@ column-wise sum of `local_hist`. In other words, the number of
 occurrences of character `a` is
 
 $$
-\sum_{p=0}^{\texttt{num\_threads}-1} \texttt{local\_hist}[p][0]
+\sum_{p=0}^{\texttt{num_threads}-1} \texttt{local_hist}[p][0]
 $$
 
 and so on. Also, don't forget that there is a reduction on the counter
@@ -152,26 +152,14 @@ int make_hist( const char *text, int hist[ALPHA_SIZE] )
         }
     }
 #else
-    /* Note: this solution can be simplified using array reductions
-       (available on OpenMP >= 4.5). We can define a 1D array
-       local_hist[ALPHA_SIZE] and then compute the element-by-element
-       sum reduction using the clause:
-
-       reduction(+:local_hist[:ALPHA_SIZE])
-
-       That would be more efficient and would also lead to simpler code:
-       just add the following clause before the second "for" loop
-       of the serial version:
-
-       #pragma omp parallel for \
-           default(none) private(i) shared(text) \
-           reduction(+:hist[:ALPHA_SIZE]) \
-           reduction(+:nlet)
-
-    */
+#if 1
+    /* This version does not use array reductions */
     const int num_threads = omp_get_max_threads();
     int local_hist[num_threads][ALPHA_SIZE]; /* one histogram per OpenMP thread */
 
+    /* The following loop(s) could be parallelized, but they are quite
+       short and it is unlikely that this would lead to significant
+       performance improvements. */
     for (i=0; i<num_threads; i++) {
         for (j=0; j<ALPHA_SIZE; j++) {
             local_hist[i][j] = 0;
@@ -200,6 +188,24 @@ int make_hist( const char *text, int hist[ALPHA_SIZE] )
         }
         hist[j] = s;
     }
+#else
+    /* This version uses array reductions, that is available since
+       OpenMP 4.5 */
+    /* Reset the histogram */
+    for (j=0; j<ALPHA_SIZE; j++) {
+        hist[j] = 0;
+    }
+
+    /* Count occurrences */
+#pragma omp parallel for default(none) shared(text) reduction(+:nlet) reduction(+:hist[:ALPHA_SIZE])
+    for (i=0; i<strlen(text); i++) {
+        const char c = text[i];
+        if (isalpha(c)) {
+            nlet++;
+            hist[ tolower(c) - 'a' ]++;
+        }
+    }
+#endif
 #endif
 
     return nlet;
