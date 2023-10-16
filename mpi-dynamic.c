@@ -21,7 +21,7 @@
 /***
 % HPC - Implementing the "schedule(dynamic)" clause by hand
 % Alice Girolomini <alice.girolomini@studio.unibo.it>
-% Last updated: 2023-08-21
+% Last updated: 2023-10-16
 
 We know that the `schedule(dynamic)` OpenMP clause dynamically assigns
 iterations of a "for" loop to the first available OpenMP thread. The
@@ -72,7 +72,7 @@ Example:
 #include <mpi.h>
 #include "hpc.h"
 
-#define CHUNK_SIZE 1 /* can be set to any value >= 1 */
+#define CHUNK_SIZE 100 /* can be set to any value >= 1 */
 #define WORK_COMPLETED 1
 
 typedef struct {
@@ -81,8 +81,10 @@ typedef struct {
     int local_vout[CHUNK_SIZE];
 } Work;
 
-/* Recursive computation of the n-th Fibonacci number, for n=0, 1, 2, ...
-   Do not parallelize this function. */
+/**
+ * Recursive computation of the n-th Fibonacci number, for n=0, 1, 2, ...
+ * Do not parallelize this function. 
+ */
 int fib_rec (int n) {
     if (n < 2) {
         return 1;
@@ -91,8 +93,10 @@ int fib_rec (int n) {
     }
 }
 
-/* Iterative computation of the n-th Fibonacci number. This function
-   must be used for checking the result only. */
+/**
+ * Iterative computation of the n-th Fibonacci number. This function
+ * must be used for checking the result only. 
+*/
 int fib_iter (int n) {
     if (n < 2) {
         return 1;
@@ -111,10 +115,12 @@ int fib_iter (int n) {
     }
 }
 
-/* Initialize the content of vector v using the values from vstart to
-   vend.  The vector is filled in such a way that there are more or
-   less the same number of contiguous occurrences of all values in
-   [vstart, vend]. */
+/**
+ * Initializes the content of vector v using the values from vstart to
+ * vend.  The vector is filled in such a way that there are more or
+ * less the same number of contiguous occurrences of all values in
+ * [vstart, vend]. 
+*/
 void fill (int *v, int n) {
     const int vstart = 20, vend = 35;
     const int blk = (n + vend - vstart) / (vend - vstart + 1);
@@ -153,13 +159,13 @@ int main (int argc, char* argv[]) {
     }
 
     if (my_rank == 0) {
-        /* initialize the input and output arrays */
+        /* Initializes input and output */
         vin = (int*) malloc(n * sizeof(vin[0])); 
         assert(vin != NULL);
         vout = (int*) malloc(n * sizeof(vout[0])); 
         assert(vout != NULL);
 
-        /* fill input array */
+        /* Fills input array */
         for (i = 0; i < n; i++) {
             vin[i] = 25 + (i%10);
         }
@@ -195,7 +201,7 @@ int main (int argc, char* argv[]) {
         int inactive_p = 0;
         int last_work_id = 0;
 
-        /* Calculates and distributes one task to each process */
+        /* Process 0 calculates and distributes one task to each process */
         for (int i = 1; i < comm_sz; i++) {
             if (last_work_id < n && (n - last_work_id) >= CHUNK_SIZE) {
                 current_work.start = last_work_id;
@@ -224,7 +230,7 @@ int main (int argc, char* argv[]) {
             
         }
 
-        /* The master receives results for pending work requests and tell all the workers to exit */
+        /* The master receives results for pending work requests and tells all the workers to exit */
         for (int i = 1; i < comm_sz - inactive_p; i++) {
             MPI_Recv(&current_work, 1, worktype, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
             memcpy(vout + current_work.start, current_work.local_vout, CHUNK_SIZE * sizeof(int));
@@ -243,9 +249,10 @@ int main (int argc, char* argv[]) {
     } else {
         int flag = 0; 
 
+        /* The worker receives the current job and then sends the result to the master */
         while (flag != WORK_COMPLETED) {
             MPI_Recv(&current_work, 1, worktype, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-            /* Check the tag of the received message */
+            /* Checks the tag of the received message */
             if (status.MPI_TAG == WORK_COMPLETED) {
                 printf("COMPLETED rank %d\n", my_rank);
                 flag = WORK_COMPLETED;
@@ -255,7 +262,6 @@ int main (int argc, char* argv[]) {
                 }
 
                 MPI_Send(&current_work, 1, worktype, 0, 0, MPI_COMM_WORLD);
-               /* printf("%d local result sent\n", my_rank); */
             }
         }
 
