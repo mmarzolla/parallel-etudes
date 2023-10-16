@@ -21,7 +21,7 @@
 /***
 % HPC - Character counts
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-10-15
+% Last updated: 2023-10-16
 
 ![By Willi Heidelbach, CC BY 2.5, <https://commons.wikimedia.org/w/index.php?curid=1181525>](letters.jpg)
 
@@ -48,44 +48,55 @@ occurrences of the letter `a` in the text, `hist[1]` the occurrences
 of the letter `b`, up to `hist[25]` that represents the occurrences of
 the letter `z`.
 
-A shared-memory parallel version can be developed as follows. The text
-is partitioned into `num_threads` chunks, where `num_threads` is the
-number of OpenMP threads; since the text is a character array of some
-length $n$, thread $p$ can compute the extremes of its chunk as:
+A reasonable approach is to partition the text among the OpenMP
+threads, so that each thread computes the histogram for part of the
+text. Then, all partial histograms needs to be combined to get the
+final result.
+
+You might want to start by doing the partitioning manually, i.e.,
+without using the `omp for` directive. This is not the most efficient
+solution, but is nevertheless instructive; a better approach is
+discussed below.
+
+Since the text is a character array of some length $n$, thread $p$ can
+compute the extremes of its chunk as:
 
 ```C
 const int from = (n * p) / num_threads;
 const int to = (n * (p+1)) / num_threads;
 ```
 
-Thread $p$ will then examine the block `text[from .. (to-1)]`.
+where `num_threads` is the size of OpenMP thread pool. Thread $p$ will
+compute the frequencies of the characters in `text[from .. (to-1)]`.
 
-You also need create a shared, two-dimensional array
-`local_hist[num_threads][26]`, initially containing all zeros. Thread
-$p$ operates on a different portion of the text and updates the
-occurrences on the slice `local_hist[p][]` of the shared array.
-Therefore, if thread $p$ sees character $x$, $x \in \{\texttt{'a'},
-\ldots, \texttt{'z'}\}$, it will increment `local_hist[p][x - 'a']`.
+You need to create a shared, two-dimensional array
+`local_hist[num_threads][26]` initialized to zero. Thread $p$ operates
+on `local_hist[p][]` so that no race conditions are possible. If
+thread $p$ sees character $x$, $x \in \{\texttt{'a'}, \ldots,
+\texttt{'z'}\}$, it will increase the value `local_hist[p][x - 'a']`.
+When all threads are done, the master computes the result as the
+column-wise sum of `local_hist`. In other words, the number of
+occurrences of character `a` is
 
-When all threads are done, the master computes the results as the sums
-of the columns of `local_hist`. In other words, the number of
-occurrences of `a` is
+$$
+\sum_{p=0}^{\texttt{num\_threads}-1} \texttt{local\_hist}[p][0]
+$$
 
-        local_hist[0][0] + local_hist[1][0] + ... + local_hist[num_threads-1][0]
+and so on. Also, don't forget that there is a reduction on the counter
+`nlet` that reports the number of letters; this might be done using
+the `reduction()` clause of the `omp for` directive.
 
-and so on.
-
-Don't forget that there is a reduction on the counter `nlet` that
-reports the number of letters!
-
-There is actually a better and simpler solution, that however relies
-on array reductions that are only available with OpenMP 4.5 and later
-and that we did not discuss in the class. Suppose that each thread has
-a private copy of `hist[ALPHA_SIZE]`, so that it computes a portion of
-the histogram. We want to compute the vector sum of all private copies
-of `hist[]` to get the final histogram. The syntax is the following:
+A better and simpler solution can be realized using the `omp parallel
+for` directive, and employing array reductions that are available with
+OpenMP 4.5 and later (and that we did not discuss during the
+class). To perform the sum-reduction on each element of the array
+`hist[]` we can use the following syntax:
 
         #pragma omp parallel for ... reduction(+:hist[:ALPHA_SIZE])
+
+This works as the normal scalar reductions, with the differences that
+the compiler actually computes `ALPHA_SIZE` sum-reductions on
+`hist[0]`, ... `hist[ALPHA_SIZE - 1]`.
 
 Compile with:
 
