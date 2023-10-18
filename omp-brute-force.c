@@ -188,13 +188,13 @@ int main( int argc, char *argv[] )
         xorcrypt(enc, out, msglen, key, KEY_LEN);
         /* `out` contains the decrypted text; if the key is not
            corret, `out` will contain garbage */
-        if ( 0 == memcmp(out, check, CHECK_LEN) )
+        if ( 0 == memcmp(out, check, CHECK_LEN) ) {
+            printf("Key found: %s\n", key);
+            printf("Decrypted message: \"%s\"\n", out);
             found = 1;
+        }
     }
     assert(found); /* ensure that we did found the key */
-    k--;
-    printf("Key found: %d\n", k);
-    printf("Decrypted message: \"%s\"\n", out);
     free(out);
 #else
     /* There is some redundant code that has been used by me to
