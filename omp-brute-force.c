@@ -21,7 +21,7 @@
 /***
 % HPC - Brute-force password cracking
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-10-10
+% Last updated: 2022-10-18
 
 ![[DES cracker board](https://en.wikipedia.org/wiki/EFF_DES_cracker) developed in 1998 by the Electronic Frontier Foundation (EFF); this device can be used to brute-force a DES key. The original uploader was Matt Crypto at English Wikipedia. Later versions were uploaded by Ed g2s at en.wikipedia - CC BY 3.0 us, <https://commons.wikimedia.org/w/index.php?curid=2437815>](des-cracker.jpg)
 
@@ -64,34 +64,30 @@ The parameters are as follows:
 
 - `keylen` is the length of the encryption/decryption key.
 
-The _XOR_ algorithm will happily decrypt any message with any provided
-key; of course, if the key is not correct, the decrypted message will
-not make any sense. For this exercise the plaintext is a
-zero-terminated ASCII string that can be printed with the `printf()`
-function whose first ten characters are `"0123456789"`. This
-information can be used to check whether you "guessed" the right
-encryption key.
+The _XOR_ algorithm will decrypt any message with any provided key; if
+the key is not correct, the decrypted message will not make any
+sense. For this exercise the plaintext is a zero-terminated ASCII
+string that begins with `0123456789`.
 
 The encryption key that has been used in this program is a sequence of
 8 ASCII numeric characters; therefore, the key is a string between
 `"00000000"` and `"99999999"`. Write a program to brute-force the key
-using OpenMP. The program tries every key until a valid message is
-eventually found, i.e., a message that begins with `"0123456789"`. At
-the end, the program must print the plaintext, which is a relevant
-quote from an old film.
+using OpenMP. The program should try every key until a valid message
+is eventually found, i.e., a message that begins with `0123456789`. At
+the end, the program must print the plaintext, which is a famous quote
+from [an old film](https://en.wikipedia.org/wiki/WarGames).
 
-Use an `omp parallel` construct (not `parallel for`) whose body
-contains code that assigns a suitable subset of the key space to each
-OpenMP thread. Recall from the lectures that the `omp parallel`
-construct applies to a _structured block_, that is, a block with a
-single entry and a single exit point. Therefore, the thread who finds
-the correct key can not exit from the block using `return`, `break` or
-`goto` (the compiler should raise a compile-time error if any of these
-constructs are used). However, we certainly do not want to wait until
-all keys have been explored to terminate the program.  Therefore, you
-should devise a clean mechanism to terminate the computation as soon
-as the correct key has been found. You may not terminate the program
-with `exit()`, `abort()` or similar.
+As you can see, the main loop of this program is not in a form that
+can be parallelized with the `omp for` construct (why?).  Therefore,
+you must use the `omp parallel` construct to partition the key space
+among threads. Remember that `omp parallel` applies to a _structured
+block_ with a single entry and a single exit point. Therefore, the
+thread who finds the correct key can not exit the parallel region
+using `return`, `break` or `goto` (the compiler should raise a
+compile-time error). However, we certainly wan to terminate the
+program as soon as the key has been found.  Therefore, we need to
+think of a clean mechanism to exit the loop when the correct key has
+been found.
 
 Compile with:
 
@@ -180,23 +176,25 @@ int main( int argc, char *argv[] )
     const int msglen = sizeof(enc);
     const char check[] = "0123456789"; /* the correctly decrypted message starts with these characters */
     const int CHECK_LEN = strlen(check);
-
-    /* How to use a key to decrypt the message */
+    const int n = 100000000; /* number of possible keys */
     char key[KEY_LEN+1]; /* sprintf will output the trailing \0, so we need one byte more for the key */
-    int k = 132; /* numeric value of the key to try */
+    int k; /* numeric value of the key to try */
+    int found = 0;
     char* out = (char*)malloc(msglen); /* where to put the decrypted message */
-
     assert(out != NULL);
-    snprintf(key, KEY_LEN+1, "%08d", k);
-    xorcrypt(enc, out, msglen, key, KEY_LEN);
-    /* `out` contains the decrypted text; if the key is not corret,
-       `out` will contain random garbage */
-    if ( 0 == memcmp(out, check, CHECK_LEN) ) {
-        printf("Key found: %s\n", key);
-        printf("Decrypted message: %s\n", out);
-    } else {
-        printf("Key %s not valid\n", key);
+
+    for (k=0; k < n && !found; k++) {
+        snprintf(key, KEY_LEN+1, "%08d", k);
+        xorcrypt(enc, out, msglen, key, KEY_LEN);
+        /* `out` contains the decrypted text; if the key is not
+           corret, `out` will contain garbage */
+        if ( 0 == memcmp(out, check, CHECK_LEN) )
+            found = 1;
     }
+    assert(found); /* ensure that we did found the key */
+    k--;
+    printf("Key found: %d\n", k);
+    printf("Decrypted message: \"%s\"\n", out);
     free(out);
 #else
     /* There is some redundant code that has been used by me to
