@@ -21,7 +21,7 @@
 /***
 % HPC - Character counts
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-10-16
+% Last updated: 2023-10-19
 
 ![By Willi Heidelbach, CC BY 2.5, <https://commons.wikimedia.org/w/index.php?curid=1181525>](letters.jpg)
 
@@ -135,6 +135,7 @@ Run with:
 int make_hist( const char *text, int hist[ALPHA_SIZE] )
 {
     int nlet = 0; /* total number of alphabetic characters processed */
+    const size_t TEXT_LEN = strlen(text);
     int i, j;
 #ifdef SERIAL
     /* [TODO] Parallelize this function */
@@ -145,7 +146,7 @@ int make_hist( const char *text, int hist[ALPHA_SIZE] )
     }
 
     /* Count occurrences */
-    for (i=0; i<strlen(text); i++) {
+    for (i=0; i<TEXT_LEN; i++) {
         const char c = text[i];
         if (isalpha(c)) {
             nlet++;
@@ -153,7 +154,7 @@ int make_hist( const char *text, int hist[ALPHA_SIZE] )
         }
     }
 #else
-#if 1
+#if 0
     /* This version does not use array reductions */
     const int num_threads = omp_get_max_threads();
     int local_hist[num_threads][ALPHA_SIZE]; /* one histogram per OpenMP thread */
@@ -167,11 +168,11 @@ int make_hist( const char *text, int hist[ALPHA_SIZE] )
         }
     }
 
-#pragma omp parallel default(none) reduction(+:nlet) private(i) shared(local_hist, text, num_threads)
+#pragma omp parallel default(none) reduction(+:nlet) private(i) shared(local_hist, text, TEXT_LEN, num_threads)
     {
         const int my_id = omp_get_thread_num();
-        const int my_start = strlen(text) * my_id / num_threads;
-        const int my_end = strlen(text) * (my_id + 1) / num_threads;
+        const int my_start = (TEXT_LEN * my_id) / num_threads;
+        const int my_end = (TEXT_LEN * (my_id + 1)) / num_threads;
         for (i=my_start; i < my_end; i++) {
             const char c = text[i];
             if (isalpha(c)) {
@@ -198,8 +199,10 @@ int make_hist( const char *text, int hist[ALPHA_SIZE] )
     }
 
     /* Count occurrences */
-#pragma omp parallel for default(none) shared(text) reduction(+:nlet) reduction(+:hist[:ALPHA_SIZE])
-    for (i=0; i<strlen(text); i++) {
+#pragma omp parallel for default(none) shared(text, TEXT_LEN) \
+    reduction(+:nlet) \
+    reduction(+:hist[:ALPHA_SIZE])
+    for (i=0; i<TEXT_LEN; i++) {
         const char c = text[i];
         if (isalpha(c)) {
             nlet++;
