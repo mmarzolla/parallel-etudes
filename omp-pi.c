@@ -21,7 +21,7 @@
 /***
 % HPC - Monte Carlo approximation of $\pi$
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-10-15
+% Last updated: 2023-10-19
 
 The file [omp-pi.c](omp-pi.c) contains a serial program for computing
 the approximate value of $\pi$ using a Monte Carlo algorithm. These
@@ -80,12 +80,12 @@ initialize a private copy of `seed` is to split the `omp parallel` and
 `omp for` directives, as follows:
 
 ```C
-#pragma omp parallel default(none) ...
+#pragma omp parallel default(none) shared(n, n_inside)
 {
         const int my_id = omp_get_thread_num();
         unsigned int my_seed = 17 + 19*my_id;
         ...
-#pragma omp for ...
+#pragma omp for reduction(+:n_inside)
         for (int i=0; i<n; i++) {
                 \/\* call rand_r(&seed) here... \*\/
                 ...
@@ -189,11 +189,11 @@ unsigned int generate_points( unsigned int n )
        first create a parallel region, then define a local (private)
        variable `my_seed` and then use the `omp for` construct to
        execute the loop in parallel. */
-#pragma omp parallel default(none) shared(n) reduction(+:n_inside)
+#pragma omp parallel default(none) shared(n, n_inside)
     {
         const int my_id = omp_get_thread_num();
         unsigned int my_seed = 17 + 19*my_id;
-#pragma omp for
+#pragma omp for reduction(+:n_inside)
         for (int i=0; i<n; i++) {
             /* Generate two random values in the range [-1, 1] */
             const double x = (2.0 * rand_r(&my_seed)/(double)RAND_MAX) - 1.0;
