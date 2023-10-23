@@ -51,7 +51,7 @@ Single-Source Shortest Path      X                      Reduction
 
 ### Lab 2
 
-- [Dynamic scheduling](omp-dynamic.html) (master-worker)
+- [Dynamic scheduling](omp-schedule.html) (master-worker)
 - [Loop-carried dependencies](omp-loop.html)
 - [MergeSort](omp-mergesort.html) (task-level parallelism)
 - [Ray tracing](omp-c-ray.html) (embarrassingly parallel)
