@@ -21,47 +21,36 @@
 /***
 % HPC - Simulate "schedule()" directives
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-06-20
+% Last updated: 2023-10-23
 
-OpenMP allows the use of `schedule(static)` and `schedule(dynamic)`
-clauses to assign iterations of a "for" loop to OpenMP threads. The
-purpose of this exercise is to simulate these clauses _without_ using
-the `omp parallel for` construct.
+OpenMP allows the use of the `schedule(static)` and
+`schedule(dynamic)` clauses to assign loop iterations to OpenMP
+threads. The purpose of this exercise is to simulate these clauses
+_without_ using the `omp parallel for` construct.
 
 The file [omp-schedule.c](omp-schedule.c) contains a serial program
-that performs the following computations. The program creates and
-initializes a `vin[]` array of length $n$ (the value $n$ can be passed
-from the command line). The program creates a second array `vout[]` of
-length $n$, and defines its content such that `vout[i] = Fib(vin[i])`
-for each $i$, where `Fib(k)` the _k_th number of the Fibonacci
-sequence: `Fib(0)` = `Fib(1)` = 1; `Fib(k) = Fib(k-1) + Fib(k-2)` if
-$k \geq $2. To compute `fib(k)` we deliberately use the inefficient
-recursive algorithm, so that the computation time strongly depends on
-_k_.
+that creates and initializes an array `vin[]` of length $n$. The
+program creates a second array `vout[]` of the sam elength such that
+`vout[i] = Fib(vin[i])` for each $i$, where `Fib(k)` the _k_th number
+of the Fibonacci sequence: `Fib(0)` = `Fib(1)` = 1; `Fib(k) = Fib(k-1)
++ Fib(k-2)` if $k \geq $2. To compute `fib(k)` the program uses the
+inefficient recursive algorithm, so that the computation time varies
+widely depending on $k$.
 
-There are two identical functions, `do_static()` and `do_dynamic()`
-that perform the computation above.
+There are two functions, `do_static()` and `do_dynamic()` that perform
+the computation above.
 
 1. Modify `do_static()` to distribute the loop iterations to OpenMP
    threads as would be done by the `schedule(static, chunk_size)`
-   directive, but without using an explicit `omp parallel for`
-   construct (you may use `omp parallel`).
+   clause, but without using an explicit `omp parallel for` directive
+   (you may use `omp parallel`).
 
-2. Then, modify `do_dynamic()` to distribute the loop iterations to
-   OpenMP threads as would be done by the `schedule(dynamic,
-   chunk_size)` directive. Again, you are not allowed to use `omp
-   parallel for`, but only `omp parallel`.
+2. Modify `do_dynamic()` to distribute the loop iterations to OpenMP
+   threads according to the _master-worker_ paradigm, as would be done
+   by the `schedule(dynamic, chunk_size)` clause. Again, you are
+   not allowed to use `omp parallel for`, but only `omp parallel`.
 
-**Suggestion.** Start assuming `chunk_size = 1`. When implementing
-dynamic schedule (point 2 above) I suggest to assume `chunk_size = 1`,
-and use a shared variable to keep track of the index of the next
-element of `vin[]` which must be processed. Each thread gets the next
-unprocessed elements from `vin[]` and increments the shared variable
-atomically. This is tricky and must be done carefully.
-
-If you have time, compare the execution times of your implementation
-with those obtained by using the `omp parallel for` directive with the
-appropriate `schedule()` clauses.
+The provided source code contains hints to how to do that.
 
 To compile:
 
@@ -131,7 +120,7 @@ void fill(int *vin, int *vout, int n)
 }
 
 /* Check correctness of `vout[]`. Return 1 if correct, 0 if not */
-int check(const int *vin, const int *vout, int n)
+int is_correct(const int *vin, const int *vout, int n)
 {
     int i;
     /* check result */
@@ -154,7 +143,40 @@ void do_static(const int *vin, int *vout, int n)
 #ifdef SERIAL
     /* [TODO] parallelize the following loop, simulating a
        "schedule(static,1)" clause, i.e., static scheduling with block
-       size 1. Do not modify the body of the fib_rec() function. */
+       size 1. Optionally, allow an arbitrary chunk size.
+
+       Hint: the iteration space i=0..n-1 should be partitioned into
+       blocks of length `chunk_size`.  the blocks are assigned to
+       OpenMP threads using a cyclic assignment, e.g.:
+
+        <---------- STRIDE --------->
+        +----------+----------+-----+----------+----------+-----
+       0|    P0    |    P1    | ... |    P0    |    P1    | ...
+        +----------+----------+-----+----------+----------+-----
+         chunk_size chunk_size       chunk_size chunk_size
+
+       Let `STRIDE` be the number of iterations between the beginning
+       of a chunk assigned to thread `p` and the next chunk assigned
+       to the same thread. Therefore:
+
+       STRIDE = num_threads * chunk_size;
+
+       The first chunk assigned to `p` starts at `(p * chunk_size)`.
+       Therefore, each thread should execute the following nested
+       loops (in pseudocode):
+
+       START = my_id * chunk_size;
+       STRIDE = num_threads * chunk_size;
+       for (i=START; i<n; i+=STRIDE) {
+         for (j=i; j<i+chunk_size && j<n; j++) {
+           loop body
+         }
+       }
+
+       Note that `n` is not necessarily an integer multiple of the
+       number of threads, and therefore we must use addtional checks
+       to ensure that we never exceed `n`.
+    */
     for (i=0; i<n; i++) {
         vout[i] = fib_rec(vin[i]);
         /* printf("vin[%d]=%d vout[%d]=%d\n", i, vin[i], i, vout[i]); */
@@ -163,12 +185,12 @@ void do_static(const int *vin, int *vout, int n)
     const int chunk_size = 1; /* can be set to any value >= 1 */
 #pragma omp parallel default(none) shared(vin,vout,n,chunk_size) private(i)
     {
-        /* This implementation simulates the behavior of a
-           schedule(static,chunk_size) clause for any chunk_size>=1. */
+        /* Simulate the behavior of a schedule(static,chunk_size)
+           clause for any chunk_size>=1. */
         const int my_id = omp_get_thread_num();
-        const int n_threads = omp_get_num_threads();
+        const int num_threads = omp_get_num_threads();
         const int START = my_id * chunk_size;
-        const int STRIDE = n_threads * chunk_size;
+        const int STRIDE = num_threads * chunk_size;
         int j;
 
         for (i=START; i<n; i += STRIDE) {
@@ -187,8 +209,26 @@ void do_dynamic(const int *vin, int *vout, int n)
 #ifdef SERIAL
     /* [TODO] parallelize the following loop, simulating a
        "schedule(dynamic,1)" clause, i.e., dynamic scheduling with
-       block size 1. Do not modify the body of the fib_rec()
-       function. */
+       block size 1. Optionally, allow the user to specify the chunk
+       size.
+
+       Hint: keep a shared variable `idx` representing the index of
+       the beginning of the first unprocessed chunk, i.e., the first
+       chunk that will be assigned to a thread.
+
+       Each OpenMP thread atomically fetches the current value of
+       `idx` into a local (private) variable `my_idx`, and then
+       increments `idx` by `chunk_size`.
+
+       Therefore, each thread executes the following code:
+
+       do {
+         atomically copy idx into my_idx and increment idx by chunk_size
+         for (i=my_idx; i<my_idx + chunk_size && i<n; i++) {
+           loop body
+         }
+       } while (my_idx < n);
+    */
     for (i=0; i<n; i++) {
         vout[i] = fib_rec(vin[i]);
         /* printf("vin[%d]=%d vout[%d]=%d\n", i, vin[i], i, vout[i]); */
@@ -234,7 +274,7 @@ int main( int argc, char* argv[] )
     }
 
     if ( n > max_n ) {
-        fprintf(stderr, "FATAL: n too large\n");
+        fprintf(stderr, "FATAL: n too large (max value is %d)\n", max_n);
         return EXIT_FAILURE;
     }
 
@@ -243,24 +283,24 @@ int main( int argc, char* argv[] )
     vout = (int*)malloc(n * sizeof(vout[0])); assert(vout != NULL);
 
     /**
-     ** First test
+     ** Test static schedule implementation
      **/
     fill(vin, vout, n);
     tstart = omp_get_wtime();
     do_static(vin, vout, n);
     elapsed = omp_get_wtime() - tstart;
-    check(vin, vout, n);
+    is_correct(vin, vout, n);
 
     printf("Elapsed time (static schedule): %f\n", elapsed);
 
     /**
-     ** First test
+     ** Test dynamic schedule implementation
      **/
     fill(vin, vout, n);
     tstart = omp_get_wtime();
     do_dynamic(vin, vout, n);
     elapsed = omp_get_wtime() - tstart;
-    check(vin, vout, n);
+    is_correct(vin, vout, n);
 
     printf("Elapsed time (dynamic schedule): %f\n", elapsed);
 
