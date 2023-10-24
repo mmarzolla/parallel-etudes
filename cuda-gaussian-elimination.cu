@@ -21,7 +21,7 @@
 /***
 % HPC - Solution of a system of linear equations in upper triangular form
 % Alice Girolomini <alice.girolomini@studio.unibo.it>
-% Last updated: 2023-09-06
+% Last updated: 2023-10-24
 
 The solution of a linear system $Ax = b$, where $A$ is a square matrix
 of size $n \times n$ in upper triangular form and $b$ is a vector of
@@ -102,7 +102,7 @@ Example:
 
 #ifdef SERIAL
 /**
- * Solve the linear system Ax = b, where A is a square matrix of size
+ * Solves the linear system Ax = b, where A is a square matrix of size
  * n x n in upper triangular form.
  */
 void solve (const float *A, const float *b, float *x, int n) {
@@ -171,7 +171,7 @@ void solve (const float *A, const float *b, float *x, int n) {
 void init (float *A, float *b, int n) {
     const float EPSILON = 1e-5;
     float *x = (float*) malloc(n * sizeof(*x));
-    for (int i=0; i<n; i++) {
+    for (int i = 0; i < n; i++) {
         x[i] = 1;
     }
 
