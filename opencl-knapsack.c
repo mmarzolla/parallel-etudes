@@ -2,7 +2,7 @@
  *
  * opencl-knapsack.c - 0-1 Knapsack problem
  *
- * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - 0-1 Knapsack problem
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-08-17
+% Last updated: 2023-10-24
 
 ![](knapsack.png)
 
@@ -70,25 +70,24 @@ $$
 The general case is a bit tricky. The solution of $P(i,j)$ may or may
 not use item $i$. We have the following cases:
 
-1. If $w_i >j$, the weight of item $i$ exceeds by itself the capacity
+1. If $w_i > j$, the weight of item $i$ exceeds by itself the capacity
    of the knapsack, so that item $i$ can definitely not be used.
    Therefore, the optimal solution $V(i,j)$ of problem $P(i,j)$ will
    not contain item $i$, and will then be the same as the optimal
    solution $V(i-1,j)$ of problem $P(i-1,j)$.
 
 2. If $w_i \leq j$, then we may or may not use item $i$. The choice
-   depends on which alternative provides the better value.
+   depends on which alternative provides the better outcome:
 
-    a. If we choose to use item $i$, then the optimal solution
-       $V(i,j)$ of problem $P(i,j)$ is $V(i-1,j-w_i)+v_i$: in fact, we
-       use item $i$ of value $v_i$, and we fill the residual capacity
-       $j - w_i$ of the knapsack with the items chosen among the
-       remaining $\{9, 1, \ldost,k i-1\]$ that provide the maximum
-       value. Such maximum value is precisely the solution $V(i-1,
-       j-w_i)$ of problem $P(i-1, j-w_i)$.
+    a. If we choose to use item $i$, then the solution $V(i,j)$ of
+       problem $P(i,j)$ is $V(i-1,j-w_i)+v_i$: indeed, we use item $i$
+       of value $v_i$, and fill the residual capacity $j - w_i$ with
+       the items chosen among $\{0, 1, \ldots, i-1\}$ that provide the
+       maximum value. Such maximum value is the solution $V(i-1,
+       j-w_i)$ of $P(i-1, j-w_i)$.
 
     b. If we choose not to use item $i$, the maximum value that we can
-       insert into the knapsack is $V(i-1, j)$ as in case 1 above.
+       put into the knapsack is $V(i-1, j)$ as in case 1 above.
 
 So, should be use item $i$ or not? We choose the alternative among 2.a
 and 2.b that maximizes the total value.  Therefore, for any $i=1,
@@ -102,23 +101,23 @@ V(i-1, j) & \mbox{if}\ j < w_i\\
 $$
 
 With a slight modification of the algorithm above it is possible to
-keep track of _which_ items belong to the optimal solution.  For the
-sake of simplicity, in this exercise we want to compute only the value
-of the optimal solution.
+keep track of which items belong to the optimal solution.  For the
+sake of simplicity, in this exercise we only compute the value of the
+optimal solution.
 
-The file [opencl-knapsack.c](opencl-knapsack.c) contains a serial program
-that solves the 0-1 Knapsack problem using dynamic programming.  Input
+The file [opencl-knapsack.c](opencl-knapsack.c) contains a serial
+solution to the 0-1 Knapsack problem using dynamic programming. Input
 instances are read from a text file whose name is provided as the only
-command-line parameter. The input files have a very simple structure:
+command-line parameter. The input file has a simple structure:
 
 - The first value is the maximum capacity $C$ (integer);
 
 - The second value is the number of items $n$ (integer);
 
-- After that, $n$ pairs $(w_i, v_i)$ are listed, separated by blanks.
+- After that, $n$ pairs $(w_i, v_i)$ are listed, separated by spaces or tabs.
 
-The program [knapsack-gen.c](knapsack-gen.c) can be used to generate
-random instances for additional experiments.
+The program [knapsack-gen.c](knapsack-gen.c) generates random
+instances for additional experiments.
 
 The goal is to modify the program to make use of OpenCL
 parallelism. You are suggested to write a suitable kernel that fills a
