@@ -21,7 +21,7 @@
 /***
 % HPC - Solution of a system of linear equations in upper triangular form
 % Alice Girolomini <alice.girolomini@studio.unibo.it>
-% Last updated: 2023-08-10
+% Last updated: 2023-10-24
 
 The solution of a linear system $Ax = b$, where $A$ is a square matrix
 of size $n \times n$ in upper triangular form and $b$ is a vector of
@@ -99,11 +99,12 @@ Example:
 #include <mpi.h>
 #include "hpc.h"
 
+#ifdef SERIAL
 /**
- * Solve the linear system Ax = b, where A is a square matrix of size
+ * Solves the linear system Ax = b, where A is a square matrix of size
  * n x n in upper triangular form.
  */
-#ifdef SERIAL
+
 void solve (const float *A, const float *b, float *x, int n ) {
 
     for (int i = n - 1; i >= 0; i--) {
@@ -117,20 +118,28 @@ void solve (const float *A, const float *b, float *x, int n ) {
 }
 #endif
 
-void init (float *A, float *b, int n ) {
+void init (float *A, float *b, int n) {
     const float EPSILON = 1e-5;
+    float *x = (float*) malloc(n * sizeof(*x));
     for (int i = 0; i < n; i++) {
-        b[i] = i;
+        x[i] = 1;
+    }
+
+    for (int i = 0; i < n; i++) {
+        float bi = 0;
         for (int j = 0; j < n; j++) {
             if (i > j) {
-                A[i*n + j] = 0;
+                A[i * n + j] = 0;
             } else {
-                A[i*n + j] = i + j + 1;
+                A[i * n + j] = 1;
+                bi += x[j] * A[i * n + j];
             }
         }
+        b[i] = bi;
         /* ensures that matrix A is non-singular */
-        assert( fabs(A[i*n + i]) > EPSILON );
+        assert(fabs(A[i * n + i]) > EPSILON);
     }
+    free(x);
 }
 
 /**
