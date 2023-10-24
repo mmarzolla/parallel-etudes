@@ -2,7 +2,7 @@
  *
  * omp-merge-sort.c - Merge Sort with OpenMP tasks
  *
- * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,26 +21,35 @@
 /***
 % HPC - Merge Sort with OpenMP tasks
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-10-19
+% Last updated: 2023-10-24
 
-The file [omp-merge-sort.c](omp-merge-sort.c) contains an
-implementation of the recursive _Merge Sort_ algorithm. The
-implementation reverts to _Selection Sort_ when the size of the
-subvector to sort is less than a cutoff value; this is a standard
-optimization that reduces the overhead of recursive calls on small
-vectors.
+The file [omp-merge-sort.c](omp-merge-sort.c) contains a recursive
+implementation of the _Merge Sort_ algorithm. The implementation uses
+_Selection Sort_ when the size of the subvector is less than a
+user-defined cutoff value; this is a standard optimization that avoids
+the overhead of recursive calls on small vectors.
 
-The program generates a random permutation of the integers $0, 1,
-\ldots, n-1$, and then sorts the permutation using Merge Sort. It if
-therefore easy to check the correctness of the result by comparing it
-to the sequente $0, 1, \ldots, n-1$.
+The program generates and sorts a random permutation of $0, 1, \ldots,
+n-1$; it if therefore easy to check the correctness of the result,
+since it must be the sequente $0, 1, \ldots, n-1$.
 
-You are asked to parallelize the Merge Sort algorithm using OpenMP
-tasks, by creating separate task for each recursive call. Measure the
-execution time of the parallel version and compare it with the serial
-implementation. To get meaningful results, choose an input that
-requires at least a few seconds to be sorted using all available
-processor cores.
+The goal is to parallelize the Merge Sort algorithm using OpenMP
+tasks. You might want to proceed as follows:
+
+- The recursion must start inside a parallel region;
+
+- Only one process should start the recursion;
+
+- Create two tasks for the two recursive calls; pay attention to the
+  visibility of variables;
+
+- Wait for the two sub-tasks to complete before starting the "merge"
+  step.
+
+Measure the execution time of the parallel version and compare
+it with the serial implementation. To get meaningful results, choose
+an input that requires at least a few seconds to be sorted using all
+available processor cores.
 
 To compile:
 
@@ -122,35 +131,36 @@ void merge(int* src, int low, int mid, int high, int* dst)
 }
 
 /**
- * Sort v[i..j] using the recursive version of Merge Sort; the array
- * tmp[i..j] is used as a temporary buffer (the caller is responsible
- * for providing a suitably sized array tmp).
+ * Sort `v[i..j]` using the recursive version of Merge Sort; the array
+ * `tmp[i..j]` is used as a temporary buffer; the caller is
+ * responsible for providing a suitably sized array `tmp`. This
+ * function must not free `tmp`.
  */
 void mergesort_rec(int* v, int i, int j, int* tmp)
 {
     const int CUTOFF = 64;
-    /* If the portion to be sorted is smaller than the CUTOFF, use
-       selectoin sort. This is a widely used optimization that limits
-       the overhead of recursion for small vectors. The optimal value
-       of the cutoff is system-dependent; the value used here is just
+    /* If the subvector is smaller than CUTOFF, use selectoin
+       sort. This is a widely used optimization that avoids the
+       overhead of recursion for small vectors. The optimal CUTOFF
+       value is implementation-dependent; the value used here is just
        an example. */
     if ( j - i + 1 < CUTOFF )
         selectionsort(v, i, j);
     else {
         const int m = (i+j)/2;
-        /* [TODO] The following two recursive invocation of
-           mergesort_rec() are independent, and therefore can run in
-           parallel. Create two OpenMP tasks to sort the first and
-           second half of the array; then, wait for all tasks to
-           complete before merging the results. */
+        /* [TODO] The two recursive invocations of `mergesort_rec()`
+           are independent and can be executed in parallel. Create two
+           OpenMP tasks, and wait for their completion before merging
+           the results. Pay attention to the visibility of variables
+           associated to the tasks.
+
+           `v`, `i`, `m`, `tmp` are local variables, so they are
+           `firstprivate` by default according to the visibility rules
+           for tasks. However, due to the `taskwait` directive below,
+           the values of these variables can not change between task
+           creation and execution, so they can be made all
+           `shared`. */
 #ifndef SERIAL
-        /* v, i, m, tmp are local variable to this thread, so they are
-           firstprivate by default according to the visibility rules
-           for tasks. However, due to the "taskwait" directive below,
-           the values of these variables do not change during the
-           interval from task creation to task execution, so they can
-           be made all shared. Note the usual GCC annoyance related to
-           the constant m that is predetermined shared by GCC < 9.x*/
 #pragma omp task shared(v, i, m, tmp)
 #endif
         mergesort_rec(v, i, m, tmp);
@@ -158,9 +168,8 @@ void mergesort_rec(int* v, int i, int j, int* tmp)
 #pragma omp task shared(v, j, m, tmp)
 #endif
         mergesort_rec(v, m+1, j, tmp);
-        /* When using OpenMP, we must wait here for the recursive
-           invocations of mergesort_rec() to terminate before merging
-           the result */
+        /* Wait for completion of the recursive invocations of
+           `mergesort_rec()` before merging. */
 #ifndef SERIAL
 #pragma omp taskwait
 #endif
@@ -181,9 +190,8 @@ void mergesort(int *v, int n)
     int* tmp = (int*)malloc(n*sizeof(v[0]));
     assert(tmp != NULL);
 #ifdef SERIAL
-    /* [TODO] Parallelize the body of this function. You should create
-       a pool of thread here, and ensure that only one thread calls
-       mergesort_rec() to start the recursion. */
+    /* [TODO] Create a parallel region, and make sure that only one
+       thread calls mergesort_rec() to start the recursion. */
 #else
 #pragma omp parallel default(none) shared(v,tmp,n)
 #pragma omp single
@@ -215,7 +223,7 @@ void fill(int* a, int n)
 }
 
 /* Return 1 iff a[] contains the values 0, 1, ... n-1, in that order */
-int check(const int* a, int n)
+int is_correct(const int* a, int n)
 {
     int i;
     for (i=0; i<n; i++) {
@@ -255,7 +263,7 @@ int main( int argc, char* argv[] )
     mergesort(a, n);
     const double elapsed = omp_get_wtime() - tstart;
     printf("done\n");
-    const int ok = check(a, n);
+    const int ok = is_correct(a, n);
     printf("Check %s\n", (ok ? "OK" : "failed"));
     printf("Elapsed time: %f\n", elapsed);
 
