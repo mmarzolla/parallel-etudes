@@ -21,7 +21,7 @@
 /***
 % HPC - Sum-reduction of an array
 % Alice Girolomini <alice.girolomini@studio.unibo.it>
-% Last updated: 2023-09-06
+% Last updated: 2023-10-27
 
 The file [cuda-sum.cu](cuda-sum.cu) contains a serial implementation of a
 CUDA program that computes the sum of an array of length $N$; indeed,
@@ -94,8 +94,8 @@ float fill (float *v, int n) {
 */
 __global__ void sum (float *v, int n, float *s) {
     __shared__ float temp[BLKDIM];
-    int tid = threadIdx.x;
-    int i = tid + blockIdx.x * blockDim.x;
+    const int tid = threadIdx.x;
+    const int i = tid + blockIdx.x * blockDim.x;
     int bsize = blockDim.x / 2;
 
     if (i < n) {
@@ -120,18 +120,19 @@ __global__ void sum (float *v, int n, float *s) {
 
 /** 
  * Each thread fills its portion of the array `v` of length `n`; 
- * returns the sum of the content of `v` 
+ * returns the expected result of the reduction 
 */
 __global__ void fill (float *v, int n, float *expected) {
-    int i = threadIdx.x + blockIdx.x * blockDim.x;
+    const int i = threadIdx.x + blockIdx.x * blockDim.x;
+    const int block = blockIdx.x;
     const float vals[] = {1, -1, 2, -2, 0};
     const int NVALS = sizeof(vals)/sizeof(vals[0]);
 
     if (i < n) {
         v[i] = vals[i % NVALS];
     }
-    __syncthreads();
-    if (i == 0) {
+    
+    if (i == 0 && block == 0) {
         switch(n % NVALS) {
             case 1: atomicExch(expected, 1); break;
             case 3: atomicExch(expected, 2); break;
