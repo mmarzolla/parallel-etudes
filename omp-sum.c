@@ -102,7 +102,7 @@ float sum (float *v, int n) {
 
 /** 
  * Each thread fills its portion of the array `v` of length `n`; 
- * returns the sum of the content of `v` 
+ * returns the expected result of the reduction
 */
 float fill (float *v, int n) {
     const float vals[] = {1, -1, 2, -2, 0};
@@ -110,7 +110,7 @@ float fill (float *v, int n) {
     int i;
 
     #if __GNUC__ < 9 
-    #pragma omp parallel for default(none) shared(n, vals, v)
+    #pragma omp parallel for default(none) shared(n, v)
     #else
     #pragma omp parallel for default(none) shared(n, vals, NVALS, v)
     #endif
