@@ -21,7 +21,7 @@
 /***
 % HPC - Sum-reduction of an array
 % Alice Girolomini <alice.girolomini@studio.unibo.it>
-% Last updated: 2023-10-04
+% Last updated: 2023-10-27
 
 The file [omp-sum.c](omp-sum.c) contains a serial implementation of an
 OpenMP program that computes the sum of an array of length $N$; indeed,
@@ -110,9 +110,9 @@ float fill (float *v, int n) {
     int i;
 
     #if __GNUC__ < 9 
-    #pragma omp parallel for default(none) shared(n, vals, v) private(i)
+    #pragma omp parallel for default(none) shared(n, vals, v)
     #else
-    #pragma omp parallel for default(none) shared(n, vals, NVALS, v) private(i)
+    #pragma omp parallel for default(none) shared(n, vals, NVALS, v)
     #endif
     for (i = 0; i < n; i++) {
         v[i] = vals[i % NVALS];
