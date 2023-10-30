@@ -21,7 +21,7 @@
 /***
 % HPC - Solution of a system of linear equations in upper triangular form
 % Alice Girolomini <alice.girolomini@studio.unibo.it>
-% Last updated: 2023-10-24
+% Last updated: 2023-10-30
 
 The solution of a linear system $Ax = b$, where $A$ is a square matrix
 of size $n \times n$ in upper triangular form and $b$ is a vector of
@@ -143,7 +143,7 @@ void init (float *A, float *b, int n) {
 }
 
 /**
- * Returns nonzero iff Ax = b within some tolerante EPSILON
+ * Returns nonzero if Ax = b within some tolerante EPSILON
  */
 int check_ok ( const float *A, const float *b, const float *x, int n ) {
     const float EPSILON = 1e-3;
