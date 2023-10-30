@@ -21,7 +21,7 @@
 /***
 % HPC - Arnold's cat map
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-07-26
+% Last updated: 2023-10-30
 
 ![](cat-map.png)
 
@@ -215,9 +215,10 @@ Each measurement is the average of five independent executions.
 
 Processor type      Cores   GHz  GCC version  No loop interchange   Loop interchange
 ------------------ ------ ----- ------------ -------------------- ------------------
-Intel Xeon E3-1220      4   3.5        7.5.0                 7.10              12.94
-Intel Xeon E5-2603     12   1.7        9.4.0                 5.94               7.53
-Intel i7-4790         4+4   3.6        7.5.0                 6.01               5.92
+Intel Xeon E3-1220      4   3.5       11.4.0                 6.84              12.90
+Intel Xeon E5-2603     12   1.7        9.4.0                 6.11               7.74
+Intel i7-4790         4+4   3.6        9.4.0                 6.05               5.89
+Intel i7-9800X        8+8   3.8       11.4.0                 2.25               2.34
 Intel i5-11320H       4+4   4.5        9.4.0                 3.94               4.01
 Intel Atom N570       2+2   1.6        7.5.0               128.69              92.47
 Raspberry Pi 4          4   1.5        8.3.0                27.10              27.24
@@ -397,7 +398,7 @@ int main( int argc, char* argv[] )
      **/
     elapsed = 0.0;
     for (int i=0; i<NTESTS; i++) {
-        fprintf(stderr, "Run %d of %d\n", i, NTESTS);
+        fprintf(stderr, "Run %d of %d\n", i+1, NTESTS);
         const double tstart = hpc_gettime();
         cat_map(&img, niter);
         elapsed += hpc_gettime() - tstart;
@@ -422,7 +423,7 @@ int main( int argc, char* argv[] )
      **/
     elapsed = 0.0;
     for (int i=0; i<NTESTS; i++) {
-        fprintf(stderr, "Run %d of %d\n", i, NTESTS);
+        fprintf(stderr, "Run %d of %d\n", i+1, NTESTS);
         const double tstart = hpc_gettime();
         cat_map_interchange(&img, niter);
         elapsed += hpc_gettime() - tstart;
