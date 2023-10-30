@@ -21,7 +21,7 @@
 /***
 % HPC - Implementing the "schedule(dynamic)" clause by hand
 % Alice Girolomini <alice.girolomini@studio.unibo.it>
-% Last updated: 2023-10-16
+% Last updated: 2023-10-30
 
 We know that the `schedule(dynamic)` OpenMP clause dynamically assigns
 iterations of a "for" loop to the first available OpenMP thread. The
@@ -217,7 +217,7 @@ int main (int argc, char* argv[]) {
             }
         }
 
-        /* The master receives the partial result from any worker and dispatches a new task until there's no more chunks left */
+        /* The master receives the partial result from any worker and dispatches a new task until there are no more chunks left */
         while ((n - last_work_id) >= CHUNK_SIZE) {
             MPI_Recv(&current_work, 1, worktype, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
             memcpy(vout + current_work.start, current_work.local_vout, CHUNK_SIZE * sizeof(int));
@@ -230,7 +230,7 @@ int main (int argc, char* argv[]) {
             
         }
 
-        /* The master receives results for pending work requests and tells all the workers to exit */
+        /* The master receives results for pending work requests and communicates all the workers to exit */
         for (int i = 1; i < comm_sz - inactive_p; i++) {
             MPI_Recv(&current_work, 1, worktype, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
             memcpy(vout + current_work.start, current_work.local_vout, CHUNK_SIZE * sizeof(int));
