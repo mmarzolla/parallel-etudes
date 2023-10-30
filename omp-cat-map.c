@@ -213,7 +213,7 @@ Each measurement is the average of five independent executions.
 
 :Table 1: Execution time (in seconds) of the command `./omp-cat-map 2048 < cat1368.pgm > /dev/null` using all processor cores, with different implementations of the cat map iteration.
 
-Processor type      Cores   GHz  GCC version  No loop interchange   Loop interchange
+Processor          Cores   GHz  GCC version  No loop interchange   Loop interchange
 ------------------ ------ ----- ------------ -------------------- ------------------
 Intel Xeon E3-1220      4   3.5       11.4.0                 6.84              12.90
 Intel Xeon E5-2603     12   1.7        9.4.0                 6.11               7.74
