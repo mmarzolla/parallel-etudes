@@ -21,7 +21,7 @@
 /***
 % HPC - Sum-reduction of an array
 % Alice Girolomini <alice.girolomini@studio.unibo.it>
-% Last updated: 2023-10-27
+% Last updated: 2023-10-30
 
 The file [cuda-sum.cu](cuda-sum.cu) contains a serial implementation of a
 CUDA program that computes the sum of an array of length $N$; indeed,
@@ -90,7 +90,7 @@ float fill (float *v, int n) {
 #else
 /** 
  * All threads within the block cooperate to compute the local sum,
- * then thread 0 of each block performs an atomic add
+ * then thread 0 of each block performs an atomic addition
 */
 __global__ void sum (float *v, int n, float *s) {
     __shared__ float temp[BLKDIM];
