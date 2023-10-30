@@ -21,7 +21,7 @@
 /***
 % HPC - Parallel linear search
 % Alice Girolomini <alice.girolomini@studio.unibo.it>
-% Last updated: 2023-09-28
+% Last updated: 2023-10-30
 
 Write an CUDA program that finds the positions of all occurrences of a
 given `key` in an unsorted integer array `v[]`. For example, if `v[] =
@@ -86,8 +86,8 @@ __global__ void count_kernel (int *v, int n, int *nf, int KEY) {
 }
 
 /**
-* All threads within the block cooperate to compute the number of 
-* occurrences, then each block performs a reduction
+* Every thread that finds the KEY value in v, writes its position
+* in the array r and increases index idx
 */
 __global__ void find_indexes_kernel (int *v, int *result, int n, int nf, int KEY, int *r) {
     const int tid = threadIdx.x;
