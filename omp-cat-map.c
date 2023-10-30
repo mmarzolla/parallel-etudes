@@ -30,17 +30,17 @@ is a continuous chaotic function that has been studied in the '60s by
 the Russian mathematician [Vladimir Igorevich
 Arnold](https://en.wikipedia.org/wiki/Vladimir_Arnold). In its
 discrete version, the function can be understood as a transformation
-of a bitmap image $P$ of size $N \times N$ into a new image $P'$ of
+of a bitmapped image $P$ of size $N \times N$ into a new image $P'$ of
 the same size. For each $0 \leq x, y < N$, the pixel of coordinates
 $(x,y)$ in $P$ is mapped into a new position $C(x, y) = (x', y')$ in
-$P'$ where
+$P'$ such that
 
 $$
 x' = (2x + y) \bmod N, \qquad y' = (x + y) \bmod N
 $$
 
 ("mod" is the integer remainder operator, i.e., operator `%` of the C
-language). We may assume that $(0, 0)$ is top left and $(N-1, N-1)$
+language). We may assume that $(0, 0)$ is top left and $(N-1, N-1)$ is
 bottom right, so that the bitmap can be encoded as a regular
 two-dimensional C matrix.
 
@@ -51,7 +51,7 @@ in Figure 1.
 ![Figure 1: Arnold's cat map](cat-map.svg)
 
 Arnold's cat map has interesting properties. Let $C^k(x, y)$ be the
-result of iterating $k$ times the function $C$, i.e.:
+$k$-th iterate of $C$, i.e.:
 
 $$
 C^k(x, y) = \begin{cases}
@@ -63,33 +63,32 @@ $$
 Therefore, $C^2(x,y) = C(C(x,y))$, $C^3(x,y) = C(C(C(x,y)))$, and so
 on.
 
-If we take an image and apply $C$ once, we get a severely distorted
-version of the input. If we apply $C$ on the resulting image, we get
-an even more distorted image. As we keep applying $C$, the original
-image is no longer discernible. However, after a certain number of
-iterations that depends on $N$ and has been proved to never exceed
+If we apply $C$ once, we get a severely distorted version of the
+input. If we apply $C$ on the result, we get an even more distorted
+image. As we keep applying $C$, the original image is no longer
+discernible. However, after a certain number of iterations, that
+depends on the image size $N$ and has been proved to never exceed
 $3N$, we get back the original image! (Figure 2).
 
 ![Figure 2: Some iterations of the cat map](cat-map-demo.png)
 
 The _minimum recurrence time_ for an image is the minimum positive
-integer $k \geq 1$ such that $C^k(x, y) = (x, y)$ for all $(x, y)$. In
-simple terms, the minimum recurrence time is the minimum number of
-iterations of the cat map that produce the starting image.
+integer $k \geq 1$ such that $C^k(x, y) = (x, y)$ for all $(x, y)$.
+The minimum recurrence time is the minimum number of iterations of the
+cat map that produce the starting image. For example, the minimum
+recurrence time for [cat1368.pgm](cat1368.pgm) of size $1368 \times
+1368$ is $36$.
 
-For example, the minimum recurrence time for
-[cat1368.pgm](cat1368.pgm) of size $1368 \times 1368$ is $36$. As said
-before, the minimum recurrence time depends on the image size $N$.
-Unfortunately, no closed formula is known to compute the minimum
-recurrence time as a function of $N$, although there are results and
-bounds that apply to specific cases.
+The minimum recurrence time depends on the image size $N$.  So far,
+there is no closed formula that computes the minimum recurrence time
+as a function of $N$, although there are results and bounds that apply
+to specific cases.
 
-You are provided with a serial program that computes the $k$-th
-iterate of Arnold's cat map on a square image. The program reads the
-input from standard input in
-[PGM](https://en.wikipedia.org/wiki/Netpbm) (_Portable GrayMap_)
-format. The results is printed to standard output in PGM format. For
-example:
+You are given a serial program that computes the $k$-th iterate of
+Arnold's cat map on a square image. The program reads the input from
+standard input in [PGM](https://en.wikipedia.org/wiki/Netpbm)
+(_Portable GrayMap_) format. The results is printed to standard output
+in PGM format. For example:
 
         ./omp-cat-map 100 < cat1368.pgm > cat1368-100.pgm
 
@@ -103,12 +102,13 @@ format, e.g., JPEG. Under Linux you can use `convert` from the
         convert cat1368-100.pgm cat1368-100.jpeg
 
 Modify the function `cat_map()` to make use of shared-memory
-parallelism using OpenMP. To this aim it is important to know that
-Arnold's cat map is invertible: this means that any two different
-points $(x_1, y_1)$ and $(x_2, y_2)$ are always mapped to different
-points $(x'_1, y'_1) = C(x_1, y_1)$ and $(x'_2, y'_2) = C(x_2, y_2)$,
-suggesting that the destination bitmap $P'$ can be filled concurrently
-without race conditions (however, see below for some caveats).
+parallelism using OpenMP. You might want to take advantage from the
+fact that Arnold's cat map is _invertible_, and this implies that any
+two different points $(x_1, y_1)$ and $(x_2, y_2)$ are always mapped
+to different points $(x'_1, y'_1) = C(x_1, y_1)$ and $(x'_2, y'_2) =
+C(x_2, y_2)$. Therefore, the output image $P'$ can be filled up in
+parallel without race conditions (however, see below for some
+caveats).
 
 To compile:
 
@@ -124,8 +124,7 @@ Example:
 
 ## Suggestions
 
-The provided implementation of function `cat_map()` is based on the
-following template:
+The provided function `cat_map()` is based on the following template:
 
 ```C
 for (i=0; i<k; i++) {
@@ -139,13 +138,11 @@ for (i=0; i<k; i++) {
 }
 ```
 
-The two innermost loops build a $P'$ from $P$; the outermost loop
-applies this transformation $k$ times, using the result of the
-previous iteration as the source image. Therefore, the outermost loop
-can _not_ be parallelized due to a loop-carried dependence (the result
-of an iteration is used as input for the next iteration).
-
-Therefore, in the version above you can either:
+The two inner loops build $P'$ from $P$; the outer loop applies this
+transformation $k$ times, using the result of the previous iteration
+as the source image. Therefore, the outer loop can _not_ be
+parallelized (the result of an iteration is used as input for the next
+one). Therefore, in the version above you can either:
 
 1. Parallelize the `y` loop only, or
 
@@ -154,8 +151,8 @@ Therefore, in the version above you can either:
 3. Parallelize both the `y` and `x` loops using the `collapse(2)`
    clause.
 
-(I suggest to try option 3. Option 2, although formally correct, does
-not appear to be efficient in practice: why?).
+(I suggest to try options 1 and/or 3. Option 2 does not appear to be
+efficient in practice: why?).
 
 We can apply the _loop interchange_ transformation to rewrite the
 code above as follows:
@@ -174,11 +171,11 @@ for (y=0; y<N; y++) {
 }
 ```
 
-This version can be understood as follows: the two outermost loops
-iterate over all pixels $(x, y)$. For each pixel, the innermost loop
-computes the target position $(\mathit{xnext}, \mathit{ynext}) =
-C^k(x,y)$ that the pixel of coordinates $(x, y)$ will occupy after $k$
-iterations of the cat map.
+This version can be understood as follows: the two outer loops iterate
+over all pixels $(x, y)$. For each pixel, the inner loop computes the
+target position $(\mathit{xnext}, \mathit{ynext}) = C^k(x,y)$ that the
+pixel of coordinates $(x, y)$ will occupy after $k$ iterations of the
+cat map.
 
 In this second version, we have the following options:
 
@@ -197,15 +194,15 @@ Intuitively, we might expect that (c) performs better than (3), because:
 - there are fewer writes to memory.
 
 Interestingly, this does not appear to be the case (at least, not on
-every processor). Table 1 shows the execution time of the two versions
-of the `cat_map()` function ("No loop interchange" refers to option
-(3) above; "Loop interchange" refers to option (c)). The program has
-been compiled with:
+every processor). Table 1 shows the execution time of two versions of
+the `cat_map()` function ("No loop interchange" refers to option (3);
+"Loop interchange" refers to option (c)). The program has been
+compiled with:
 
         gcc -O0 -fopenmp omp-cat-map.c -o omp-cat-map
 
-(`-O0` prevents the compiler to make code transformations that might
-significantly alter the functions) and executed with the command line:
+(`-O0` prevents the compiler fro making code transformations that
+might alter the functions too much) and executed as:
 
         ./omp-cat-map 2048 < cat1368.pgm > /dev/null
 
@@ -223,33 +220,28 @@ Intel i5-11320H       4+4   4.5        9.4.0                 3.94               
 Intel Atom N570       2+2   1.6        7.5.0               128.69              92.47
 Raspberry Pi 4          4   1.5        8.3.0                27.10              27.24
 
-On some platforms (Intel i5, i7 and Raspberry Pi 4) there is
-essentially no difference between the two versions. Loop interchange
-provides a significant performance boost on the very old Atom N570. On
-the other hand, loop interchange provides worse performance on the
-Xeon processors.
+On some platforms (Intel i5, i7 and Raspberry Pi 4) there is no
+difference between the two versions. Loop interchange provides a
+significant performance boost on the very old Atom N570. On the other
+hand, loop interchange provides _worse_ performance on the Xeon
+processors.
 
 ## To probe further
 
 What is the minimum recurrence time of image
-[cat1024.pgm](cat1024.pgm) of size $1024 \times 1024$? Since there is
-no general formula, to answer this question we need to iterate the cat
-map and stop as soon as we get an image that is equal to the original
-one.
+[cat1024.pgm](cat1024.pgm) of size $1024 \times 1024$?  To answer this
+question we need to iterate the cat map and stop as soon as we get
+back the initial image.
 
-It turns out that there is a smarter way, that does not involve slow
-comparisons of images. There is actually no need to have an input
-image at all: only its size $N$ is required.
-
-To see how it works, let us suppose that we know that one particular
-pixel of the image, say $(x_1, y_1)$, has minimum recurrence time
-equal to 15. This means that after 15 iterations of the cat map, the
-pixel at coordinates $(x_1, y_1)$ will return to its starting
-position.
-
-Suppose that another pixel of coordinates $(x_2, y_2)$ has minimum
-recurrence time 21. How many iterations of the cat map are required to
-have _both_ pixels back to their original positions?
+It turns out that there is a smarter way, that does not even require
+an input image but only its size $N$. To understand how it works, let
+us suppose that we know that one particular pixel of the image, say
+$(x_1, y_1)$, has minimum recurrence time 15. This means that after 15
+iterations, the pixel at coordinates $(x_1, y_1)$ will return to its
+starting position. Suppose that another pixel of coordinates $(x_2,
+y_2)$ has minimum recurrence time 21. How many iterations of the cat
+map are required to have _both_ pixels back to their original
+positions?
 
 The answer is $105$, which is the least common multiple (LCM) of 15
 and 21. From this observation we can devise the following algorithmn
@@ -260,10 +252,8 @@ time of the whole image is the least common multiple of all $T(x, y)$.
 
 [omp-cat-map-rectime.c](omp-cat-map-rectime.c) contains an incomplete
 skeleton of a program that computes the minimum recurrence time of a
-square image of size $N \times N$. A function that computes the LCM of
-two positive integers is provided therein. Complete the program and
-then produce a parallel version using the appropriate OpenMP
-directives.
+square image of size $N \times N$. Complete the program and then
+produce a parallel version using the appropriate OpenMP directives.
 
 Table 2 shows the minimum recurrence time for some $N$.
 

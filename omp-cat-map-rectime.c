@@ -66,11 +66,9 @@ int lcm(int a, int b)
 
 /**
  * Compute the recurrence time of Arnold's cat map applied to an image
- * of size (n*n). The idea is the following. Each point (x,y) requires
- * k(x,y) iterations to return to its starting position. Therefore,
- * the minimum recurrence time for the whole image is the Least Common
- * Multiple of all recurrence times k(x,y), for each pixel 0 <= x < n,
- * 0 <= y < n.
+ * of size (n*n). For each point (x,y), compute the minimum recurrence
+ * time k(x,y). The minimum recurrence time for the whole image is the
+ * Least Common Multiple of all k(x,y).
  */
 int cat_map_rectime( int n )
 {
