@@ -21,14 +21,14 @@
 /***
 % HPC - Parallel Primal Simplex Algorithm
 % Alice Girolomini <alice.girolomini@studio.unibo.it>
-% Last updated: 2023-08-25
+% Last updated: 2023-10-31
 
-Solves LP Problem with Primal Simplex: { minimize cx : Ax <= b, x >= 0 }.
-Input: { m, n, Mat[m x n] } where
+Solves LP Problem with Primal Simplex: z_p = Min cx s.t. Ax >= b, x >= 0
+Input: { m, n, Mat[m \times n] } where
 b = mat[1..m,0] .. column 0 is b >= 0
-c = mat[0,1..n] .. row 0 is z to minimize, c is negated in input
+c = mat[0,1..n] .. row 0 is Z to minimize, c is negated in input
 A = mat[1..m,1..n] .. constraints
-x = [x1..xm] are the variables
+x = [x_1..x_m] are the variables
 Slack variables are already in the input
 
 Example input file for read_tableau:
@@ -74,7 +74,7 @@ typedef struct {
   double value;
 } Pivot;
 
-/* Check whether b = mat[1..m,0] is >= 0 */
+/* Checks whether b = mat[1..m,0] is >= 0 */
 void check_b_positive (Tableau *tab) {
 
     for (int i = 1; i < tab->m; i++) {
@@ -120,7 +120,7 @@ void print_solution (Tableau *tab) {
 
 } 
 
-/* Read tableau from file */
+/* Reads the tableau from file */
 void read_tableau (Tableau *tab, const char * filename) {
     int err, i, j;
     FILE *fp;
@@ -162,8 +162,11 @@ void read_tableau (Tableau *tab, const char * filename) {
 
 #ifdef SERIAL
 
-/* Select pivot column */
-/*  Select the greatest value in mat[0][1..n] */
+/**
+ * Selects the greatest value in mat[0][1..n] 
+ * which represents the index  of the 
+ * pivot column
+ */
 int find_pivot_col (Tableau *tab) {
     int pivot_col = 1;
     double highest_val = 0;
@@ -182,8 +185,12 @@ int find_pivot_col (Tableau *tab) {
     return pivot_col;
 }
 
-/* Select pivot row */
-/* Count the number of positive values in the given column, if all are < 0 then solution is unbounded else finds the smallest positive ratio min_ratio = mat[0] / mat[pivot_col] */
+/** 
+ * Checks the number of positive values in the pivot column, 
+ * if all are < 0 then the solution is unbounded, else finds the 
+ * smallest positive ratio min_ratio = mat[0] / mat[pivot_col]
+ * which represents the pivot row 
+*/
 int find_pivot_row (Tableau *tab, int pivot_col) {
     int pivot_row = 0;
     double min_ratio = -1;
@@ -207,8 +214,9 @@ int find_pivot_row (Tableau *tab, int pivot_col) {
     return pivot_row;
 }
 
-/* Update pivot row */
-/* Convert pivot element to 1 and updates the other element in the row */
+/** 
+ * Converts pivot value to 1 and updates other elements in the row  
+*/
 void update_pivot_row (Tableau *tab, int pivot_row, double pivot) {
 
     for (int j = 0; j < tab->n; j++) {
@@ -217,8 +225,9 @@ void update_pivot_row (Tableau *tab, int pivot_row, double pivot) {
     
 }
 
-/* Update rows */
-/* Updates all other rows except the pivot row*/
+/** 
+ * Updates all other rows except the pivot row
+*/
 void update_rows (Tableau *tab, int pivot_row, int pivot_col) {
     double coeff;
 
@@ -236,7 +245,11 @@ void update_rows (Tableau *tab, int pivot_row, int pivot_col) {
 
 #else
 
-/* Select pivot column */
+/**
+ * Selects the greatest value in mat[0][1..n] 
+ * which represents the index of the 
+ * pivot column
+ */
 int find_pivot_col (Tableau *tab) {
     int j, pivot_col;
     const int max_threads = omp_get_max_threads();
@@ -266,7 +279,6 @@ int find_pivot_col (Tableau *tab) {
         }
     }
 
-    printf("%lf %d\n", highest_val, pivot_col);
     if(highest_val == 0){
         return 0;
     }
@@ -274,7 +286,12 @@ int find_pivot_col (Tableau *tab) {
     return pivot_col;
 }
 
-/* Select pivot row */
+/** 
+ * Checks the number of positive values in the pivot column, 
+ * if all are < 0 then the solution is unbounded, else finds the 
+ * smallest positive ratio min_ratio = mat[0] / mat[pivot_col]
+ * which represents the pivot row 
+*/
 int find_pivot_row (Tableau *tab, int pivot_col) {
     int i, pivot_row = 0;
     const int max_threads = omp_get_max_threads();
@@ -317,7 +334,9 @@ int find_pivot_row (Tableau *tab, int pivot_col) {
     return pivot_row;
 }
 
-/* Update pivot row */
+/** 
+ * Converts pivot value to 1 and updates other elements in the row 
+*/
 void update_pivot_row (Tableau *tab, int pivot_row, double pivot) {
 
     #pragma omp parallel for default(none) shared(tab,  pivot, pivot_row)
@@ -327,7 +346,9 @@ void update_pivot_row (Tableau *tab, int pivot_row, double pivot) {
     
 }
 
-/* Update rows */
+/** 
+ * Updates all other rows except the pivot row
+*/
 void update_rows (Tableau *tab, int pivot_row, int pivot_col) {
     int i, j;
     double *coeff = (double*)malloc(tab->m * sizeof(double));
