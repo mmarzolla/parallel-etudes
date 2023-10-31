@@ -21,14 +21,14 @@
 /***
 % HPC - Parallel Primal Simplex Algorithm
 % Alice Girolomini <alice.girolomini@studio.unibo.it>
-% Last updated: 2023-08-27
+% Last updated: 2023-10-31
 
-Solves LP Problem with Primal Simplex: { minimize cx : Ax <= b, x >= 0 }.
-Input: { m, n, Mat[m x n] } where
+Solves LP Problem with Primal Simplex: z_p = Min cx s.t. Ax >= b, x >= 0
+Input: { m, n, Mat[m \times n] } where
 b = mat[1..m,0] .. column 0 is b >= 0
-c = mat[0,1..n] .. row 0 is z to minimize, c is negated in input
+c = mat[0,1..n] .. row 0 is Z to minimize, c is negated in input
 A = mat[1..m,1..n] .. constraints
-x = [x1..xm] are the variables
+x = [x_1..x_m] are the variables
 Slack variables are already in the input
 
 Example input file for read_tableau:
@@ -157,8 +157,9 @@ void read_tableau (Tableau *tab, const char * filename) {
 
 }
 
-/* Updates rows */
-/* Updates all other rows except the pivot row*/
+/** 
+ * Updates all other rows except the pivot row
+*/
 void update_rows (Tableau *tab, int pivot_row, int pivot_col) {
     double coeff;
 
@@ -176,8 +177,11 @@ void update_rows (Tableau *tab, int pivot_row, int pivot_col) {
 
 #ifdef SERIAL
 
-/* Selects pivot column */
-/*  Selects the greatest value in mat[0][1..n] */
+/**
+ * Selects the greatest value in mat[0][1..n] 
+ * which represents the index  of the 
+ * pivot column
+ */
 int find_pivot_col (Tableau *tab) {
     int pivot_col = 1;
     double highest_val = 0;
@@ -196,8 +200,12 @@ int find_pivot_col (Tableau *tab) {
     return pivot_col;
 }
 
-/* Selects pivot row */
-/* Counts the number of positive values in the given column, if all are < 0 then solution is unbounded else finds the smallest positive ratio min_ratio = mat[0] / mat[pivot_col] */
+/** 
+ * Checks the number of positive values in the pivot column, 
+ * if all are < 0 then the solution is unbounded, else finds the 
+ * smallest positive ratio min_ratio = mat[0] / mat[pivot_col]
+ * which represents the pivot row 
+*/
 int find_pivot_row (Tableau *tab, int pivot_col) {
     int pivot_row = 0;
     double min_ratio = -1;
@@ -220,8 +228,9 @@ int find_pivot_row (Tableau *tab, int pivot_col) {
     return pivot_row;
 }
 
-/* Updates pivot row */
-/* Converts pivot element to 1 and updates the other element in the row */
+/** 
+ * Converts pivot value to 1 and updates other elements in the row 
+*/
 void update_pivot_row (Tableau *tab, int pivot_row, double pivot) {
 
     for (int j = 0; j < tab->n; j++) {
@@ -231,8 +240,10 @@ void update_pivot_row (Tableau *tab, int pivot_row, double pivot) {
 }
 
 #else
-/* Selects pivot column */
-/*  Selects the greatest value in mat[0][1..n] */
+/**
+ * Selects the greatest value in mat[0][1..n] which represents 
+ * the index of the pivot column
+ */
 int find_pivot_col (double *tab, int col, int n) {
     int my_rank, comm_sz, pivot_col = 1, j = 0;
     double highest_val = 0;
@@ -258,8 +269,12 @@ int find_pivot_col (double *tab, int col, int n) {
     return pivot_col;
 }
 
-/* Selects pivot row */
-/* Counts the number of positive values in the given column, if all are < 0 then solution is unbounded else finds the smallest positive ratio min_ratio = mat[0] / mat[pivot_col] */
+/** 
+ * Checks the number of positive values in the pivot column, 
+ * if all are < 0 then the solution is unbounded else finds the 
+ * smallest positive ratio min_ratio = mat[0] / mat[pivot_col]
+ * which represents the pivot row 
+*/
 int find_pivot_row (double *tab, int pivot_col, int rows, int m, int n) {
     int my_rank, comm_sz, pivot_row = 0;
     double min_ratio = -1;
@@ -281,8 +296,9 @@ int find_pivot_row (double *tab, int pivot_col, int rows, int m, int n) {
     return pivot_row;
 }
 
-/* Updates pivot row */
-/* Converts pivot element to 1 and updates the other element in the row */
+/** 
+ * Converts pivot value to 1 and updates other elements in the row 
+*/
 void update_pivot_row (double *tab, double pivot, int n) {
 
     for (int j = 0; j < n; j++) {
@@ -337,18 +353,18 @@ int main (int argc, char *argv[]) {
         count = tab.n;
         m = tab.m;
     }
-    /* Broadcasts matrix dimensions to the other processes */
+    /* Broadcasts matrix dimensions to other processes */
     MPI_Bcast(&m, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(&count, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-    /* Defines the partial result arrays */
+    /* Defines partial result arrays */
     int max_col_index[comm_sz], min_ratio_index[comm_sz];
     /* Defines rowtype datatype */
     MPI_Datatype rowtype; 
     MPI_Type_contiguous(count, MPI_DOUBLE, &rowtype);
     MPI_Type_commit(&rowtype);
 
-    /* Calculates send count and displacement for each process */
+    /* Calculates sendcnt and displacements for each process */
     int *row_sendcounts = (int*) malloc(comm_sz * sizeof(*row_sendcounts));
     int *col_sendcounts = (int*) malloc(comm_sz * sizeof(*col_sendcounts));
     int *row_displs = (int*) malloc(comm_sz * sizeof(*row_displs));
@@ -370,7 +386,7 @@ int main (int argc, char *argv[]) {
     assert(local_v != NULL);
 
     do {
-        /* Scatters the cost array then each process finds the local maximum value */
+        /* Scatters the cost coefficients array then each process finds the local maximum value */
         MPI_Scatterv(&tab.mat[0], col_sendcounts, col_displs, MPI_DOUBLE, &local_v[0], col_sendcounts[my_rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
         max_col_index[my_rank] = find_pivot_col(local_v, col_sendcounts[my_rank], count);
         MPI_Gather(&max_col_index[my_rank], 1, MPI_INT, max_col_index, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -416,7 +432,7 @@ int main (int argc, char *argv[]) {
                         }
                     }
                 }
-                /* If the min ratio < 0  the problem i unbounded */
+                /* If the min ratio < 0 the problem is unbounded */
                 if (min_ratio == UNBOUNDED) {
                     fprintf(stderr, "Unbounded solution\n");
                     return EXIT_FAILURE;
