@@ -21,14 +21,14 @@
 /***
 % HPC - Parallel Primal Simplex Algorithm
 % Alice Girolomini <alice.girolomini@studio.unibo.it>
-% Last updated: 2023-09-13
+% Last updated: 2023-10-31
 
-Solves LP Problem with Primal Simplex: { minimize cx : Ax <= b, x >= 0 }.
-Input: { m, n, Mat[m x n] } where
+Solves LP Problem with Primal Simplex: z_p = Min cx s.t. Ax >= b, x >= 0
+Input: { m, n, Mat[m \times n] } where
 b = mat[1..m,0] .. column 0 is b >= 0
-c = mat[0,1..n] .. row 0 is z to minimize, c is negated in input
+c = mat[0,1..n] .. row 0 is Z to minimize, c is negated in input
 A = mat[1..m,1..n] .. constraints
-x = [x1..xm] are the variables
+x = [x_1..x_m] are the variables
 Slack variables are already in the input
 
 Example input file for read_tableau:
@@ -62,7 +62,7 @@ Example:
 #include <string.h>
 #include "hpc.h"
 
-#define BLKDIM 32
+#define BLKDIM 1024
 #define UNBOUNDED -1
 
 typedef struct {
@@ -160,8 +160,11 @@ void read_tableau (Tableau *tab, const char * filename) {
 
 #ifdef SERIAL
 
-/* Select pivot column */
-/*  Select the greatest value in mat[0][1..n] */
+/**
+ * Selects the greatest value in mat[0][1..n] 
+ * which represents the index  of the 
+ * pivot column
+ */
 int find_pivot_col (Tableau *tab) {
     int pivot_col = 1;
     double highest_val = 0;
@@ -180,8 +183,12 @@ int find_pivot_col (Tableau *tab) {
     return pivot_col;
 }
 
-/* Select pivot row */
-/* Count the number of positive values in the given column, if all are < 0 then solution is unbounded else finds the smallest positive ratio min_ratio = mat[0] / mat[pivot_col] */
+/** 
+ * Checks the number of positive values in the pivot column, 
+ * if all are < 0 then the solution is unbounded, else finds the 
+ * smallest positive ratio min_ratio = mat[0] / mat[pivot_col]
+ * which represents the pivot row 
+*/
 int find_pivot_row (Tableau *tab, int pivot_col) {
     int pivot_row = 0;
     double min_ratio = -1;
@@ -205,8 +212,9 @@ int find_pivot_row (Tableau *tab, int pivot_col) {
     return pivot_row;
 }
 
-/* Update pivot row */
-/* Convert pivot element to 1 and updates the other element in the row */
+/** 
+ * Converts pivot value to 1 and updates other elements in the row 
+*/
 void update_pivot_row (Tableau *tab, int pivot_row, double pivot) {
 
     for (int j = 0; j < tab->n; j++) {
@@ -215,8 +223,9 @@ void update_pivot_row (Tableau *tab, int pivot_row, double pivot) {
     
 }
 
-/* Update rows */
-/* Updates all other rows except the pivot row*/
+/** 
+ * Updates all other rows except the pivot row
+*/
 void update_rows (Tableau *tab, int pivot_row, int pivot_col) {
     double coeff;
 
@@ -234,7 +243,11 @@ void update_rows (Tableau *tab, int pivot_row, int pivot_col) {
 
 #else
 
-/* Select pivot column */
+/**
+ * Selects the greatest value in mat[0][1..n] 
+ * which represents the index  of the 
+ * pivot column
+ */
 __global__ void find_pivot_col (double *mat, int *pivot_col, double *highest_val, int n) {
     __shared__ double temp[BLKDIM];
     __shared__ int indexes[BLKDIM];
@@ -268,7 +281,12 @@ __global__ void find_pivot_col (double *mat, int *pivot_col, double *highest_val
 
 }
 
-/* Select pivot row */
+/** 
+ * Checks the number of positive values in the pivot column, 
+ * if all are < 0 then the solution is unbounded, else finds the 
+ * smallest positive ratio min_ratio = mat[0] / mat[pivot_col]
+ * which represents the pivot row 
+*/
 __global__ void find_pivot_row (double *mat, int pivot_col, int *pivot_row, double *min_ratio, int n, int m) {
     __shared__ double temp[BLKDIM];
     __shared__ int indexes[BLKDIM];
@@ -303,7 +321,9 @@ __global__ void find_pivot_row (double *mat, int pivot_col, int *pivot_row, doub
 
 }
 
-/* Update pivot row */
+/** 
+ * Converts pivot value to 1 and updates other elements in the row
+*/
 __global__ void update_pivot_row (double *mat, int pivot_col, int pivot_row, int n) {
     const int j = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -314,7 +334,9 @@ __global__ void update_pivot_row (double *mat, int pivot_col, int pivot_row, int
     
 }
 
-/* Update rows */
+/** 
+ * Updates all other rows except the pivot row
+*/
 __global__ void update_rows (double *mat, int pivot_col, int pivot_row, int n, int i) {
     const int j = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -332,7 +354,6 @@ int find_max (double *local_result, int *indexes, int n_blocks) {
     int pivot_col = 0;
 
     for (int i = 0; i < n_blocks; i++) {
-        printf("local max[%d] %lf idx %d\n", i, local_result[i], indexes[i]);
         if (local_result[i] > highest_val) {
             highest_val = local_result[i] ;
             pivot_col = indexes[i];
@@ -428,9 +449,9 @@ int main (int argc, char *argv[]) {
 
     cudaMemcpy(d_mat, tab.mat, size, cudaMemcpyHostToDevice);
     do {
-        /* Each independet block finds the max value in the cost array */
+        /* Each independent block finds the max value in the cost coefficients array */
         find_pivot_col <<<blocks_col, BLKDIM>>> (d_mat, d_col_indexes, d_max_local_result, tab.n); 
-        /* Copies partial result from device to host */
+        /* Copies the partial result from device to host */
         cudaMemcpy(max_local_result, d_max_local_result, blocks_col * sizeof(*max_local_result), cudaMemcpyDeviceToHost);
         cudaMemcpy(col_indexes, d_col_indexes, blocks_col * sizeof(*col_indexes), cudaMemcpyDeviceToHost);
         /* Host calculates the maximum value */
@@ -442,9 +463,9 @@ int main (int argc, char *argv[]) {
             printf("Iteration: %d\n", it);
             printf("    Pivot column %d\n", p.column);
 
-            /* Each independet block finds the minimum ratio in the pivot column */
+            /* Each independent block finds the minimum ratio in the pivot column */
             find_pivot_row <<<blocks_row, BLKDIM>>> (d_mat, p.column, d_row_indexes, d_min_local_result, tab.n, tab.m);
-            /* Copies partial result from device to host */
+            /* Copies the partial result from device to host */
             cudaMemcpy(min_local_result, d_min_local_result, blocks_row * sizeof(*min_local_result), cudaMemcpyDeviceToHost);
             cudaMemcpy(row_indexes, d_row_indexes, blocks_row * sizeof(*row_indexes), cudaMemcpyDeviceToHost);
             /* Host calculates the minimum value */
@@ -454,7 +475,7 @@ int main (int argc, char *argv[]) {
             update_pivot_row <<<blocks_col, BLKDIM>>> (d_mat, p.column, p.row, tab.n);
             for (int i = 0; i< tab.m; i++) {
                 if (i != p.row) {
-                    /* Updates the other rows */
+                    /* Updates other rows */
                     update_rows <<<blocks_col, BLKDIM>>> (d_mat, p.column, p.row, tab.n, i);
                 }
             }
