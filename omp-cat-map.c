@@ -21,7 +21,7 @@
 /***
 % HPC - Arnold's cat map
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-10-30
+% Last updated: 2023-11-03
 
 ![](cat-map.png)
 
@@ -79,10 +79,10 @@ cat map that produce the starting image. For example, the minimum
 recurrence time for [cat1368.pgm](cat1368.pgm) of size $1368 \times
 1368$ is $36$.
 
-The minimum recurrence time depends on the image size $N$.  So far,
-there is no closed formula that computes the minimum recurrence time
-as a function of $N$, although there are results and bounds that apply
-to specific cases.
+The minimum recurrence time depends on the image size $N$. No closed
+formula is known to compute the minimum recurrence time given the
+image size $N$, although there are results and bounds that apply to
+specific cases.
 
 You are given a serial program that computes the $k$-th iterate of
 Arnold's cat map on a square image. The program reads the input from
@@ -210,7 +210,7 @@ Each measurement is the average of five independent executions.
 
 :Table 1: Execution time (in seconds) of the command `./omp-cat-map 2048 < cat1368.pgm > /dev/null` using all processor cores, with different implementations of the cat map iteration.
 
-Processor          Cores   GHz  GCC version  No loop interchange   Loop interchange
+Processor           Cores   GHz  GCC version  No loop interchange   Loop interchange
 ------------------ ------ ----- ------------ -------------------- ------------------
 Intel Xeon E3-1220      4   3.5       11.4.0                 6.84              12.90
 Intel Xeon E5-2603     12   1.7        9.4.0                 6.11               7.74
@@ -220,11 +220,10 @@ Intel i5-11320H       4+4   4.5        9.4.0                 3.94               
 Intel Atom N570       2+2   1.6        7.5.0               128.69              92.47
 Raspberry Pi 4          4   1.5        8.3.0                27.10              27.24
 
-On some platforms (Intel i5, i7 and Raspberry Pi 4) there is no
-difference between the two versions. Loop interchange provides a
-significant performance boost on the very old Atom N570. On the other
-hand, loop interchange provides _worse_ performance on the Xeon
-processors.
+On some platforms (Intel i5, i7 and Raspberry Pi 4) there is little or
+no difference between the two versions. Loop interchange provides a
+significant performance boost on the very old Intel Atom N570
+processor, but provides worse performance on the Xeon processors.
 
 ## To probe further
 
@@ -269,8 +268,8 @@ Table 2 shows the minimum recurrence time for some $N$.
 ------- -------------------------
 
 Figure 3 shows the minimum recurrence time as a function of
-$N$. Despite the fact that the values "jump" from size to size, we see
-that they tend to align along straight lines.
+$N$. Despite the fact that the actual values jump, there is a clear
+tendency to align along straight lines.
 
 ![Figure 3: Minimum recurrence time as a function of the image size $N$](cat-map-rectime.png)
 
