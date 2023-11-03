@@ -29,28 +29,25 @@ threads. The purpose of this exercise is to simulate these clauses
 _without_ using the `omp parallel for` construct.
 
 The file [omp-schedule.c](omp-schedule.c) contains a serial program
-that creates and initializes an array `vin[]` of length $n$. The
-program creates a second array `vout[]` of the sam elength such that
-`vout[i] = Fib(vin[i])` for each $i$, where `Fib(k)` the _k_th number
-of the Fibonacci sequence: `Fib(0)` = `Fib(1)` = 1; `Fib(k) = Fib(k-1)
-+ Fib(k-2)` if $k \geq $2. To compute `fib(k)` the program uses the
-inefficient recursive algorithm, so that the computation time varies
-widely depending on $k$.
+that creates two arrays `vin[]` and `vout[]` of length $n$ such that
+`vout[i] = Fib(vin[i])` for each $i$, where `Fib(k)` the _k_-th number
+of the Fibonacci sequence. `Fib(k)` is intentionally computed using
+the inefficient recursive algorithm, so that the computation time
+varies widely depending on $k$.
 
 There are two functions, `do_static()` and `do_dynamic()` that perform
 the computation above.
 
-1. Modify `do_static()` to distribute the loop iterations to OpenMP
-   threads as would be done by the `schedule(static, chunk_size)`
-   clause, but without using an explicit `omp parallel for` directive
-   (you may use `omp parallel`).
+1. Modify `do_static()` to distribute the loop iterations as would be
+   done by the `schedule(static, chunk_size)` clause, but without
+   using a `omp parallel for` directive (you may use `omp parallel`).
 
-2. Modify `do_dynamic()` to distribute the loop iterations to OpenMP
-   threads according to the _master-worker_ paradigm, as would be done
-   by the `schedule(dynamic, chunk_size)` clause. Again, you are
-   not allowed to use `omp parallel for`, but only `omp parallel`.
+2. Modify `do_dynamic()` to distribute the loop iterations according
+   to the _master-worker_ paradigm, as would be done by the
+   `schedule(dynamic, chunk_size)` clause. Again, you are not allowed
+   to use `omp parallel for`, but only `omp parallel`.
 
-The provided source code contains hints to how to do that.
+See the source code for suggestions.
 
 To compile:
 
