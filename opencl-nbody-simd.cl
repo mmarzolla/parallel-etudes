@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * opencl-nbody-simd.cl -- SIMD kernels for opencl-nbody.c
+ * opencl-nbody-simd.cl - SIMD kernels for opencl-nbody.c
  *
  * Copyright 2021 Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *

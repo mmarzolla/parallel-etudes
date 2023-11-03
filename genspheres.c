@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * genspheres -- Generate input for omp-c-ray
+ * genspheres.c - Generate input for omp-c-ray
  *
- * Copyright (C) 2022 Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2022, 2023 Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,11 @@
  ****************************************************************************/
 
 /***
-% HPC -- Generate input for omp-c-ray
+% HPC - Generate input for omp-c-ray
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last modified 2022-03-20
+% Last updated: 2023-11-03
 
-Inspired by <https://twitter.com/pickover/status/1505350972641525765>
+Inspired by <https://twitter.com/pickover/status/1505350972641525765>.
 
 Compile with:
 

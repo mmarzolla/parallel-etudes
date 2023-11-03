@@ -2,7 +2,7 @@
  *
  * omp-cat-map.c - Arnold's cat map
  *
- * Copyright (C) 2016--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2016--2023 Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -314,6 +314,8 @@ void cat_map( PGM_image* img, int k )
     /* [TODO] Which of the following loop(s) can be parallelized? */
     for (i=0; i<k; i++) {
 #ifndef SERIAL
+        /* Note: the collapse(2) directive automatically makes the
+           loop variables y and x private */
 #pragma omp parallel for collapse(2) default(none) shared(cur,next,tmp,img,N)
 #endif
         for (y=0; y<N; y++) {

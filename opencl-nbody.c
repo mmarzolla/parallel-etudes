@@ -1,9 +1,9 @@
 /****************************************************************************
  *
- * opencl-nbody.c -- N-body simulation (from https://github.com/harrism/mini-nbody)
+ * opencl-nbody.c -- N-body simulation
  *
  * Copyright (C) Mark Harris
- * Modified in 2021, 2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2021, 2022 Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

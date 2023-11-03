@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * omp-median.c - Image denoising using median filter
+ * omp-median.c - Image denoising using a median filter
  *
  * Copyright 2018--2023 Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
@@ -19,15 +19,14 @@
  ****************************************************************************/
 
 /***
-% HPC - Image denoising using median filter
+% HPC - Image denoising using a median filter
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last modified: 2023-04-12
+% Last updated: 2023-11-03
 
 The file [omp-median.c](omp-median.c) contains a serial implementation
-of an _image denoising_ algorithm that (to some extent) can be used to
-"cleanup" color images. The algorithm replaces the color of each pixel
-with the _median_ of a neighborhood of radius `RADIUS` (including
-itself).
+of an _image denoising_ algorithm that can be used to clean color
+images. The algorithm replaces the color of each pixel with the
+_median_ of a neighborhood of radius `RADIUS` (including itself).
 
 To compile:
 

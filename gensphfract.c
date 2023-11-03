@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * gensphfract.c -- Generate input for omp-c-ray
+ * gensphfract.c - Generate input for omp-c-ray
  *
- * Copyright (C) 2018--2022 Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2018--2023 Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@
  ****************************************************************************/
 
 /***
-% HPC -- Generate input for omp-c-ray
+% HPC - Generate input for omp-c-ray
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last modified 2021-10-25
+% Last updated: 2023-11-03
 
 This program generates a fractal image that can be used as input to
 the [c-ray ray tracer](https://github.com/jtsiomb/c-ray) written by

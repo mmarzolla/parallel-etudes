@@ -80,6 +80,8 @@ cuda-anneal-shared: cuda-anneal.cu
 
 omp-c-ray: LDLIBS+=-lm
 
+omp-cat-map: CFLAGS+=-O0
+
 mpi-pi: LDLIBS+=-lm
 
 omp-pi: LDLIBS+=-lm

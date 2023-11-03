@@ -1,11 +1,9 @@
 /****************************************************************************
  *
- * opencl-nbody-simd.c - N-Body simulation
- *
- * N-body simulation with OpenCL (from https://github.com/harrism/mini-nbody)
+ * opencl-nbody-simd.c - N-Body simulation with OpenCL
  *
  * Copyright (C) Mark Harris
- * Last modified in 2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2022 Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - N-Body simulation
+% HPC - N-Body simulation with OpenCL
 % Moreno Marzolla <moreno.marzolla@unibo.it>
 % Last updated: 2022-11-24
 
