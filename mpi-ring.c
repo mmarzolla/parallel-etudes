@@ -2,7 +2,7 @@
  *
  * mpi-ring.c - Ring communication with MPI
  *
- * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,37 +21,33 @@
 /***
 % HPC - Ring communication with MPI
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-10-22
+% Last updated: 2023-11-06
 
-Write an MPI program [mpi-ring.c](mpi-ring.c) which implements a ring
-communication between the processes. In details, let $P$ be the number
-of MPI processes (to be specified with the `mpirun` command); then,
-the program should behave according to the following specification:
+Write a MPI program [mpi-ring.c](mpi-ring.c) that implements a message
+exchange along a ring. Let $P$ be the number of MPI processes; the
+program should behave according to the following specification:
 
-- The program receives an integer $K$ from the command line. $K$
-  represents the number of "turns" of the ring that ($K \geq
-  1$). Remember that all MPI processes have access to the command
-  line, so that each one knows the value $K$ without the need to
-  communicate.
+- The program receives an integer $K \geq 1$ from the command
+  line. $K$ is the number of "turns" of the ring. Since all MPI
+  processes have access to the command line parameters, they know the
+  value $K$ without the need to communicate.
 
 - Process 0 (the master) sends process 1 an integer, whose
   initial value is 1.
 
 - Every process $p$ (including the master) receives a value $v$ from
   the predecessor $p-1$, and sends $(v + 1)$ to the successor
-  $p+1$. The processes are considered to be organized as a ring, so
-  that the predecessor of 0 is $(P - 1)$, and the successor of $(P -
+  $p+1$. The predecessor of 0 is $(P - 1)$, and the successor of $(P -
   1)$ is 0.
 
 - The master prints the value received after the $K$-th iteration and
   the program terminates. Given the number $P$ of processes and the
-  value of $K$, what value should be printed at the end by the master?
+  value of $K$, what value should be printed by the master?
 
 For example, if $K = 2$ and there are $P = 4$ processes, the
-communication should be as shown in Figure 1 (circles are MPI
-processes; arrows are messages whose content is the number shown
-above). There are $K = 2$ "turns" of the ring; at the end, process 0
-receives and prints the value 8.
+communication should be as shown in Figure 1 (arrows are messages
+whose content is the number reported above them). There are $K = 2$
+turns of the ring; at the end, process 0 receives and prints 8.
 
 ![Figure 1: Ring communication](mpi-ring.svg)
 
@@ -125,7 +121,7 @@ int main( int argc, char *argv[] )
         if ( expected == val ) {
             printf("Test OK\n");
         } else {
-            printf("Test FAILED\n");
+            printf("Test FAILED: expected value %d at rank 0, got %d\n", expected, val);
         }
     }
 #endif
