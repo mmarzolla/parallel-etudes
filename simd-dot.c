@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * simd-dot.c - Dot product
+ * simd-dot.c - SIMD Dot product
  *
- * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@
  ******************************************************************************/
 
 /***
-% HPC - Dot product
+% HPC - SIMD Dot product
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-11-27
+% Last updated: 2023-11-09
 
 ## Environment setup
 
@@ -58,14 +58,12 @@ Use the following command to see which compiler flags are enabled by
 
 [simd-dot.c](simd-dot.c) contains a function that computes the scalar
 product of two arrays. The program prints the mean execution times of
-the serial and SIMD versions (the goal of this exercise is to develop
-the SIMD version). The dot product is a very simple computation that
-requires little time even with large arrays. Therefore, you might not
-observe a significant spèeedup of the SIMD program.
+the serial and SIMD versions; the goal of this exercise is to develop
+the SIMD version. The dot product requires little time even with large
+arrays; therefore, you might not observe a significant spèeedup.
 
 **1. Auto-vectorization.** Check the effectiveness of compiler
-auto-vectorization of the `scalar_dot()` function. Compile the program
-as follows:
+auto-vectorization of `scalar_dot()`. Compile as follows:
 
         gcc -O2 -march=native -ftree-vectorize -fopt-info-vec-all \
           simd-dot.c -o simd-dot -lm 2>&1 | grep "loop vectorized"
@@ -74,13 +72,12 @@ The `-ftree-vectorize` enables auto-vectorization;
 `-fopt-info-vec-all` flag prints some "informative" messages (so to
 speak) on standard error to show which loops have been vectorized.
 
-Recent versions of GCC (e.g., 9.4.0) correctly vectorize the
-`serial_dot()` function. Older versions did vectorize the loop in the
-`fill()` function, but not that in `serial_dot()`.
+Recent versions of GCC correctly vectorize the `serial_dot()`
+function. Older versions vectorize the loop in the `fill()` function,
+but not that in `serial_dot()`.
 
-**2. Auto-vectorization (second attempt).** If you have a recent
-version of GCC, you can examine the assembly code to verify that SIMD
-instructions have indeed been emitted:
+**2. Auto-vectorization (second attempt).** Examine the assembly code
+to verify that SIMD instructions have indeed been emitted:
 
         gcc -S -c -march=native -O2 -ftree-vectorize simd-dot.c -o simd-dot.s
 
@@ -109,10 +106,10 @@ The following message should now appear:
 
         simd-dot.c:165:5: optimized: loop vectorized using 32 byte vectors
 
-**3. Vectorize the code manually.** Implement the function
-`simd_dot()` using the _vector datatype_ of the GCC compiler. The
-function should be very similar to the one computing the sum-reduction
-(refer to `simd-vsum-vector.c` in the examples archive). The function
+**3. Vectorize the code manually.** Implement `simd_dot()` using the
+vector datatypes of the GCC compiler. The function should be very
+similar to the one computing the sum-reduction (refer to
+`simd-vsum-vector.c` in the examples archive). The function
 `simd_dot()` should work correctly for any length $n$ of the input
 arrays, which is therefore not required to be a multiple of the SIMD
 array lenght. Input arrays are always correctly aligned.
@@ -208,6 +205,7 @@ void fill(float* x, float* y, int n)
 
 int main(int argc, char* argv[])
 {
+    const float TOL = 1e-5;
     const int nruns = 10; /* number of replications */
     int r, n = 10*1024*1024;
     double serial_elapsed, simd_elapsed;
@@ -261,7 +259,7 @@ int main(int argc, char* argv[])
     printf("Serial: result=%f, avg. time=%f (%d runs)\n", serial_result, serial_elapsed, nruns);
     printf("SIMD  : result=%f, avg. time=%f (%d runs)\n", simd_result, simd_elapsed, nruns);
 
-    if ( fabs(serial_result - simd_result) > 1e-5 ) {
+    if ( fabs(serial_result - simd_result) > TOL ) {
         fprintf(stderr, "Check FAILED\n");
         return EXIT_FAILURE;
     }
