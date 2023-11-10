@@ -482,10 +482,10 @@ void bellmanford_none(const graph_t* g, int s, float *d)
    to a given tolerance), -1 otherwise. */
 int checkdist( float *d1, float *d2, int n)
 {
-    const float epsilon = 1e-5;
+    const float TOL = 1e-5;
     int i;
     for (i=0; i<n; i++) {
-        if ( fabsf(d1[i] - d2[i]) > epsilon ) {
+        if ( fabsf(d1[i] - d2[i]) > TOL ) {
             fprintf(stderr, "FATAL: d1[%d]=%f, d2[%d]=%f\n", i, d1[i], i, d2[i]);
             return -1;
         }

@@ -138,10 +138,11 @@ void fill( float *p, int n )
 /* Check result */
 int check( float *r, int n )
 {
+    const float TOL = 1e-5;
     int i, j, k = 0;
     for (i=0; i<n; i++) {
         for (j=0; j<n; j++) {
-            if (fabsf(r[i*n+j] - 2.0f*k) > 1e-5) {
+            if (fabsf(r[i*n+j] - 2.0f*k) > TOL) {
                 fprintf(stderr, "Check FAILED: r[%d][%d] = %f, expeted %f\n", i, j, r[i*n+j], 2.0*k);
                 return 0;
             }

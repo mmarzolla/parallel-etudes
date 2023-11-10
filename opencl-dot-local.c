@@ -48,6 +48,7 @@ void vec_init( float *x, float *y, int n )
 
 int main( int argc, char* argv[] )
 {
+    const float TOL = 1e-5;
     float *x, *y, result;               /* host copies of x, y, result */
     cl_mem d_x, d_y, d_result;          /* device copies of x, y, result */
     int n = 1024*1024;
@@ -95,7 +96,7 @@ int main( int argc, char* argv[] )
     const float expected = ((float)n)/64;
 
     /* Check result */
-    if ( fabs(result - expected) < 1e-5 ) {
+    if ( fabsf(result - expected) < TOL ) {
         printf("Check OK\n");
     } else {
         printf("Check FAILED: got %f, expected %f\n", result, expected);

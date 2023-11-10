@@ -85,6 +85,7 @@ double dot( const double* x, const double* y, int n )
 
 int main( int argc, char* argv[] )
 {
+    const double TOL = 1e-5;
     double *x = NULL, *y = NULL, result = 0.0;
     int i, n = 1000;
     int my_rank, comm_sz;
@@ -255,7 +256,7 @@ int main( int argc, char* argv[] )
 
     if (0 == my_rank) {
         printf("Dot product: %f\n", result);
-        if ( fabs(result - n) < 1e-5 ) {
+        if ( fabs(result - n) < TOL ) {
             printf("Check OK\n");
         } else {
             printf("Check failed: got %f, expected %f\n", result, (double)n);
