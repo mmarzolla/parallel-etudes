@@ -21,7 +21,7 @@
 /***
 % HPC - Monte Carlo estimation of the area of the union of circles
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-10-31
+% Last updated: 2023-11-13
 
 The ile [mpi-circles.c](mpi-circles.c) contains a serial
 implementation of a Monte Carlo algorithm that estimates the area of
