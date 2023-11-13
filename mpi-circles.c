@@ -2,7 +2,7 @@
  *
  * mpi-circles.c - Monte Carlo estimation of the area of the union of circles
  *
- * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,53 +23,50 @@
 % Moreno Marzolla <moreno.marzolla@unibo.it>
 % Last updated: 2022-10-31
 
-File [mpi-circles.c](mpi-circles.c) contains a serial implementation
-of a Monte Carlo algorithm that estimates the area of ​​the union of $N$
-circles. Let `cx[i]`, `cy[i]`, and `r[i]` be the coordinates of the
-center of circle $i$ and its radius. Assume that all circles are
-entirely contained within the bounding square with opposites corners
-$(0, 0)$ and $(1000, 1000)$. Since circles can be in any position,
-they may overlap in in whole or in part; therefore it is not easy to
-determine the area of their union.
+The ile [mpi-circles.c](mpi-circles.c) contains a serial
+implementation of a Monte Carlo algorithm that estimates the area of
+​​the union of $N$ circles. Let `cx[i]`, `cy[i]`, and `r[i]` be the
+coordinates of the center of circle $i$ and its radius. Assume that
+all circles are entirely contained within the bounding square with
+opposites corners $(0, 0)$ and $(1000, 1000)$.
 
-We implement a _Monte Carlo_ algorithm to estimate the area; the idea
-is similar to the one we used to estimate the value of $\pi$ by
-generating random points:
+Circles may overlap in whole or in part; therefore, it is not easy to
+determine the area of their union. We implement a _Monte Carlo_
+algorithm to estimate the area; the idea is similar to the estimation
+of the value of $\pi$ by generating random points, and is as follows:
 
-- generate $K$ randomly distributed points inside the bounding square
-  $(0, 0)$, $(1000, 1000)$. Let $C$ be the number of points that fall
-  within at least one circle.
+- Generate $K$ random points uniformly distributed inside the bounding
+  square $(0, 0)$, $(1000, 1000)$. Let $c$ be the number of points
+  that fall within at least one circle.
 
-- The area $A$ of the union of the circles is estimated as the product
-  of the area of the bounding square and the fraction of points that
-  fall within at least one circle: $A = 1000000 \times C/S$;
+- The area $A$ of the union of the circles can be estimated as $A
+  \approx 1000 \times 1000 \times c/K$. In other words, the area $A$
+  is the product of the area of the bounding square and the fraction
+  of points $c/K$ that falls within at least one circle.
 
 ![Figure 1: Monte Carlo estimation of the area of ​​the union of
  circles](mpi-circles.svg)
 
 Figure 1 illustrates the idea.
 
-The file [mpi-circles.c](mpi-circles.c) containing a serial program
+The file [mpi-circles.c](mpi-circles.c) contains a serial program
 where process 0 performs the whole computation. The purpose of this
-exercise is to distribute the computation among all MPI
-processes. Assume that only process 0 can read the input file; this
-means that only process 0 knows the number $N$ of circles and their
-coordinates. Should this information be needed by other processes,
-some explicit communication must be performed. The program must work
-correctly for any value of $N$ and $K$.
+exercise is to distribute the computation among all MPI processes. The
+input file must be read by process 0 only; therefore, only process 0
+knows the number $N$ of circles and their coordinates, so it must send
+all required information to the other processes. The program must work
+correctly for any value of $N$, $K$ and number of MPI processes $P$.
 
-**Hint.** You might be tempted to to partition the circles among the
-MPI processes, in such a way that each process handles $N/P$
-circles. However, this solution would not work (or better, would be
-very inefficient): why?.
+To do so, each process $p$ generates $K/P$ points and test each point
+with _all_ the circles and computes the number of points $C_p$ that
+fall inside at least one circle. The master computes the sum $C =
+\sum_{p=0}^{P-1} C_p$ using a reduction, and estimates the area using
+the formula given above. Therefore, each process must receive a full
+copy of the arrays `cx[]`, `cy[]` and `r[]`.
 
-The correct approach is to let each process $p$ generate $K/P$ points
-and test each point with _all_ the circles, and compute the number of
-points $C_p$ that fall inside at least one circle. Then, the master
-computes the sum $C = \sum_{p=0}^{P-1} C_p$ using a reduction, and
-estimates the area as above. To do this, each process must receive a
-copy of the arrays `cx[]`, `cy[]` and `r[]` using three broadcast
-operations.
+> **Note:** You might be tempted to distribute the circles among the
+> MPI processes, so that each process handles $N/P$ circles. This
+> would not work: why?
 
 To compile:
 
@@ -86,27 +83,26 @@ Example:
 ## Files
 
 - [mpi-circles.c](mpi-circles.c)
-- [circles-gen.c](circles-gen.c) (to generate random input data)
+- [circles-gen.c](circles-gen.c) (to generate random inputs)
 - [circles-1000.in](circles-1000.in)
 - [circles-10000.in](circles-10000.in)
 
 ***/
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h> /* for time() */
 #include <assert.h>
 #include <mpi.h>
 
-/* Return the square of x */
+/* Computes the square of x */
 float sq(float x)
 {
     return x*x;
 }
 
-/* Generate |k| random points inside the square (0,0) --
+/* Generate `k` random points inside the square (0,0) --
   (100,100). Return the number of points that fall inside at least one
-  of the |n| circles with center (x[i], y[i]) and radius r[i].  The
-  result must be <= |k|. */
+  of the `n` circles with center (x[i], y[i]) and radius r[i].  The
+  result must be <= k. */
 int inside( const float* x, const float* y, const float *r, int n, int k )
 {
     int i, np, c=0;
@@ -143,7 +139,7 @@ int main( int argc, char* argv[] )
 
     K = atoi(argv[1]);
 
-    /* The input file is read by the master */
+    /* The input file is read by the master only */
     if ( 0 == my_rank ) {
         FILE *in = fopen(argv[2], "r");
         int i;
@@ -152,7 +148,7 @@ int main( int argc, char* argv[] )
             MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
         }
         if (1 != fscanf(in, "%d", &N)) {
-            fprintf(stderr, "FATAL: Cannot read number of circles\n");
+            fprintf(stderr, "FATAL: Cannot read the number of circles\n");
             MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
         }
         x = (float*)malloc(N * sizeof(*x)); assert(x != NULL);
@@ -176,8 +172,8 @@ int main( int argc, char* argv[] )
         c = inside(x, y, r, N, K);
     }
 #else
-    /* Broadcast the number of circles N, so that all nodes (except
-       the root) can allocate the proper space for vectors x, y, r */
+    /* Broadcast the number of circles N, so that all processes can
+       allocate the proper space for vectors x[], y[] and r[] */
     MPI_Bcast( &N,              /* buffer       */
                1,               /* count        */
                MPI_INT,         /* datatype     */
@@ -185,14 +181,15 @@ int main( int argc, char* argv[] )
                MPI_COMM_WORLD   /* communicator */
                );
 
-    /* All other processes can now allocate x, y, z since they know N */
+    /* The master process already has x[], y[] and r[] allocated */
     if ( my_rank > 0 ) {
         x = (float*)malloc(N * sizeof(*x)); assert(x != NULL);
         y = (float*)malloc(N * sizeof(*y)); assert(y != NULL);
         r = (float*)malloc(N * sizeof(*r)); assert(r != NULL);
     }
 
-    /* Send a copy of the circles to all processes */
+    /* The master broadcasts a copy of the data of all circles to all
+       processes */
     MPI_Bcast( x,               /* buffer       */
                N,               /* count        */
                MPI_FLOAT,       /* datatype     */
@@ -216,7 +213,7 @@ int main( int argc, char* argv[] )
 
     int local_K = K / comm_sz;
 
-    /* the master handles the excess points, if any */
+    /* the master handles any excess points */
     if ( 0 == my_rank )
         local_K += K % comm_sz;
 
@@ -232,9 +229,9 @@ int main( int argc, char* argv[] )
                 );
 #endif
 
-    /* the master prints the area */
+    /* the master prints the result */
     if ( 0 == my_rank ) {
-        printf("%d points, %d inside, area %f\n", K, c, 1.0e6*c/K);
+        printf("%d points, %d inside, area=%f\n", K, c, 1.0e6*c/K);
         const double elapsed = MPI_Wtime() - tstart;
         printf("Execution time (s): %f\n", elapsed);
     }
