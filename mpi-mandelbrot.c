@@ -2,7 +2,7 @@
  *
  * mpi-mandelbrot.c - Mandelbrot set
  *
- * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,28 +21,27 @@
 /***
 % HPC - Mandelbrot set
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-11-26
+% Last updated: 2023-11-13
 
 ![](mandelbrot-set.png)
 
 The file [mpi-mandelbrot.c](mpi-mandelbrot.c) contains the skeleton of
-an MPI program that computes the Mandelbrot set; it is not a parallel
+a MPI program that computes the Mandelbrot set; it is not a parallel
 version, since the master process does everything.
 
 The program accepts the image height as an optional command-line
 parameter; the width is computed automatically to include the whole
-set. The program writes a graphical representation of the Mandelbrot
-set into a file `mandebrot.ppm` in PPM (_Portable Pixmap_) format. If
-you don't have a suitable viewer, you can convert the image, e.g.,
-into PNG with the command:
+set. The resulting image is written to the file `mandebrot.ppm` in PPM
+(_Portable Pixmap_) format. To convert the image, e.g., to PNG you can
+use the following command on the Linux server:
 
         convert mandelbrot.ppm mandelbrot.png
 
-The goal of this exercise is to write a parallel version of the
-program, where all MPI processes contribute to the computation. To do
-this, you should partition the image into $P$ vertical blocks where
-$P$ is the number of MPI processes, and let each process compute a
-portion of the image (see Figure 1).
+The goal of this exercise is to write a parallel version where all MPI
+processes contribute to the computation. To do this, you can partition
+the image into $P$ vertical blocks where $P$ is the number of MPI
+processes, and let each process draws a portion of the image (see
+Figure 1).
 
 ![Figure 1: Domain decomposition for the computation of the Mandelbrot
  set with 4 MPI processes](mpi-mandelbrot.png)
@@ -50,27 +49,28 @@ portion of the image (see Figure 1).
 Specifically, each process computes a portion of the image of size
 $\mathit{xsize} \times (\mathit{ysize} / P)$. This is an
 _embarrassingly parallel_ computation, since there is no need to
-communicate. However, the processes do need to send their portion of
-image to the master, which will take care of stitching them together
-to form the final result. This is done using the `MPI_Gather()`
-function. This is a color image where three bytes are used to encode
-the color of each pixel. Therefore, the `MPI_Gather()` operation will
-transfer blocks of $(3 \times \mathit{xsize} \times \mathit{ysize} /
-P)$ elements of type `MPI_BYTE`.
+communicate. At the end, the processes send their local result to the
+master using the `MPI_Gather()` function, so that the master can
+assemble the final result. Since we are dealing with images where
+three bytes are used to encode the color of each pixel, the
+`MPI_Gather()` operation will transfer blocks of $(3 \times
+\mathit{xsize} \times \mathit{ysize} / P)$ elements of type
+`MPI_BYTE`.
 
-You can initially assume that the vertical size _ysize_ is an integer
-multiple of $P$, and then relax this assumption. To this aim, you may
-let process 0 take care of the last `(ysize % P)` rows, or use
-`MPI_Gatherv()` to allow different block sizes to be assembled
-together.
+You can initially assume that _ysize_ is an integer multiple of $P$,
+and then relax this assumption, e.g., by letting process 0 take care
+of the last `(ysize % P)` rows. Alternatively, you can use
+`MPI_Gatherv()` to allow blocks of different sizes to be collected by
+the master.
 
-You may want to keep the serial program as a reference; to check the
-correctness of the parallel implementation, you can compare the output
+You are suggested to keep the serial program as a reference.  To check
+the correctness of the parallel implementation, compare the output
 images produced by both versions with the command:
 
         cmp file1 file2
 
-Both images should be identical; if not, something is wrong.
+They must be identical, i.e., the `cmp` program should not print any
+message; if not, something is wrong.
 
 To compile:
 
