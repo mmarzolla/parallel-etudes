@@ -2,7 +2,7 @@
  *
  * mpi-dot.c - Dot product
  *
- * Copyright (C) 2016--2021 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2016--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,20 +21,20 @@
 /***
 % HPC - Dot product
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-11-01
+% Last updated: 2023-11-15
 
 The file [mpi-dot.c](mpi-dot.c) contains a MPI program that computes
-the dot product between two arrays `a[]` and `b[]` of length $n$. The
-dot product $s$ of two arrays `a[]` and `b[]` is defined as:
+the dot product between two arrays `x[]` and `y[]` of length $n$. The
+dot product $s$ of two arrays `x[]` and `y[]` is defined as:
 
 $$
-s = \sum_{i = 0}^{n-1} a[i] \times b[i]
+s = \sum_{i = 0}^{n-1} x[i] \times y[i]
 $$
 
 In the provided program, the master performs the whole computation and
 is therefore not parallel. The goal of this exercise is to write a
-parallel version. Assume that, at the beginning of the program, `a[]`
-and `b[]` are known only to the master. Therefore, they must be
+parallel version. Assume that, at the beginning of the program, `x[]`
+and `y[]` are known only to the master. Therefore, they must be
 distributed across the processes. Each process computes the scalar
 product of the assigned portions of the arrays; the master then uses
 `MPI_Reduce()` to sum the partial results and compute $s$.
