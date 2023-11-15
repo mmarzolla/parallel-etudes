@@ -2,7 +2,7 @@
  *
  * circles-gen.c - Generate an input file for the mpi-circles.c program
  *
- * Copyright (C) 2017--2021 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,9 +43,9 @@ int main( int argc, char* argv[] )
     n = atoi( argv[1] );
     printf("%d\n", n);
     for (i=0; i<n; i++) {
-        const float x = randab(10, 990);
-        const float y = randab(10, 990);
-        const float r = randab(1, 10);
+        const float r = randab(1, 20);
+        const float x = randab(r, 1000-r);
+        const float y = randab(r, 1000-r);
         printf("%f %f %f\n", x, y, r);
     }
     return EXIT_SUCCESS;
