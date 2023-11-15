@@ -25,15 +25,15 @@
 
 The ile [mpi-circles.c](mpi-circles.c) contains a serial
 implementation of a Monte Carlo algorithm that estimates the area of
-​​the union of $N$ circles. Let `cx[i]`, `cy[i]`, and `r[i]` be the
-coordinates of the center of circle $i$ and its radius. Assume that
-all circles are entirely contained within the bounding square with
-opposites corners $(0, 0)$ and $(1000, 1000)$.
+the union of $N$ circles. Let `cx[i]`, `cy[i]`, and `r[i]` be the
+coordinates of the center of circle $i$ and its radius.  All circles
+are entirely contained within the bounding square with opposites
+corners $(0, 0)$ and $(1000, 1000)$.
 
 Circles may overlap in whole or in part; therefore, it is not easy to
-determine the area of their union. We implement a _Monte Carlo_
-algorithm to estimate the area; the idea is similar to the estimation
-of the value of $\pi$ by generating random points, and is as follows:
+compute the area of their union. We implement a Monte Carlo algorithm
+to estimate the area; the idea is similar to the estimation of the
+value of $\pi$ by generating random points, and is as follows:
 
 - Generate $K$ random points uniformly distributed inside the bounding
   square $(0, 0)$, $(1000, 1000)$. Let $c$ be the number of points
@@ -49,17 +49,18 @@ of the value of $\pi$ by generating random points, and is as follows:
 
 Figure 1 illustrates the idea.
 
-The file [mpi-circles.c](mpi-circles.c) contains a serial program
-where process 0 performs the whole computation. The purpose of this
-exercise is to distribute the computation among all MPI processes. The
-input file must be read by process 0 only; therefore, only process 0
-knows the number $N$ of circles and their coordinates, so it must send
-all required information to the other processes. The program must work
-correctly for any value of $N$, $K$ and number of MPI processes $P$.
+The file [mpi-circles.c](mpi-circles.c) uses a serial algorithm where
+process 0 performs the whole computation. The purpose of this exercise
+is to distribute the computation among all MPI processes. The input
+file that contains the coordinates of the circles must be read by
+process 0 only; therefore, only process 0 knows the number $N$ of
+circles and their coordinates, so it must send all required
+information to the other processes. The program must work correctly
+for any value of $N$, $K$ and number $P$ of MPI processes.
 
 To do so, each process $p$ generates $K/P$ points and test each point
-with _all_ the circles and computes the number of points $C_p$ that
-fall inside at least one circle. The master computes the sum $C =
+with all the circles; at the end, process $p$ knows number $C_p$ of
+points that fall inside at least one circle. The master computes $C =
 \sum_{p=0}^{P-1} C_p$ using a reduction, and estimates the area using
 the formula given above. Therefore, each process must receive a full
 copy of the arrays `cx[]`, `cy[]` and `r[]`.
