@@ -2,7 +2,7 @@
  *
  * mpi-send-col.c - MPI Datatypes
  *
- * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - MPI Datatypes
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-11-08
+% Last updated: 2023-11-18
 
 When you need to decompose a rectangular domain of size $R \times C$
 among $P$ MPI processes, you usually employ a block decomposition by
@@ -55,7 +55,22 @@ where it is placed into the _rightmost_ ghost area.
 ![](mpi-send-col3.svg)
 
 You should define a suitable datatype to represent a matrix column,
-and use two `MPI_Sendrecv()` operations to exchange the data.
+and use two `MPI_Sendrecv()` operations to exchange the data. Note
+that `MPI_Sendrecv()` is a collective communication operation, so that
+_all_ processes are supposed to execute it. To simplify the code, it
+is preferable to perform the data exchange as follows: first, each
+process sends the _rightmost_ column to the partner, that receives it
+on the _leftmost_ ghost area:
+
+![](mpi-send-col4.svg)
+
+Then, each process sends the _leftmost_ column to the partner, that
+receives it on the _rightmost_ ghost area:
+
+![](mpi-send-col5.svg)
+
+Note that, by doing this, each process sends and receives the same
+data to/from the same (local) memory location.
 
 To compile:
 
