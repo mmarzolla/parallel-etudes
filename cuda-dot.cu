@@ -2,7 +2,7 @@
  *
  * cuda-dot.cu - Dot product
  *
- * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,13 @@
 /***
 % HPC - Dot product
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-11-17
+% Last updated: 2023-11-29
 
 ## Familiarize with the environment
 
 The server has three identical GPUs (NVidia GeForce GTX 1070). The
 first one is used by default, although it is possible to select
-another card either programmatically (`cudaSetDevice(0)` uses the
+another GPU either programmatically (`cudaSetDevice(0)` uses the
 first GPU, `cudaSetDevice(1)` uses the second one, and so on), or
 using the environment variable `CUDA_VISIBLE_DEVICES`.
 
@@ -48,19 +48,18 @@ features of the GPUs.
 
 The program [cuda-dot.cu](cuda-dot.cu) computes the dot product of two
 arrays `x[]` and `y[]` of length $n$. Modify the program to use the
-GPU, by transforming the `dot()` function into a kernel.  The dot
-product $s$ of two arrays `x[]` and `y[]` is defined as
+GPU, by defining a suitable kernel and modifying the `dot()` function
+to use it. The dot product $s$ of two arrays `x[]` and `y[]` is defined as
 
 $$
 s = \sum_{i=0}^{n-1} x[i] \times y[i]
 $$
 
-Some modifications of the `dot()` function are required to use the
-GPU. In this exercise we implement a simple (although not efficient)
+In this exercise we implement a simple (although not efficient)
 approach where we use a _single_ block of _BLKDIM_ threads.  The
 algorithm works as follows:
 
-1. The CPU allocates a `tmp[]` array of _BLKDIM_ elements on the GPU,
+1. The CPU allocates a float array `d_tmp[]` of length _BLKDIM_ on the GPU,
    in addition to a copy of `x[]` and `y[]`.
 
 2. The CPU executes a single 1D thread block containing _BLKDIM_
@@ -71,9 +70,9 @@ algorithm works as follows:
    of the expression $(x[t] \times y[t] + x[t + \mathit{BLKDIM}]
    \times y[t + \mathit{BLKDIM}] + x[t + 2 \times \mathit{BLKDIM}]
    \times y[t + 2 \times \mathit{BLKDIM}] + \ldots)$ and stores the
-   result in `tmp[t]` (see Figure 1).
+   result in `d_tmp[t]` (see Figure 1).
 
-4. When the kernel terminates, the CPU transfers `tmp[]` back to host
+4. When the kernel terminates, the CPU transfers `d_tmp[]` back to host
    memory and performs a sum-reduction to compute the final result.
 
 ![Figure 1](cuda-dot.svg)
@@ -125,8 +124,26 @@ __global__ void dot_kernel( const float *x, const float *y, int n, float *tmp )
 float dot( const float *x, const float *y, int n )
 {
 #ifdef SERIAL
-    /* [TODO] modify this function so that (part of) the dot product
-       computation is executed on the GPU. */
+    /* [TODO] modify this function so that (part of) the computation
+       is executed on the GPU. You may want to follow the steps
+       below. */
+
+    /* Define a `float` array tmp[] of size BLKDIM on host memory */
+
+    /* Define pointers to copies of x, y and tmp in device memory */
+
+    /* Allocate space for device copies of x,y */
+
+    /* Copy x, y from host to device */
+
+    /* Launch a suitable kernel on the GPU */
+
+    /* Copy the result back to host memory */
+
+    /* Perform the final reduction on the CPU */
+
+    /* Free device memory */
+
     float result = 0.0;
     for (int i = 0; i < n; i++) {
         result += x[i] * y[i];
@@ -151,7 +168,7 @@ float dot( const float *x, const float *y, int n )
     dot_kernel<<<1, BLKDIM>>>(d_x, d_y, n, d_tmp);
     cudaCheckError();
 
-    /* Copy result back to host memory */
+    /* Copy the result back to host memory */
     cudaSafeCall( cudaMemcpy(tmp, d_tmp, SIZE_TMP, cudaMemcpyDeviceToHost) );
 
     /* Perform the last reduction on the CPU */
@@ -160,6 +177,7 @@ float dot( const float *x, const float *y, int n )
         result += tmp[i];
     }
 
+    /* Free device memory */
     cudaFree(d_x);
     cudaFree(d_y);
     cudaFree(d_tmp);
