@@ -2,7 +2,7 @@
  *
  * cuda-reverse.cu - Array reversal with CUDA
  *
- * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,19 +21,19 @@
 /***
 % HPC - Array reversal with CUDA
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-11-17
+% Last updated: 2023-11-29
 
 Write a program that reverses an array `v[]` of length $n$, i.e.,
-exchanges `v[0]` and `v[n-1]`, `v[1]` and `v[n-2]` and so
-on. You should write two versions of the program:
+exchanges `v[0]` and `v[n-1]`, `v[1]` and `v[n-2]` and so on. You
+should write two versions of the program:
 
-1. the first version reverses an input array `in[]` into a different
-   output array `out[]`, so that the input is not modified. You can
-   assume that `in[]` and `out[]` are mapped to different,
-   non-overlapping memory blocks.
+1. the first version ('reverse()') reverses an array `in[]` into a
+   different array `out[]` (the input is not modified). Assume that
+   `in[]` and `out[]` reside on non-overlapping memory blocks.
 
-2. The second version reverses an array `in[]` "in place" using $O(1)$
-   additional storage.
+2. The second version (`inplace_reverse()`) modifies the input array
+   `in[]` using $O(1)$ additional storage; therefore, you are not
+   allowed to allocate a temporary output vector.
 
 The file [cuda-reverse.cu](cuda-reverse.cu) provides a CPU-based
 implementation of `reverse()` and `inplace_reverse()`.  Modify the
@@ -41,13 +41,12 @@ functions to use of the GPU.
 
 **Hint:** `reverse()` can be easily transformed into a kernel executed
 by $n$ CUDA threads (one for each array element). Each thread copies
-one element from `in[]` to `out[]`. Use one-dimensional _thread
-blocks_, since that makes easy to map threads to array elements.
-`inplace_reverse()` can be transformed into a kernel as well, but in
-this case only $\lfloor n/2 \rfloor$ CUDA threads are required (note
-the rounding): each thread swaps an element from the first half of
-`in[]` with the appropriate element from the second half. Make sure
-that the program works also when the input length $n$ is odd.
+one element from `in[]` to `out[]`. Use as many one-dimensional
+_thread blocks_ as needed to have at least $n$ threads.
+`inplace_reverse()` can be transformed into a kernel that uses
+$\lfloor n/2 \rfloor$ CUDA threads (note the rounding): each thread
+swaps an element on the first half of `in[]` with the corresponding
+element on the second half.
 
 To compile:
 
