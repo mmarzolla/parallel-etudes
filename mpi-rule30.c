@@ -2,7 +2,7 @@
  *
  * mpi-rule30.c - Rule30 Cellular Automaton
  *
- * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Rule 30 Cellular Automaton
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-11-09
+% Last updated: 2023-11-22
 
 We introduced Cellular Automata (CAs) as an example of _stencil
 computations_. In this exercise we implement the [Rule 30 Cellular
@@ -354,8 +354,8 @@ int main( int argc, char* argv[] )
     const int LEFT_GHOST = 0;
     const int LEFT = LEFT_GHOST + HALO;
 #ifdef SERIAL
-    const int RIGHT = LEFT + width - 1;
-    const int RIGHT_GHOST = RIGHT + 1;
+    const int RIGHT = ext_width - 1 - HALO;
+    const int RIGHT_GHOST = RIGHT + HALO;
 #endif
 
     /* The master distributes the domain cur[] to the other MPI
@@ -366,8 +366,8 @@ int main( int argc, char* argv[] )
 #ifndef SERIAL
     const int LOCAL_LEFT_GHOST = 0;
     const int LOCAL_LEFT = LOCAL_LEFT_GHOST + HALO;
-    const int LOCAL_RIGHT = LOCAL_LEFT + local_width - 1;
-    const int LOCAL_RIGHT_GHOST = LOCAL_RIGHT + 1;
+    const int LOCAL_RIGHT = local_ext_width - 1 - HALO;
+    const int LOCAL_RIGHT_GHOST = LOCAL_RIGHT + HALO;
 
     MPI_Scatter( &cur[LEFT],            /* sendbuf      */
                  local_width,           /* sendcount    */
