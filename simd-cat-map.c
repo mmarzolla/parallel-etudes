@@ -399,7 +399,7 @@ int main( int argc, char* argv[] )
     fprintf(stderr, "      SIMD width : %d bytes\n", (int)VLEN);
     fprintf(stderr, "      Iterations : %d\n", niter);
     fprintf(stderr, "    width,height : %d,%d\n", img.width, img.height);
-    fprintf(stderr, "     Mpixels/sec : %f\n", 1.0e-6 * img.width * img.height * niter / elapsed);
+    fprintf(stderr, "       Mopss/sec : %f\n", 1.0e-6 * img.width * img.height * niter / elapsed);
     fprintf(stderr, "Elapsed time (s) : %f\n", elapsed);
 
     write_pgm(stdout, &img, "produced by simd-cat-map.c");
