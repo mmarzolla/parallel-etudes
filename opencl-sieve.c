@@ -21,7 +21,7 @@
 /***
 % HPC - Sieve of Eratosthenes
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-01-21
+% Last updated: 2023-12-09
 
 ## Files
 
