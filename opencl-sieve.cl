@@ -82,3 +82,38 @@ next_prime_kernel(__global const char *isprime,
         *next_prime = k;
     }
 }
+
+/**
+ * The same, but using a reduction; however, this is likely less
+ * efficient than the kernel above, since the next prims is unlikely
+ * to be too far away from `k`.
+ */
+__kernel void __attribute__((reqd_work_group_size(SCL_DEFAULT_WG_SIZE1D, 1, 1)))
+next_prime_kernel_reduce(__global const char *isprime,
+                         int k,
+                         int n,
+                         __global int *next_prime)
+{
+    __local int first[SCL_DEFAULT_WG_SIZE1D];
+    const int li = get_local_id(0);
+    const int vec_size = n - (k+1);
+    const int istart = (k+1) + (((long)vec_size) * li) / get_local_size(0);
+    const int iend = (k+1) + (((long)vec_size) * (li + 1)) / get_local_size(0);
+    int i;
+    for (i=istart; i<iend && !isprime[i]; i++)
+        ;
+    first[li] = (i < iend) ? i : n;
+    barrier(CLK_LOCAL_MEM_FENCE);
+    /* perform reduction */
+    int bsize = get_local_size(0) / 2;
+    while (bsize > 0) {
+        if (li < bsize ) {
+            first[li] = min(first[li], first[li+bsize]);
+        }
+        bsize /= 2;
+        barrier(CLK_LOCAL_MEM_FENCE);
+    }
+    if (0 == li) {
+        *next_prime = first[0];
+    }
+}
