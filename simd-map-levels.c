@@ -127,8 +127,8 @@ The SIMD version requires that
 
 Both conditions are satisfied: the program pads the image horizontally
 so the next multiple of 4. Indeed, the attribute `width` of structure
-`PGM_image` is the width of the actual image, while `pwidth` is the
-width of the padded image.
+`PGM_image` is the width of the _padded_ image, while `true_width` is
+the true width of the _actual_ image.
 
 To compile:
 
@@ -150,6 +150,10 @@ Example:
 - [hpc.h](hpc.h)
 - Some input images: [Yellow palace Winter](Yellow_palace_Winter.pgm), [C1648109.pgm](C1648109.pgm)
 
+You can generate input images of arbitrary size with the command:
+
+        convert -size 1024x768 plasma: -depth 8 test-image.pgm
+
 ***/
 
 /* The following #define is required to make posix_memalign() visible */
@@ -165,8 +169,8 @@ typedef int v4i __attribute__((vector_size(16)));
 #define VLEN (sizeof(v4i)/sizeof(int))
 
 typedef struct {
-    int width;   /* True width of the image (in pixels) */
-    int pwidth;  /* Padded width of the image (in pixels); this is a multiple of VLEN */
+    int width;   /* Padded width of the image (in pixels); this is a multiple of VLEN */
+    int true_width; /* True width of the image (in pixels) */
     int height;  /* Height of the image (in pixels) */
     int maxgrey; /* Don't care (used only by the PGM read/write routines) */
     int *bmap;   /* buffer of width*height bytes; each element represents the gray level of a pixel (0-255) */
@@ -204,10 +208,10 @@ void read_pgm( FILE *f, PGM_image* img )
         s = fgets(buf, BUFSIZE, f);
     } while (s[0] == '#');
     /* Get width, height */
-    sscanf(s, "%d %d", &(img->width), &(img->height));
-    /* Set `img->pwidth` as the next integer multiple of `VLEN`
-       greater than or equal to `img->width` */
-    img->pwidth = ((img->width + VLEN - 1) / VLEN) * VLEN;
+    sscanf(s, "%d %d", &(img->true_width), &(img->height));
+    /* Set `img->width` as the next integer multiple of `VLEN`
+       greater than or equal to `img->true_width` */
+    img->width = ((img->true_width + VLEN - 1) / VLEN) * VLEN;
     /* get maxgrey; must be less than or equal to 255 */
     s = fgets(buf, BUFSIZE, f);
     sscanf(s, "%d", &(img->maxgrey));
@@ -218,18 +222,18 @@ void read_pgm( FILE *f, PGM_image* img )
     /* The pointer img->bmap must be properly aligned to allow SIMD
        instructions, because the compiler emits SIMD instructions for
        aligned load/stores only. */
-    int ret = posix_memalign((void**)&(img->bmap), __BIGGEST_ALIGNMENT__, (img->pwidth)*(img->height)*sizeof(int));
+    int ret = posix_memalign((void**)&(img->bmap), __BIGGEST_ALIGNMENT__, (img->width)*(img->height)*sizeof(int));
     assert(0 == ret);
     assert(img->bmap != NULL);
     /* Get the binary data from the file */
     for (int i=0; i<img->height; i++) {
-        for (int j=0; j<img->pwidth; j++) {
+        for (int j=0; j<img->width; j++) {
             unsigned char c = 0;
-            if (j < img->width) {
+            if (j < img->true_width) {
                 const int nread = fscanf(f, "%c", &c);
                 assert(nread == 1);
             }
-            *(img->bmap + i*img->pwidth + j) = c;
+            *(img->bmap + i*img->width + j) = c;
         }
     }
 }
@@ -245,11 +249,11 @@ void write_pgm( FILE *f, const PGM_image* img, const char *comment )
 
     fprintf(f, "P5\n");
     fprintf(f, "# %s\n", comment != NULL ? comment : "");
-    fprintf(f, "%d %d\n", img->width, img->height);
+    fprintf(f, "%d %d\n", img->true_width, img->height);
     fprintf(f, "%d\n", img->maxgrey);
     for (int i=0; i<img->height; i++) {
-        for (int j=0; j<img->width; j++) {
-            fprintf(f, "%c", *(img->bmap + i*img->pwidth + j));
+        for (int j=0; j<img->true_width; j++) {
+            fprintf(f, "%c", *(img->bmap + i*img->width + j));
         }
     }
 }
@@ -264,7 +268,7 @@ void free_pgm( PGM_image *img )
     assert(img != NULL);
     free(img->bmap);
     img->bmap = NULL; /* not necessary */
-    img->width = img->height = img->pwidth = img->maxgrey = -1;
+    img->width = img->true_width = img->height = img->maxgrey = -1;
 }
 
 /*
@@ -273,13 +277,12 @@ void free_pgm( PGM_image *img )
 void map_levels( PGM_image* img, int low, int high )
 {
     const int width = img->width;
-    const int pwidth = img->pwidth;
     const int height = img->height;
     int *bmap = img->bmap;
 #ifdef SERIAL
     for (int i=0; i<height; i++) {
         for (int j=0; j<width; j++) {
-            int *pixel = bmap + i*pwidth + j;
+            int *pixel = bmap + i*width + j;
             if (*pixel < low)
                 *pixel = BLACK;
             else if (*pixel > high)
@@ -291,8 +294,8 @@ void map_levels( PGM_image* img, int low, int high )
 #else
     assert( width % VLEN == 0 );
     for (int i=0; i<height; i++) {
-        for (int j=0; j<pwidth-VLEN+1; j += VLEN) {
-            v4i *pixels = (v4i*)(bmap + i*pwidth + j);
+        for (int j=0; j<width-VLEN+1; j += VLEN) {
+            v4i *pixels = (v4i*)(bmap + i*width + j);
             const v4i mask_black = (*pixels < low);
             const v4i mask_white = (*pixels > high);
             const v4i mask_map = ~(mask_black | mask_white);
@@ -323,15 +326,11 @@ int main( int argc, char* argv[] )
         return EXIT_FAILURE;
     }
     read_pgm(stdin, &bmap);
-    if ( bmap.width % VLEN ) {
-        fprintf(stderr, "FATAL: the image width (%d) must be multiple of %d\n", bmap.width, (int)VLEN);
-        return EXIT_FAILURE;
-    }
     const double tstart = hpc_gettime();
     map_levels(&bmap, low, high);
     const double elapsed = hpc_gettime() - tstart;
-    fprintf(stderr, "Executon time (s): %f\n", elapsed);
     write_pgm(stdout, &bmap, "produced by simd-map-levels.c");
+    fprintf(stderr, "Executon time (s): %f (%f Mops/s)\n", elapsed, (1e-6) * bmap.width * bmap.height / elapsed);
     free_pgm(&bmap);
     return EXIT_SUCCESS;
 }
