@@ -45,9 +45,9 @@ $$
 
 Figure 1 shows the image produced by the command
 
-        ./simd-map-levels 100 255 < Yellow_palace_Winter.pgm > out.pgm
+        ./simd-map-levels 100 180 < simd-map-levels-in.pgm > out.pgm
 
-![Figure 1: Example of gray level mapping (_low_ = 100, _high_ = 255)](simd-map-levels.png)
+![Figure 1: Left: original image [simd-map-levels-in.pgm](simd-map-levels-in.pgm); Right: after level mapping with `./simd-map-levels 100 180 < simd-map-levels-in.pgm > out.pgm`](simd-map-levels.png)
 
 As an example we provide the image [C1648109](C1648109.pgm) taken by
 the [Voyager 1](https://voyager.jpl.nasa.gov/) probe on March 8,
@@ -148,7 +148,7 @@ Example:
 
 - [simd-map-levels.c](simd-map-levels.c)
 - [hpc.h](hpc.h)
-- Some input images: [Yellow palace Winter](Yellow_palace_Winter.pgm), [C1648109.pgm](C1648109.pgm)
+- Some input images: [simd-map-levels-in.pgm](simd-map-levels-in.pgm), [C1648109.pgm](C1648109.pgm)
 
 You can generate input images of arbitrary size with the command:
 
