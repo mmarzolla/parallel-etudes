@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * simd-map-levels.c -- Map gray levels on image
+ * simd-map-levels.c -- Map gray levels
  *
  * Copyright (C) 2018--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
@@ -19,13 +19,13 @@
  ****************************************************************************/
 
 /***
-% HPC - Map gray levels on image
+% HPC - Map gray levels
 % Moreno Marzolla <moreno.marzolla@unibo.it>
 % Last updated: 2023-12-11
 
 Let us consider a grayscale bitmap with $M$ rows and $N$ columns,
-where the color of each pixel is encoded by an integer from 0 (black)
-to 255 (white). Given two values _low, high_, $0 \leq \mathit{low} <
+where the color of each pixel is an integer from 0 (black) to 255
+(white). Given two values _low, high_, $0 \leq \mathit{low} <
 \mathit{high} \leq 255$, the function `map_levels(img, low, high)`
 modifies `img` so that the pixels whose gray level is less than _low_
 become black, those whose gray level is greater than _high_ become
@@ -138,7 +138,7 @@ To execute:
 
         ./simd-map-levels low high < input_file > output_file
 
-dove $0 \leq \mathit{low} < \mathit{high} \leq 255$.
+where $0 \leq \mathit{low} < \mathit{high} \leq 255$.
 
 Example:
 
@@ -176,10 +176,8 @@ typedef struct {
     int *bmap;   /* buffer of width*height bytes; each element represents the gray level of a pixel (0-255) */
 } PGM_image;
 
-enum {
-    BLACK = 0,
-    WHITE = 255
-};
+const int BLACK = 0;
+const int WHITE = 255;
 
 /**
  * Read a PGM file from file `f`. Warning: this function is not
@@ -199,7 +197,7 @@ void read_pgm( FILE *f, PGM_image* img )
     /* Get the file type (must be "P5") */
     s = fgets(buf, BUFSIZE, f);
     if (0 != strcmp(s, "P5\n")) {
-        fprintf(stderr, "Wrong file type %s\n", buf);
+        fprintf(stderr, "Wrong file type \"%s\", expected \"P5\"\n", buf);
         exit(EXIT_FAILURE);
     }
     /* Get any comment and ignore it; does not work if there are
@@ -216,10 +214,10 @@ void read_pgm( FILE *f, PGM_image* img )
     s = fgets(buf, BUFSIZE, f);
     sscanf(s, "%d", &(img->maxgrey));
     if ( img->maxgrey > 255 ) {
-        fprintf(stderr, "FATAL: maxgray=%d > 255\n", img->maxgrey);
+        fprintf(stderr, "FATAL: maxgray=%d, expected <= 255\n", img->maxgrey);
         exit(EXIT_FAILURE);
     }
-    /* The pointer img->bmap must be properly aligned to allow SIMD
+    /* The pointer `img->bmap` must be properly aligned to allow SIMD
        instructions, because the compiler emits SIMD instructions for
        aligned load/stores only. */
     int ret = posix_memalign((void**)&(img->bmap), __BIGGEST_ALIGNMENT__, (img->width)*(img->height)*sizeof(int));
@@ -228,7 +226,7 @@ void read_pgm( FILE *f, PGM_image* img )
     /* Get the binary data from the file */
     for (int i=0; i<img->height; i++) {
         for (int j=0; j<img->width; j++) {
-            unsigned char c = 0;
+            unsigned char c = WHITE;
             if (j < img->true_width) {
                 const int nread = fscanf(f, "%c", &c);
                 assert(nread == 1);
