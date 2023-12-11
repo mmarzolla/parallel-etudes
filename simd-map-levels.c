@@ -181,7 +181,7 @@ enum {
  * Read a PGM file from file `f`. Warning: this function is not
  * robust: it may fail on legal PGM images, and may crash on invalid
  * files since no proper error checking is done. The image width is
- * padded to the next integer multiple of VLEN.
+ * padded to the next integer multiple of 'VLEN`.
  */
 void read_pgm( FILE *f, PGM_image* img )
 {
@@ -235,7 +235,7 @@ void read_pgm( FILE *f, PGM_image* img )
 }
 
 /**
- * Write the image `img` to file `f`; if not NULL, use the string
+ * Write the image `img` to file `f`; if not `NULL`, use the string
  * `comment` as metadata.
  */
 void write_pgm( FILE *f, const PGM_image* img, const char *comment )
