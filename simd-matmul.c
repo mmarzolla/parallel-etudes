@@ -57,7 +57,7 @@ SIMD register length, and that all data are suitably aligned in
 memory.
 
 This exercise uses the `double` data type; it is therefore necessary
-to define a vector datatype `v2d` of length 16 Bytes, containing two
+to define a vector datatype `v2d` of length 16 Bytes containing two
 doubles, using the declaration:
 
 ```C
@@ -98,6 +98,9 @@ Example:
 #include <assert.h>  /* for assert() */
 #include <strings.h> /* for bzero() */
 
+/* This program works on double-precision numbers; therefore, we
+   define a v2d vector datatype that contains two doubles in a SIMD
+   array of 16 bytes (VLEN==2). */
 typedef double v2d __attribute__((vector_size(16)));
 #define VLEN (sizeof(v2d)/sizeof(double))
 
@@ -182,7 +185,7 @@ void simd_matmul_tr( const double *p, const double* q, double *r, int n)
         }
     }
 
-    /* multiply p and qT row-wise using SIMD intrinsics */
+    /* multiply p and qT row-wise using vector datatypes */
     for (i=0; i<n; i++) {
         for (j=0; j<n; j++) {
             v2d vs = {0.0, 0.0};
