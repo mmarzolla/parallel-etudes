@@ -528,6 +528,6 @@ int main( int argc, char* argv[] )
     sclFree(d_next);
     sclFinalize();
 #endif
-    fprintf(stderr, "\n\nElapsed time: %f (%f Mupd/s)\n", elapsed, (width * height / 1.0e6)*nsteps/elapsed);
+    fprintf(stderr, "\n\nElapsed time: %f (%f Mops/s)\n", elapsed, (width * height / 1.0e6)*nsteps/elapsed);
     return EXIT_SUCCESS;
 }

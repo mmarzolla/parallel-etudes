@@ -135,10 +135,10 @@ omp-c-ray-images.jpg: omp-c-ray sphfract.small.in spheres.in dna.in
 	montage c-ray?.tmp.ppm -tile 3x1 -geometry +0+0 $@
 	\rm -f c-ray?.tmp.ppm
 
-simd-map-levels.png: simd-map-levels Yellow_palace_Winter.pgm
-	./simd-map-levels 100 255 < Yellow_palace_Winter.pgm > map-levels.tmp.pgm
-	montage Yellow_palace_Winter.pgm map-levels.tmp.pgm -tile 2x1 -geometry +0+0 -resize 600x $@
-	\rm -f map-levels.tmp.pgm
+simd-map-levels.png: simd-map-levels simd-map-levels-in.pgm
+	./simd-map-levels 100 180 < simd-map-levels-in.pgm > simd-map-levels.tmp.pgm
+	montage simd-map-levels-in.pgm simd-map-levels.tmp.pgm -tile 2x1 -geometry +0+0 -resize 600x $@
+	\rm -f simd-map-levels.tmp.pgm
 
 edge-detect.png: omp-edge-detect BWstop-sign.pgm
 	./omp-edge-detect < BWstop-sign.pgm > BWstop-sign-edges.pgm

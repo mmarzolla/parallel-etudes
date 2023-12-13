@@ -21,7 +21,7 @@
 /***
 % HPC - Sieve of Eratosthenes
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-01-21
+% Last updated: 2023-12-09
 
 ## Files
 
@@ -47,6 +47,7 @@ int primes(int n)
 
     sclKernel mark_kernel = sclCreateKernel("mark_kernel");
     sclKernel next_prime_kernel = sclCreateKernel("next_prime_kernel");
+    sclKernel next_prime_kernel_reduce = sclCreateKernel("next_prime_kernel_reduce");
 
     cl_mem d_isprime = sclMallocCopy(n+1, isprime, CL_MEM_READ_WRITE);
     cl_mem d_nprimes = sclMallocCopy(sizeof(nprimes), &nprimes, CL_MEM_READ_WRITE);
@@ -54,7 +55,7 @@ int primes(int n)
     /* main iteration of the sieve */
     int k = 2;
     cl_mem d_next_prime = sclMalloc(sizeof(k), CL_MEM_WRITE_ONLY);
-    while (k*k <= n) {
+    while (((long)k)*k <= (long)n) {
         const int from = k*k;
         const int to = n;
         const sclDim BLOCK = DIM1(SCL_DEFAULT_WG_SIZE1D);
@@ -64,11 +65,20 @@ int primes(int n)
                                 GRID, BLOCK,
                                 ":b :d :d :d :b :L",
                                 d_isprime, k, from, to, d_nprimes, BLOCK.sizes[0] * sizeof(int));
+#if 1
         sclSetArgsEnqueueKernel(next_prime_kernel,
                                 DIM1(1), DIM1(1),
                                 ":b :d :d :b",
                                 d_isprime, k, n, d_next_prime);
+#else
+        sclSetArgsEnqueueKernel(next_prime_kernel_reduce,
+                                DIM1(SCL_DEFAULT_WG_SIZE1D), DIM1(SCL_DEFAULT_WG_SIZE1D),
+                                ":b :d :d :b",
+                                d_isprime, k, n, d_next_prime);
+#endif
+        const int oldk = k;
         sclMemcpyDeviceToHost(&k, d_next_prime, sizeof(k));
+        assert(k > oldk);
     }
 
     sclMemcpyDeviceToHost(&nprimes, d_nprimes, sizeof(nprimes));
@@ -94,9 +104,10 @@ int main( int argc, char *argv[] )
     const double tstart = hpc_gettime();
     const int nprimes = primes(n);
     const double elapsed = hpc_gettime() - tstart;
-    printf("Elapsed time: %f\n", elapsed);
 
     printf("There are %d primes in {2, ..., %d}\n", nprimes, n);
+
+    printf("Elapsed time: %f\n", elapsed);
 
     sclFinalize();
 

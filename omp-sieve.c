@@ -256,28 +256,26 @@ int main( int argc, char *argv[] )
         isprime[i] = 1;
 
     nprimes = n-1;
-#ifdef _OPENMP
     const double tstart = omp_get_wtime();
-#endif
     /* main iteration of the sieve */
     for (i=2; i*i <= n; i++) {
         if (isprime[i]) {
             nprimes -= mark(isprime, i, i*i, n+1);
         }
     }
-#ifdef _OPENMP
     const double elapsed = omp_get_wtime() - tstart;
-    printf("Elapsed time: %f\n", elapsed);
-#endif
-    /* Enable to print the list of primes */
-#if 0
+    /* Uncomment to print the list of primes */
+    /*
     for (i=2; i<=n; i++) {
         if (isprime[i]) {printf("%ld ", i);}
     }
     printf("\n");
-#endif
+    */
     free(isprime);
+
     printf("There are %ld primes in {2, ..., %ld}\n", nprimes, n);
+
+    printf("Elapsed time: %f\n", elapsed);
 
     return EXIT_SUCCESS;
 }

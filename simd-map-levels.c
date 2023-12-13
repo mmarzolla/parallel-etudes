@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * simd-map-levels.c -- Map gray levels on image
+ * simd-map-levels.c -- Map gray levels
  *
- * Copyright (C) 2018--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2018--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,15 @@
  ****************************************************************************/
 
 /***
-% HPC - Map gray levels on image
+% HPC - Map gray levels
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-12-16
+% Last updated: 2023-12-11
 
-Let us consider a grayscale bitmap with $M$ lines and $N$ columns,
-where the color of each pixel is encoded by an integer from 0 (black)
-to 255 (white). Given two values _low, high_, $0 \leq \mathit{low} <
+Let us consider a grayscale bitmap with $M$ rows and $N$ columns,
+where the color of each pixel is an integer from 0 (black) to 255
+(white). Given two values _low, high_, $0 \leq \mathit{low} <
 \mathit{high} \leq 255$, the function `map_levels(img, low, high)`
-modifies `img` so that pixels whose gray level is less than _low_
+modifies `img` so that the pixels whose gray level is less than _low_
 become black, those whose gray level is greater than _high_ become
 white, and those whose gray level is between _low_ and _high_
 (inclusive) are linearly mapped to the range $[0, 255]$.
@@ -45,29 +45,30 @@ $$
 
 Figure 1 shows the image produced by the command
 
-        ./simd-map-levels 100 255 < Yellow_palace_Winter.pgm > out.pgm
+        ./simd-map-levels 100 180 < simd-map-levels-in.pgm > out.pgm
 
-![Figure 1: Example of gray level mapping (_low_ = 100, _high_ = 255)](simd-map-levels.png)
+![Figure 1: Left: original image [simd-map-levels-in.pgm](simd-map-levels-in.pgm); Right: after level mapping with `./simd-map-levels 100 180 < simd-map-levels-in.pgm > out.pgm`](simd-map-levels.png)
 
-As an interesting practical application we provide the image
-[C1648109](C1648109.pgm) taken by the [Voyager
-1](https://voyager.jpl.nasa.gov/) probe on March 8, 1979. The image
-shows Io, one of the four [Galilean moons of planet
-Jupiter](https://en.wikipedia.org/wiki/Galilean_moons). The Flight
-Engineer [Linda
+As an example we provide the image [C1648109](C1648109.pgm) taken by
+the [Voyager 1](https://voyager.jpl.nasa.gov/) probe on March 8,
+1979. The image shows Io, one of the four [Galilean moons of the
+planet Jupiter](https://en.wikipedia.org/wiki/Galilean_moons). The
+Flight Engineer [Linda
 Morabito](https://en.wikipedia.org/wiki/Linda_A._Morabito) was using
 this image to uncover the background stars to determine the precise
-location of the probe. To this aim, she needed to remap the gray
-levels so that the faint stars would be visible. This lead to one of
-the most important discoveries of modern planetary sciences: see by
-yourself by running the program [simd-map-levels.c](simd-map-levels.c)
-on the image [C1648109](C1648109.pgm) with _low_ = 10 and _high_ = 30,
+location of the probe. To this aim, she needed to remap the levels so
+that the faint stars in the background would be visible. This lead to
+one of the most important discoveries of modern planetary sciences:
+see by yourself by running the program
+
+        ./simd-map-levels 10 30 < C1648109.pgm > out.pgm
+
 and look at what appears next to the disc of Io at ten o'clock...
 
 ![Figure 2: Image C1648109 taken by Voyager 1 ([source](https://opus.pds-rings.seti.org/#/mission=Voyager&target=Io&cols=opusid,instrument,planet,target,time1,observationduration&widgets=mission,planet,target&order=time1,opusid&view=detail&browse=gallery&cart_browse=gallery&startobs=481&cart_startobs=1&detail=vg-iss-1-j-c1648109))](C1648109.png)
 
 The file [simd-map-levels.c](simd-map-levels.c) contains a serial
-implementation of the function `map_levels()` above. The goal of this
+implementation of function `map_levels()` above. The goal of this
 exercise is to develop a SIMD version using GCC _vector datatypes_.
 We start by defining a vector datatype `v4i` that represents four
 integers:
@@ -77,8 +78,8 @@ typedef int v4i __attribute__((vector_size(16)));
 #define VLEN (sizeof(v4i)/sizeof(int))
 ```
 
-Then, the idea is to process the image four pixels at a time. However,
-the serial code
+The idea is to process the image four pixels at a time. However, the
+serial code
 
 ```C
 int *pixel = bmap + i*width + j;
@@ -92,13 +93,11 @@ else
 
 is problematic because it contains conditional statements that can not
 be directly vectorized. To address this issue we use the _selection
-and masking_ technique described in class.
-
-Let `pixels` be a pointer to a `v4i` SIMD array. Then, the expression
-`mask_black = (*pixels < low)` produces a SIMD array of integers whose
-elements are -1 for those pixels whose gray level is less than _low_,
-0 otherwise. `mask_black` can therefore be used as a bit mask to
-assign the correct values to these pixels.
+and masking_ technique. Let `pixels` be a pointer to a `v4i` SIMD
+array. Then, the expression `mask_black = (*pixels < low)` produces a
+SIMD array of integers whose elements are -1 for those pixels whose
+gray level is less than _low_, 0 otherwise. `mask_black` can therefore
+be used as a bit mask to assign the correct values to these pixels.
 
 Using the idea above, we can rewrite the code as follows:
 
@@ -126,8 +125,10 @@ The SIMD version requires that
 2. The image width is an integer multiple of the `v4i` SIMD vector
    width, i.e., an integer multiple of 4.
 
-Both conditions above are satisfied by the sequential code and the
-input images.
+Both conditions are satisfied: the program pads the image horizontally
+so the next multiple of 4. Indeed, the attribute `width` of structure
+`PGM_image` is the width of the _padded_ image, while `true_width` is
+the true width of the _actual_ image.
 
 To compile:
 
@@ -137,7 +138,7 @@ To execute:
 
         ./simd-map-levels low high < input_file > output_file
 
-dove $0 \leq \mathit{low} < \mathit{high} \leq 255$.
+where $0 \leq \mathit{low} < \mathit{high} \leq 255$.
 
 Example:
 
@@ -147,7 +148,11 @@ Example:
 
 - [simd-map-levels.c](simd-map-levels.c)
 - [hpc.h](hpc.h)
-- Some input images: [Yellow palace Winter](Yellow_palace_Winter.pgm), [C1648109.pgm](C1648109.pgm)
+- Some input images: [simd-map-levels-in.pgm](simd-map-levels-in.pgm), [C1648109.pgm](C1648109.pgm)
+
+You can generate input images of arbitrary size with the command:
+
+        convert -size 1024x768 plasma: -depth 8 test-image.pgm
 
 ***/
 
@@ -164,21 +169,21 @@ typedef int v4i __attribute__((vector_size(16)));
 #define VLEN (sizeof(v4i)/sizeof(int))
 
 typedef struct {
-    int width;   /* Width of the image (in pixels) */
+    int width;   /* Padded width of the image (in pixels); this is a multiple of VLEN */
+    int true_width; /* True width of the image (in pixels) */
     int height;  /* Height of the image (in pixels) */
     int maxgrey; /* Don't care (used only by the PGM read/write routines) */
     int *bmap;   /* buffer of width*height bytes; each element represents the gray level of a pixel (0-255) */
 } PGM_image;
 
-enum {
-    BLACK = 0,
-    WHITE = 255
-};
+const int BLACK = 0;
+const int WHITE = 255;
 
 /**
  * Read a PGM file from file `f`. Warning: this function is not
  * robust: it may fail on legal PGM images, and may crash on invalid
- * files since no proper error checking is done.
+ * files since no proper error checking is done. The image width is
+ * padded to the next integer multiple of 'VLEN`.
  */
 void read_pgm( FILE *f, PGM_image* img )
 {
@@ -192,7 +197,7 @@ void read_pgm( FILE *f, PGM_image* img )
     /* Get the file type (must be "P5") */
     s = fgets(buf, BUFSIZE, f);
     if (0 != strcmp(s, "P5\n")) {
-        fprintf(stderr, "Wrong file type %s\n", buf);
+        fprintf(stderr, "Wrong file type \"%s\", expected \"P5\"\n", buf);
         exit(EXIT_FAILURE);
     }
     /* Get any comment and ignore it; does not work if there are
@@ -201,15 +206,18 @@ void read_pgm( FILE *f, PGM_image* img )
         s = fgets(buf, BUFSIZE, f);
     } while (s[0] == '#');
     /* Get width, height */
-    sscanf(s, "%d %d", &(img->width), &(img->height));
+    sscanf(s, "%d %d", &(img->true_width), &(img->height));
+    /* Set `img->width` as the next integer multiple of `VLEN`
+       greater than or equal to `img->true_width` */
+    img->width = ((img->true_width + VLEN - 1) / VLEN) * VLEN;
     /* get maxgrey; must be less than or equal to 255 */
     s = fgets(buf, BUFSIZE, f);
     sscanf(s, "%d", &(img->maxgrey));
     if ( img->maxgrey > 255 ) {
-        fprintf(stderr, "FATAL: maxgray=%d > 255\n", img->maxgrey);
+        fprintf(stderr, "FATAL: maxgray=%d, expected <= 255\n", img->maxgrey);
         exit(EXIT_FAILURE);
     }
-    /* The pointer img->bmap must be properly aligned to allow SIMD
+    /* The pointer `img->bmap` must be properly aligned to allow SIMD
        instructions, because the compiler emits SIMD instructions for
        aligned load/stores only. */
     int ret = posix_memalign((void**)&(img->bmap), __BIGGEST_ALIGNMENT__, (img->width)*(img->height)*sizeof(int));
@@ -218,16 +226,18 @@ void read_pgm( FILE *f, PGM_image* img )
     /* Get the binary data from the file */
     for (int i=0; i<img->height; i++) {
         for (int j=0; j<img->width; j++) {
-            unsigned char c;
-            const int nread = fscanf(f, "%c", &c);
-            assert(nread == 1);
+            unsigned char c = WHITE;
+            if (j < img->true_width) {
+                const int nread = fscanf(f, "%c", &c);
+                assert(nread == 1);
+            }
             *(img->bmap + i*img->width + j) = c;
         }
     }
 }
 
 /**
- * Write the image `img` to file `f`; if not NULL, use the string
+ * Write the image `img` to file `f`; if not `NULL`, use the string
  * `comment` as metadata.
  */
 void write_pgm( FILE *f, const PGM_image* img, const char *comment )
@@ -237,10 +247,10 @@ void write_pgm( FILE *f, const PGM_image* img, const char *comment )
 
     fprintf(f, "P5\n");
     fprintf(f, "# %s\n", comment != NULL ? comment : "");
-    fprintf(f, "%d %d\n", img->width, img->height);
+    fprintf(f, "%d %d\n", img->true_width, img->height);
     fprintf(f, "%d\n", img->maxgrey);
     for (int i=0; i<img->height; i++) {
-        for (int j=0; j<img->width; j++) {
+        for (int j=0; j<img->true_width; j++) {
             fprintf(f, "%c", *(img->bmap + i*img->width + j));
         }
     }
@@ -256,7 +266,7 @@ void free_pgm( PGM_image *img )
     assert(img != NULL);
     free(img->bmap);
     img->bmap = NULL; /* not necessary */
-    img->width = img->height = img->maxgrey = -1;
+    img->width = img->true_width = img->height = img->maxgrey = -1;
 }
 
 /*
@@ -314,15 +324,11 @@ int main( int argc, char* argv[] )
         return EXIT_FAILURE;
     }
     read_pgm(stdin, &bmap);
-    if ( bmap.width % VLEN ) {
-        fprintf(stderr, "FATAL: the image width (%d) must be multiple of %d\n", bmap.width, (int)VLEN);
-        return EXIT_FAILURE;
-    }
     const double tstart = hpc_gettime();
     map_levels(&bmap, low, high);
     const double elapsed = hpc_gettime() - tstart;
-    fprintf(stderr, "Executon time (s): %f\n", elapsed);
     write_pgm(stdout, &bmap, "produced by simd-map-levels.c");
+    fprintf(stderr, "Executon time (s): %f (%f Mops/s)\n", elapsed, (1e-6) * bmap.width * bmap.height / elapsed);
     free_pgm(&bmap);
     return EXIT_SUCCESS;
 }
