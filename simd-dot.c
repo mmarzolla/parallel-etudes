@@ -60,7 +60,7 @@ Use the following command to see which compiler flags are enabled by
 product of two arrays. The program prints the mean execution times of
 the serial and SIMD versions; the goal of this exercise is to develop
 the SIMD version. The dot product requires little time even with large
-arrays; therefore, you might not observe a significant spèeedup.
+arrays; therefore, you might not observe a significant speedup.
 
 **1. Auto-vectorization.** Check the effectiveness of compiler
 auto-vectorization of `scalar_dot()`. Compile as follows:
