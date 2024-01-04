@@ -5,7 +5,7 @@
  * N-body simulation with CUDA (from https://github.com/harrism/mini-nbody)
  *
  * Copyright (C) Mark Harris
- * Modified in 2020--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Modified in 2020--2024 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@
 /***
 % HPC - N-Body simulation
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-11-26
+% Last updated: 2024-01-04
 
 ![A frame of the Bolshoi simulation (source: <http://hipacc.ucsc.edu/Bolshoi/Images.html>)](bolshoi.png)
 
@@ -165,11 +165,13 @@ Example:
 - [hpc.h](hpc.h)
 
 ***/
-#include "hpc.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
+
+#include "hpc.h"
 
 #define BLKDIM 1024
 
