@@ -358,7 +358,10 @@ void init( cell_t *cur, int ext_width, int ext_height, float p )
     srand(1234);
     for (i=TOP; i <= BOTTOM; i++) {
         for (j=LEFT; j <= RIGHT; j++) {
-            cur[IDX(ext_width, i, j)] = (((float)rand())/RAND_MAX < p);
+            /* the cast do `double` is required since `float` may have
+               not enough precision for `float` (clang raises a
+               warning) */
+            cur[IDX(ext_width, i, j)] = (((double)rand())/RAND_MAX < p);
         }
     }
 }

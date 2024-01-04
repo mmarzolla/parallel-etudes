@@ -34,7 +34,7 @@ int main( int argc, char* argv[] )
     n = atoi(argv[2]);
     printf("%d\n%d\n", C, n);
     for ( i=0; i<n; i++ ) {
-        printf("%d %f\n", 1 + rand() % (C/2), ((float)rand())/RAND_MAX * 10.0);
+        printf("%d %f\n", 1 + rand() % (C/2), ((double)rand())/RAND_MAX * 10.0);
     }
     return EXIT_SUCCESS;
 }
