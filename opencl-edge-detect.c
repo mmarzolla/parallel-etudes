@@ -2,7 +2,7 @@
  *
  * opencl-edge-detect.c - Edge detection on grayscale images
  *
- * Copyright 2019, 2021, 2022 Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright 2019, 2021, 2022, 2024 Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Edge detection on grayscale images
 % Moreno Marzolla <moreno.marzolla@unibo.i>
-% Last updated: 2022-08-19
+% Last updated: 2024-01-04
 
 ![Result of the Sobel operator](edge-detect.png)
 
@@ -62,13 +62,18 @@ Example:
 
 ***/
 
-#include "hpc.h"
+/* The following #define is required by the implementation of
+   hpc_gettime(). It MUST be defined before including any other
+   file. */
+#define _XOPEN_SOURCE 600
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include "simpleCL.h"
 
+#include "simpleCL.h"
+#include "hpc.h"
 #include "pgmutils.h"
 
 #ifndef SERIAL

@@ -3,7 +3,7 @@
  * opencl-nbody.c -- N-body simulation
  *
  * Copyright (C) Mark Harris
- * Copyright (C) 2021, 2022 Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2021--2024 Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@
 /***
 % HPC - N-body simulation
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-09-06
+% Last updated: 2024-01-04
 
 ![A frame of the Bolshoi simulation (source: <http://hipacc.ucsc.edu/Bolshoi/Images.html>)](bolshoi.png)
 
@@ -163,12 +163,19 @@ Example:
 - [simpleCL.c](simpleCL.c) [simpleCL.h](simpleCL.h) [hpc.h](hpc.h)
 
 ***/
-#include "hpc.h"
+
+/* The following #define is required by the implementation of
+   hpc_gettime(). It MUST be defined before including any other
+   file. */
+#define _XOPEN_SOURCE 600
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h> /* for sqrtf() */
 #include <assert.h>
+
 #include "simpleCL.h"
+#include "hpc.h"
 
 const float EPSILON = 1.0e-5f;
 /* const float G = 6.67e-11; */

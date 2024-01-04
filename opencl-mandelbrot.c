@@ -2,7 +2,7 @@
  *
  * opencl-mandelbrot.c - Mandelbrot set
  *
- * Copyright (C) 2017--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2024 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Mandelbrot set
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-06-08
+% Last updated: 2024-01-04
 
 ![](mandelbrot-set.png)
 
@@ -80,12 +80,18 @@ Example:
 
 ***/
 
-#include "hpc.h"
+/* The following #define is required by the implementation of
+   hpc_gettime(). It MUST be defined before including any other
+   file. */
+#define _XOPEN_SOURCE 600
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <assert.h>
+
 #include "simpleCL.h"
+#include "hpc.h"
 
 typedef struct __attribute__((__packed__)) {
     uint8_t r;  /* red   */

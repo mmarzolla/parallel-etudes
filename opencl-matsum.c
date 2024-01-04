@@ -2,7 +2,7 @@
  *
  * opencl-matsum.c - Matrix-matrix addition
  *
- * Copyright (C) 2017--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2024 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Matrix-matrix addition
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last update: 2023-06-08
+% Last update: 2024-01-04
 
 The program [opencl-matsum.c](opencl-matsum.c) computes the sum of two
 square matrices of size $N \times N$ using the CPU. Modify the program
@@ -61,12 +61,19 @@ Example:
 - [simpleCL.c](simpleCL.c) [simpleCL.h](simpleCL.h) [hpc.h](hpc.h)
 
 ***/
-#include "hpc.h"
+
+/* The following #define is required by the implementation of
+   hpc_gettime(). It MUST be defined before including any other
+   file. */
+#define _XOPEN_SOURCE 600
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
+
 #include "simpleCL.h"
+#include "hpc.h"
 
 #ifndef SERIAL
 const char *program =

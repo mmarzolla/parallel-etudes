@@ -2,7 +2,7 @@
  *
  * opencl-denoise.c -- Image denoising using the median filter
  *
- * Copyright 2018--2023 Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright 2018--2024 Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Image denoising using the median filter
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-03-21
+% Last updated: 2024-01-04
 
 ![By Simpsons contributor, CC BY-SA 3.0, <https://commons.wikimedia.org/w/index.
 php?curid=8904364>](denoise.png)
@@ -57,13 +57,19 @@ Example:
 - [giornale.ppm](giornale.ppm) (sample input)
 
  ***/
-#include "hpc.h"
+
+/* The following #define is required by the implementation of
+   hpc_gettime(). It MUST be defined before including any other
+   file. */
+#define _XOPEN_SOURCE 600
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include "simpleCL.h"
 
+#include "simpleCL.h"
+#include "hpc.h"
 #include "ppmutils.h"
 
 #define BLKDIM 32

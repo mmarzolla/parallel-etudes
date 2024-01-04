@@ -11,14 +11,14 @@
  *  HISTORY: Written:  (Mark Bull, August 2011).
  *           Changed "complex" to "d_complex" to avoid collsion with
  *           math.h complex type (Tim Mattson, September 2011)
- *           Code cleanup (Moreno Marzolla, Feb 2017, Oct 2018, Oct 2020)
+ *           Code cleanup (Moreno Marzolla, Feb 2017, Oct 2018, Oct 2020, Jan 2924)
  *
  ******************************************************************************/
 
 /***
 % HPC - Area of the Mandelbrot set
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-08-16
+% Last updated: 2023-04-01
 
 The Mandelbrot set is the set of black points in Figure 1.
 
@@ -86,10 +86,16 @@ policies, as well as with some different values for the chunk size.
 
 ***/
 
-#include "hpc.h"
+/* The following #define is required by the implementation of
+   hpc_gettime(). It MUST be defined before including any other
+   file. */
+#define _XOPEN_SOURCE 600
+
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "simpleCL.h"
+#include "hpc.h"
 
 /* We consider the region on the complex plane -2.25 <= Re <= 0.75
    -1.4 <= Im <= 1.5 */

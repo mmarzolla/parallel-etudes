@@ -2,7 +2,7 @@
  *
  * simd-cat-map.c - Arnold's cat map
  *
- * Copyright (C) 2016--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2016--2024 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Ardnold's cat map
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-09-18
+% Last updated: 2024-01-04
 
 ![](cat-map.png)
 
@@ -248,15 +248,17 @@ Example:
 
  ***/
 
-/* The following #define is required by posix_memalign(). It MUST
-   be defined before including any other files. */
+/* The following #define is required by posix_memalign() and
+   clock_gettime(). It MUST be defined before including any other
+   file. */
 #define _XOPEN_SOURCE 600
 
-#include "hpc.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+
+#include "hpc.h"
 
 typedef int v4i __attribute__((vector_size(16)));
 #define VLEN (sizeof(v4i)/sizeof(int))

@@ -2,7 +2,7 @@
  *
  * opencl-rule30.c - "Rule 30" Cellular Automaton
  *
- * Copyright (C) 2017--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2024 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - "Rule 30" Cellular Automaton
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-06-08
+% Last updated: 2024-01-04
 
 The goal of this exercise is to implement the [Rule 30 Cellular
 Automaton](https://en.wikipedia.org/wiki/Rule_30) in OpenCL.
@@ -167,11 +167,18 @@ The output is stored to the file `opencl-rule30.pbm`
 - [simpleCL.c](simpleCL.c) [simpleCL.h](simpleCL.h) [hpc.h](hpc.h)
 
  ***/
-#include "hpc.h"
+
+/* The following #define is required by the implementation of
+   hpc_gettime(). It MUST be defined before including any other
+   file. */
+#define _XOPEN_SOURCE 600
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+
 #include "simpleCL.h"
+#include "hpc.h"
 
 typedef unsigned char cell_t;
 

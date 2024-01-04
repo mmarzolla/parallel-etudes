@@ -2,7 +2,7 @@
  *
  * opencl-sieve.c -- Sieve of Eratosthenes
  *
- * Copyright (C) 2018--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2018--2024 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Sieve of Eratosthenes
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-12-09
+% Last updated: 2024-01-04
 
 ## Files
 
@@ -30,11 +30,18 @@
 - [hpc.h](hpc.h)
 
 ***/
-#include "hpc.h"
+
+/* The following #define is required by the implementation of
+   hpc_gettime(). It MUST be defined before including any other
+   file. */
+#define _XOPEN_SOURCE 600
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+
 #include "simpleCL.h"
+#include "hpc.h"
 
 int primes(int n)
 {

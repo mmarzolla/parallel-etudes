@@ -2,7 +2,7 @@
  *
  * opencl-odd-even.c - Odd-even sort
  *
- * Copyright (C) 2017--2021 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2024 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Odd-even sort
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-06-08
+% Last updated: 2024-01-04
 
 The _Odd-Even sort_ algorithm is a variant of BubbleSort, and sorts an
 array of $n$ elements in sequential time $O(n^2)$. Although
@@ -112,11 +112,18 @@ Example:
 - [simpleCL.c](simpleCL.c) [simpleCL.h](simpleCL.h) [hpc.h](hpc.h)
 
  ***/
-#include "hpc.h"
+
+/* The following #define is required by the implementation of
+   hpc_gettime(). It MUST be defined before including any other
+   file. */
+#define _XOPEN_SOURCE 600
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+
 #include "simpleCL.h"
+#include "hpc.h"
 
 #ifndef SERIAL
 sclKernel step_kernel_bad, step_kernel_good;

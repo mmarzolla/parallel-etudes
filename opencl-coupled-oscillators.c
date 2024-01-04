@@ -99,7 +99,7 @@ Example:
 - [simpleCL.c](simpleCL.c) [simpleCL.h](simpleCL.h) [hpc.h](hpc.h)
 
  ***/
-#include "hpc.h"
+
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>

@@ -3,7 +3,7 @@
  * hpc.h - Miscellaneous utility functions for the HPC course
  *
  * Copyright (C) 2017 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
- * Last modified on 2020-05-23 by Moreno Marzolla
+ * Last modified on 2024-01-04 by Moreno Marzolla
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,12 @@
  * framework (OpenMP or MPI), if enabled; otherwise, the default is to
  * use the clock_gettime() function.
  *
- * IMPORTANT NOTE: to work reliably this header file must be the FIRST
- * header file that appears in your code.
+ * IMPORTANT NOTE: the function clock_gettime() is a POSIX extension;
+ * therefore, to use it you MUST add
+ *
+ * #define _XOPEN_SOURCE 600
+ *
+ * at the beginning of your program, BEFORE any other include.
  *
  ****************************************************************************/
 
@@ -57,7 +61,7 @@ double hpc_gettime( void )
  * POSIX-based timing routines
  ******************************************************************************/
 #if _XOPEN_SOURCE < 600
-#define _XOPEN_SOURCE 600
+#error You must add "#define _XOPEN_SOURCE 600" at the very beginning of your source program
 #endif
 #include <time.h>
 
