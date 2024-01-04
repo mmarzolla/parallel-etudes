@@ -44,38 +44,36 @@ int iterate( float cx, float cy )
     return it;
 }
 
-/* The state word must be initialized to non-zero */
-uint32_t xorshift32(uint32_t *state)
-{
-    /* Algorithm "xor" from p. 4 of Marsaglia, "Xorshift RNGs" */
-    uint32_t x = *state;
-    x ^= x << 13;
-    x ^= x >> 17;
-    x ^= x << 5;
-    return *state = x;
-}
-
-float randab(uint32_t *state, float a, float b)
-{
-    return a + (b-a)*(xorshift32(state)/(float)UINT_MAX);
-}
-
 __kernel void
-mandelbrot_area_kernel( uint32_t seed,
-                        uint32_t npoints,
+mandelbrot_area_kernel( int xsize,
+                        int ysize,
                         __global uint32_t *ninside)
 {
-    uint32_t state = seed + 17 * get_global_id(0);
-    /* We consider the region on the complex plane -2.25 <= Re <= 0.75
-       -1.4 <= Im <= 1.5 */
+    const int x = get_global_id(0);
+    const int y = get_global_id(1);
+    const int lx = get_local_id(0);
+    const int ly = get_local_id(1);
+
     const float XMIN = -2.25, XMAX = 0.75;
     const float YMIN = -1.5, YMAX = 1.5;
 
-    if (get_global_id(0) < npoints) {
-        const float cx = randab(&state, XMIN, XMAX);
-        const float cy = randab(&state, YMIN, YMAX);
+    __local uint32_t local_inside;
+
+    if (lx == 0 && ly == 0)
+        local_inside = 0;
+
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+    if (x < xsize && y < ysize) {
+        const float cx = XMIN + (XMAX - XMIN) * x / xsize;
+        const float cy = YMIN + (YMAX - YMIN) * y / ysize;
         const int v = iterate(cx, cy);
         if (v >= MAXIT)
-            atomic_inc(ninside);
+            atomic_inc(&local_inside);
     }
+
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+    if (lx == 0 && ly == 0)
+        atomic_add(ninside, local_inside);
 }

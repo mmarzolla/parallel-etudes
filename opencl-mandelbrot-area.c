@@ -11,14 +11,14 @@
  *  HISTORY: Written:  (Mark Bull, August 2011).
  *           Changed "complex" to "d_complex" to avoid collsion with
  *           math.h complex type (Tim Mattson, September 2011)
- *           Code cleanup (Moreno Marzolla, Feb 2017, Oct 2018, Oct 2020, Jan 2924)
+ *           Code cleanup (Moreno Marzolla, Feb 2017, Oct 2018, Oct 2020, Jan 2024)
  *
  ******************************************************************************/
 
 /***
 % HPC - Area of the Mandelbrot set
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-04-01
+% Last updated: 2024-01-04
 
 The Mandelbrot set is the set of black points in Figure 1.
 
@@ -59,9 +59,8 @@ provided by OpenMP. To this aim, you can distribute the $N \times N$
 lattice points across $P$ OpenMP threads using the `omp parallel for`
 directive; you might want to use the `collapse` directive as
 well. Each thread computes the number of points that belong to the
-Mandelbrot set; the result is simply the sum-reduction of the partial
-counts from each thread. This can be achieved with the `reduction`
-clause.
+Mandelbrot set; the result is the sum-reduction of the partial counts
+from each thread. This can be achieved with the `reduction` clause.
 
 Compile with:
 
@@ -106,11 +105,9 @@ int main( int argc, char *argv[] )
 {
     uint32_t ninside = 0;
     int npoints = 1000;
-    sclKernel mandelbrot_area_kernel;
     cl_mem d_ninside;
 
     sclInitFromFile("opencl-mandelbrot-area.cl");
-    mandelbrot_area_kernel = sclCreateKernel("mandelbrot_area_kernel");
 
     if (argc > 2) {
         fprintf(stderr, "Usage: %s [npoints]\n", argv[0]);
@@ -121,26 +118,33 @@ int main( int argc, char *argv[] )
         npoints = atoi(argv[1]);
     }
 
-    const sclDim BLOCK = DIM1(SCL_DEFAULT_WG_SIZE1D);
-    const sclDim GRID = DIM1(sclRoundUp(npoints, SCL_DEFAULT_WG_SIZE1D));
+    printf("Using a %d x %d grid\n", npoints, npoints);
+
+    sclKernel mandelbrot_area_kernel = sclCreateKernel("mandelbrot_area_kernel");
+
+    const sclDim BLOCK = DIM2(SCL_DEFAULT_WG_SIZE2D, SCL_DEFAULT_WG_SIZE2D);
+    const sclDim GRID = DIM2(sclRoundUp(npoints, SCL_DEFAULT_WG_SIZE2D),
+                             sclRoundUp(npoints, SCL_DEFAULT_WG_SIZE2D));
     d_ninside = sclMallocCopy(sizeof(ninside), &ninside, CL_MEM_READ_WRITE);
 
     const double tstart = hpc_gettime();
     sclSetArgsEnqueueKernel(mandelbrot_area_kernel,
                             GRID, BLOCK,
                             ":d :d :b",
-                            12345u, npoints, d_ninside);
+                            npoints, npoints, d_ninside);
     sclDeviceSynchronize();
     const double elapsed = hpc_gettime() - tstart;
     sclMemcpyDeviceToHost(&ninside, d_ninside, sizeof(ninside));
-    printf("npoints = %d, ninside = %u\n", npoints, ninside);
+    printf("npoints = %d, ninside = %u\n", npoints*npoints, ninside);
 
     /* Compute area and error estimate and output the results */
-    const double area = (XMAX-XMIN)*(YMAX-YMIN)*ninside/npoints;
+    const double area = (XMAX-XMIN)*(YMAX-YMIN)*ninside/(npoints*npoints);
+    const double error = area/npoints;
 
-    printf("Area of Mandlebrot set = %12.8f\n", area);
+    printf("Area of Mandlebrot set = %12.8f +/- %12.8f\n", area, error);
     printf("Correct answer should be around 1.50659\n");
     printf("Elapsed time: %f\n", elapsed);
+
     sclFree(d_ninside);
     sclFinalize();
     return EXIT_SUCCESS;

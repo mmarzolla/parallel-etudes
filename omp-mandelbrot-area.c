@@ -164,6 +164,8 @@ int main( int argc, char *argv[] )
 
     const double elapsed = omp_get_wtime() - tstart;
 
+    printf("npoints = %d, ninside = %u\n", npoints*npoints, ninside);
+
     /* Compute area and error estimate and output the results */
     area = (XMAX-XMIN)*(YMAX-YMIN)*ninside/(npoints*npoints);
     error = area/npoints;
