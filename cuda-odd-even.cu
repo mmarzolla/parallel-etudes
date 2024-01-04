@@ -2,7 +2,7 @@
  *
  * cuda-odd-even.cu - Odd-even sort
  *
- * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2024 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Odd-even sort
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last upated: 2022-11-16
+% Last upated: 2024-01-04
 
 The _Odd-Even sort_ algorithm is a variant of BubbleSort, and sorts an
 array of $n$ elements in sequential time $O(n^2)$. Although
@@ -103,10 +103,17 @@ Example:
 - [hpc.h](hpc.h)
 
  ***/
-#include "hpc.h"
+
+/* The following #define is required by the implementation of
+   hpc_gettime(). It MUST be defined before including any other
+   file. */
+#define _XOPEN_SOURCE 600
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+
+ #include "hpc.h"
 
 /* if *a > *b, swap them. Otherwise do nothing */
 #ifndef SERIAL

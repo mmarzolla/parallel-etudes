@@ -2,7 +2,7 @@
  *
  * cuda-matsum.cu - Matrix-matrix addition
  *
- * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2024 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Matrix-matrix addition
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-11-23
+% Last updated: 2024-01-04
 
 The program [cuda-matsum.cu](cuda-matsum.cu) computes the sum of two
 square matrices of size $N \times N$ using the CPU. Modify the program
@@ -62,11 +62,18 @@ Example:
 - [hpc.h](hpc.h)
 
 ***/
-#include "hpc.h"
+
+/* The following #define is required by the implementation of
+   hpc_gettime(). It MUST be defined before including any other
+   file. */
+#define _XOPEN_SOURCE 600
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
+
+#include "hpc.h"
 
 #ifndef SERIAL
 #define BLKDIM 32

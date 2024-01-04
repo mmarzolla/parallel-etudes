@@ -2,7 +2,7 @@
  *
  * mpi-brute-force.c - Brute-force password cracking
  *
- * Copyright (C) 2017--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2024 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Brute-force password cracking
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-01-19
+% Last updated: 2024-01-04
 
 ![DES cracker board developed in 1998 by the Electronic Frontier Foundation (EFF); this device can be used to brute-force a DES key. The original uploader was Matt Crypto at English Wikipedia. Later versions were uploaded by Ed g2s at en.wikipedia - CC BY 3.0 us, <https://commons.wikimedia.org/w/index.php?curid=2437815>](des-cracker.jpg)
 

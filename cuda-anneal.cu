@@ -2,7 +2,7 @@
  *
  * cuda-anneal.cu - ANNEAL cellular automaton
  *
- * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2024 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - ANNEAL cellular automaton
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-11-24
+% Last updated: 2024-01-04
 
 The ANNEAL Callular Automaton (also known as _twisted majority rule_)
 is a simple two-dimensional, binary CA defined on a grid of size $W
@@ -213,10 +213,17 @@ Example:
 - [Animation of the ANNEAL CA on YouTube](https://youtu.be/TSHWSjICCxs)
 
 ***/
-#include "hpc.h"
+
+/* The following #define is required by the implementation of
+   hpc_gettime(). It MUST be defined before including any other
+   file. */
+#define _XOPEN_SOURCE 600
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+
+#include "hpc.h"
 
 #ifndef SERIAL
 /* We use 2D blocks of size (BLKDIM * BLKDIM) to compute
