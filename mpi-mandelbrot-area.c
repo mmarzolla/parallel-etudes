@@ -21,7 +21,7 @@
 /***
 % HPC - Area of the Mandelbrot set
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2024-05-01
+% Last updated: 2024-01-05
 
 ![](mandelbrot-set.png)
 

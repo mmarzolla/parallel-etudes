@@ -1,6 +1,6 @@
 % HPC - List of exercises
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-06-20
+% Last updated: 2024-01-05
 
 
 Kernel                           OpenMP   MPI   OpenCL  Pattern
@@ -20,7 +20,7 @@ Levenstein's distance            X                      2D stencil, wavefront
 Ray casting                      X               X      Embarrassingly parallel
 Arnold's cat map                 X               X      Embarrassingly parallel
 Mandelbrot set                   X         X     X      Embarrassingly parallel, Load balancing
-Area of the Mandelbrot set       X                      Embarrassingly parallel, Load balancing, Reduction
+Area of the Mandelbrot set       X         X     X      Embarrassingly parallel, Load balancing, Reduction
 Image denoising                  X               X      2D Stencil
 List ranking                     X                      Pointer Jumping
 Area of union of circles                   X            Embarrassingly parallel, Scatter/Gather, Reduction
