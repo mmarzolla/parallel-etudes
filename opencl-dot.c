@@ -21,7 +21,7 @@
 /***
 % HPC - Dot product
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2024-01-04
+% Last updated: 2024-01-20
 
 ## Familiarize with the environment
 
@@ -166,18 +166,29 @@ float dot( float *x, float *y, int n )
 #endif
 }
 
-void vec_init( float *x, float *y, int n )
+/**
+ * Initialize `x` and `y` of length `n`; return the expected dot
+ * product of `x` and `y`. To avoid numerical issues, the vectors are
+ * initialized with integer values, so that the result can be computed
+ * exactly (save for possible overflows, which should not happen
+ * unless the vectors are very long).
+ */
+float vec_init( float *x, float *y, int n )
 {
-    int i;
-    const float tx[] = {1.0/64.0, 1.0/128.0, 1.0/256.0};
-    const float ty[] = {1.0, 2.0, 4.0};
-    const size_t LEN = sizeof(tx)/sizeof(tx[0]);
+    const float tx[] = {1, 2, -5};
+    const float ty[] = {1, 2, 1};
 
-    for (i=0; i<n; i++) {
+    const size_t LEN = sizeof(tx)/sizeof(tx[0]);
+    const float expected[] = {0, 1, 5};
+
+    for (int i=0; i<n; i++) {
         x[i] = tx[i % LEN];
         y[i] = ty[i % LEN];
     }
+
+    return expected[n % LEN];
 }
+
 
 int main( int argc, char* argv[] )
 {
@@ -195,7 +206,7 @@ int main( int argc, char* argv[] )
         n = atoi(argv[1]);
     }
 
-    if ( n > MAX_N ) {
+    if ( (n < 0) || (n > MAX_N) ) {
         fprintf(stderr, "FATAL: the maximum length is %d\n", MAX_N);
         return EXIT_FAILURE;
     }
@@ -211,13 +222,11 @@ int main( int argc, char* argv[] )
     assert(x != NULL);
     y = (float*)malloc(SIZE);
     assert(y != NULL);
-    vec_init(x, y, n);
+    const float expected = vec_init(x, y, n);
 
     printf("Computing the dot product of %d elements... ", n);
     result = dot(x, y, n);
     printf("result=%f\n", result);
-
-    const float expected = ((float)n)/64;
 
     /* Check result */
     if ( fabs(result - expected) < TOL ) {
