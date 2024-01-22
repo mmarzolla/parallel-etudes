@@ -21,7 +21,7 @@
 /***
 % HPC - OpenCL generalized binary search
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-01-21
+% Last updated: 2024-01-22
 
 Compile with:
 
@@ -55,7 +55,8 @@ void vec_init( int *x, int n )
     }
 }
 
-/* cerca key in x[] di lunghezza n */
+/* Returns the position of `key` in the sorted array `x[]` of length
+   `n`. Returns -1 if `key` not found. */
 int seq_bsearch(const int *x, int n, int key)
 {
     const int P = 4096;
@@ -75,15 +76,17 @@ int seq_bsearch(const int *x, int n, int key)
             printf("cmp[%d]=%d ", (int)m[i], cmp[i]);
         }
         printf("\n");
-        /* asserzione:
-           cmp[i] == 1 -> key in posizione > m[i]
-           cmp[i] == -1 -> key in posizione <= m[i] */
+        /* assertion:
+
+           cmp[i] == 1 -> if key is present, it is in position > m[i]
+           cmp[i] == -1 -> if key is present, it is in position <= m[i] */
         i=0;
         while (i<P && cmp[i]>0)
             i++;
 
-        /* asserzione:
-           i è il più piccolo indice in cui si ha cmp[i] < 0 */
+        /* assertion:
+
+           i is the smallest index s.t. cmp[i] < 0 */
 
         if (i==0)
             end = m[0];

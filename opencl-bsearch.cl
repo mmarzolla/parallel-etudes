@@ -18,13 +18,16 @@
  *
  ****************************************************************************/
 
-/* Cerca il valore key nell'array x[] di lunghezza n; se presente
-  `*result` conterrà l'indice della prima occorrenza, altrimenti -1 */
+/* Find the position `*pos` of value `key` into the array `x[]` of
+   length `n`. `x[]` must be sorted in nondecreasing order; at most
+   one occurrence of `key` must be present. If `key` does not appear
+   in `x`, set `*pos` to -1.  `cmp[]` and `m[]` are buffers of length
+   `bsize` in local memory. */
 __kernel void
 bsearch_kernel( __global const int *x,
-                int n, /* FIXME: dovrebbe essere size_t */
+                int n,
                 int key,
-                __global int *result,
+                __global int *pos,
                 __local int *cmp,
                 __local size_t *m)
 {
@@ -32,10 +35,11 @@ bsearch_kernel( __global const int *x,
     const int tid = get_global_id(0);
     __local size_t start, end;
 
+    // Initialization
     if (0 == tid) {
         start = 0;
         end = n-1;
-        *result = -1;
+        *pos = -1;
     }
 
     barrier(CLK_GLOBAL_MEM_FENCE);
@@ -50,12 +54,18 @@ bsearch_kernel( __global const int *x,
 
         barrier(CLK_LOCAL_MEM_FENCE);
 
-        /* cmp[tid] == 1 -> vai a destra
-           cmp[tid] == -1 -> vai a sinistra */
+        /* cmp[tid] == 1 -> key is on the right
+           cmp[tid] == -1 -> key is on the left */
 
-        /* asserzione:
-           cmp[i] == 1 -> key in posizione > m[i]
-           cmp[i] == -1 -> key in posizione <= m[i] */
+        /* assertion:
+
+           cmp[i] == 1 -> if key exists, it is in a position > m[i]
+           cmp[i] == -1 -> if key exists, it is in a position <= m[i]
+
+           If there is at most one occurrence of `key` in `x[]`, then
+           only one work-item updates `end` and `start`, so no
+           concurrent updates are possible.
+        */
         if (tid == 0 && cmp[tid] == -1) {
             end = m[tid];
         } else if (tid == bsize-1 && cmp[tid] == 1) {
@@ -68,9 +78,11 @@ bsearch_kernel( __global const int *x,
         barrier(CLK_LOCAL_MEM_FENCE);
     }
 
-    // final result
-    const int idx = start + tid;
-    if (idx < end && x[idx] == key) {
-        *result = idx;
+    // Commit the result to `*pos`
+    if (0 == tid) {
+        const int idx = start + tid;
+        if (idx < end && x[idx] == key) {
+            *pos = idx;
+        }
     }
 }
