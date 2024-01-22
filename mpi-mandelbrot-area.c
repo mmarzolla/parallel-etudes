@@ -27,7 +27,7 @@
 
 To compile:
 
-        mpicc -std=c99 -Wall -Wpedantic mpi-mandelbrot-area.c -o mpi-mandelbrot-area
+        mpicc -std=c99 -Wall -Wpedantic mpi-mandelbrot-area.c -o mpi-mandelbrot-area -lm
 
 To execute:
 
@@ -46,6 +46,7 @@ Example:
 #include <stdlib.h>
 #include <stdint.h>
 #include <assert.h>
+#include <math.h>
 #include <mpi.h>
 
 /* Higher value = slower to detect points that belong to the Mandelbrot set */
@@ -141,7 +142,7 @@ int main( int argc, char *argv[] )
 
         /* Compute area and error estimate and output the results */
         const double area = (XMAX-XMIN)*(YMAX-YMIN)*ninside/npoints;
-        const double error = area/npoints;
+        const double error = area/sqrt(npoints);
 
         printf("Area of Mandlebrot set = %12.8f +/- %12.8f\n", area, error);
         printf("Correct answer should be around 1.50659\n");

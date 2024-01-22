@@ -2,7 +2,7 @@
  *
  * opencl-bsearch.cl -- kernel for opencl-bsearch.c
  *
- * Copyright 2022 Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright 2022--2024 Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

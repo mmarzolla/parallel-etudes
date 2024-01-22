@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * opencl-bsearch.c - OpenCL binary search
+ * opencl-bsearch.c - OpenCL generalized binary search
  *
- * Copyright (C) 2022, 2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2022--2024 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * ---------------------------------------------------------------------------
- *
- * Compile with:
- * cc opencl-bsearch.c simpleCL.c -o opencl-bsearch -lOpenCL
- *
- * Run with:
- * ./opencl-bsearch [len [key]]
- *
- * Example:
- * ./opencl-bsearch
- *
  ****************************************************************************/
+
 /***
-% HPC - OpenCL binary search
+% HPC - OpenCL generalized binary search
 % Moreno Marzolla <moreno.marzolla@unibo.it>
 % Last updated: 2023-01-21
+
+Compile with:
+
+        cc opencl-bsearch.c simpleCL.c -o opencl-bsearch -lOpenCL
+
+Run with:
+
+        ./opencl-bsearch [len [key]]
+
+Example:
+
+        ./opencl-bsearch
+
+## Files
+
+- [opencl-bsearch.c](opencl-bsearch.c)
 
 ***/
 #include <stdio.h>
@@ -133,7 +139,9 @@ int main( int argc, char* argv[] )
 
     /* Launch bsearch() kernel on the device */
     printf("Searching for %d on %d elements... ", key, n);
-#if 1
+#ifdef SERIAL
+    result = seq_bsearch(x, n, key);
+#else
     const sclDim BLOCK = DIM1(SCL_DEFAULT_WG_SIZE);
     const sclDim GRID = DIM1(SCL_DEFAULT_WG_SIZE);
     sclSetArgsEnqueueKernel(bsearch_kernel,
@@ -144,8 +152,6 @@ int main( int argc, char* argv[] )
                             BLOCK.sizes[0] * sizeof(size_t));
     /* Copy result back to host */
     sclMemcpyDeviceToHost(&result, d_result, sizeof(result));
-#else
-    result = seq_bsearch(x, n, key);
 #endif
 
     printf("result=%d\n", result);

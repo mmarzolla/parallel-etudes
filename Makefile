@@ -98,6 +98,8 @@ mpi-nbody: LDLIBS+=-lm
 
 mpi-c-ray: LDLIBS+=-lm
 
+mpi-mandelbrot-area: LDLIBS+=-lm
+
 gendna: LDLIBS+=-lm
 
 omp-bellman-ford: LDLIBS+=-lm
