@@ -32,6 +32,9 @@ END {
     printf("\\toprule\n");
     printf("{\\bf Kernel} & {\\bf OpenMP} & {\\bf MPI} & {\\bf CUDA} & {\\bf OpenCL} \\\\\n");
     printf("\\midrule\n");
+    # Change iteration order so that the following loop enumerate the
+    # programs by name
+    PROCINFO["sorted_in"] = "@ind_str_asc";
     for (prog in progs) {
         printf("%25s & %4d & %4d & %4d & %4d \\\\\n",
                prog,
