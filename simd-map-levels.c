@@ -2,7 +2,7 @@
  *
  * simd-map-levels.c -- Map gray levels
  *
- * Copyright (C) 2018--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2018--2024 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Map gray levels
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-12-11
+% Last updated: 2024-01-28
 
 Let us consider a grayscale bitmap with $M$ rows and $N$ columns,
 where the color of each pixel is an integer from 0 (black) to 255
@@ -32,8 +32,8 @@ become black, those whose gray level is greater than _high_ become
 white, and those whose gray level is between _low_ and _high_
 (inclusive) are linearly mapped to the range $[0, 255]$.
 
-Specifically, if $p$ is the gray level of a pixel, the function
-computes the new gray level $p'$ as:
+Specifically, if $p$ is the gray level of a pixel, the new level $p'$
+is defined as:
 
 $$
 p' = \begin{cases}
@@ -49,17 +49,17 @@ Figure 1 shows the image produced by the command
 
 ![Figure 1: Left: original image [simd-map-levels-in.pgm](simd-map-levels-in.pgm); Right: after level mapping with `./simd-map-levels 100 180 < simd-map-levels-in.pgm > out.pgm`](simd-map-levels.png)
 
-As an example we provide the image [C1648109](C1648109.pgm) taken by
-the [Voyager 1](https://voyager.jpl.nasa.gov/) probe on March 8,
-1979. The image shows Io, one of the four [Galilean moons of the
-planet Jupiter](https://en.wikipedia.org/wiki/Galilean_moons). The
-Flight Engineer [Linda
+We provide the image [C1648109](C1648109.pgm) taken by the [Voyager
+1](https://voyager.jpl.nasa.gov/) probe on March 8, 1979. The image
+shows Io, one of the four [Galilean moons of the planet
+Jupiter](https://en.wikipedia.org/wiki/Galilean_moons). The Flight
+Engineer [Linda
 Morabito](https://en.wikipedia.org/wiki/Linda_A._Morabito) was using
-this image to uncover the background stars to determine the precise
-location of the probe. To this aim, she needed to remap the levels so
-that the faint stars in the background would be visible. This lead to
-one of the most important discoveries of modern planetary sciences:
-see by yourself by running the program
+this image to look for background stars that could be used to
+determine the precise location of the probe. To this aim, she remapped
+the levels so that the faint stars would be visible. This lead to one
+of the most important discoveries of modern planetary sciences: see by
+yourself by running the program
 
         ./simd-map-levels 10 30 < C1648109.pgm > out.pgm
 
@@ -111,24 +111,23 @@ const v4i mask_map = ??? ;
             ( ??? ) );
 ```
 
-Note that the compiler automatically promotes `BLACK` and `WHITE` to
-SIMD vectors whose elements are all `BLACK` or `WHITE`,
-respectively. (The code above can be further simplified since
-`(mask_black & BLACK)` always produces a SIMD array whose elements are
-all zeros: why?).
+The compiler automatically promotes `BLACK` and `WHITE` to SIMD
+vectors whose elements are all `BLACK` or `WHITE`, respectively. The
+code above can be further simplified since `(mask_black & BLACK)`
+always produces a SIMD array whose elements are all zeros: why?.
 
 The SIMD version requires that
 
-1. The bitmap is aligned in memory at a memory address that is
+1. Each row of the bitmap is stored at a memory address that is
    multiple of 16;
 
-2. The image width is an integer multiple of the `v4i` SIMD vector
-   width, i.e., an integer multiple of 4.
+2. The image width is multiple of 4, the `v4i` SIMD vector width.
 
-Both conditions are satisfied: the program pads the image horizontally
-so the next multiple of 4. Indeed, the attribute `width` of structure
-`PGM_image` is the width of the _padded_ image, while `true_width` is
-the true width of the _actual_ image.
+The program guarantees both conditions by adding columns so that the
+width is multiple of 4. The attribute `width` of structure `PGM_image`
+is the width of the _padded_ image, while `true_width` is the true
+width of the _actual_ image, $\texttt{width} \geq
+\texttt{true_width}$.
 
 To compile:
 
