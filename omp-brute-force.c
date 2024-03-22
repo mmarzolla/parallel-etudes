@@ -25,69 +25,62 @@
 
 ![[DES cracker board](https://en.wikipedia.org/wiki/EFF_DES_cracker) developed in 1998 by the Electronic Frontier Foundation (EFF); this device can be used to brute-force a DES key. The original uploader was Matt Crypto at English Wikipedia. Later versions were uploaded by Ed g2s at en.wikipedia - CC BY 3.0 us, <https://commons.wikimedia.org/w/index.php?curid=2437815>](des-cracker.jpg)
 
-The program [omp-brute-force.c](omp-brute-force.c) contains a 64-Byte
-encrypted message stored in the array `enc[]`. The message has been
-encrypted using the _XOR_ cryptographic algorithm, which applies the
-"exclusive or" (xor) operator between a plaintext and the encryption
-key. The _XOR_ algorithm is _not_ secure but on some special cases
-(e.g., when the key has the same length of the plaintext, and the key
-contains truly random bytes); however, it is certainly "good enough"
-for this exercise.
+The program [omp-brute-force.c](omp-brute-force.c) contains an
+encrypted message stored in the array `enc[]` of length 64.  The
+message has been encrypted using the _XOR_ algorithm, which applies
+the "exclusive or" (xor) operator between the plaintext and the
+encryption key. The _XOR_ algorithm is not secure, unless the key is
+truly random and has the same length of the plaintext; however, it is
+certainly "good enough" for this exercise.
 
 _XOR_ is a _symmetric_ encryption algorithm, meaning that the same key
-must be used for encrypting and decrypting a message. Indeed, the
-exact same algorithm can be used to encrypt or decrypt a message, as
-shown below.
-
-The program contains a function `xorcrypt(in, out, n, key, keylen)`
-that can be used to encrypt or decrypt a message with a given key. To
-encrypt a message, then `in` points to the plaintext and `out` points
-to a memory buffer that will contain the ciphertext. To decrypt a
-message, then `in` points to the ciphertext and `out` points to a
-memory buffer that will contain the plaintext.
+must be used for encryption and decryption. The function `xorcrypt(in,
+out, n, key, keylen)` is used to encrypt or decrypt a message with a
+given key. To encrypt, `in` must point to the plaintext and `out` to a
+memory buffer where the ciphertext will be stored. To decrypt, `in`
+points to the ciphertext and `out` to a memory buffer where the
+plaintext will be stored.
 
 The parameters are as follows:
 
 - `in` points to the source message. This buffer does not need to be
-  zero-terminated since it may contain arbitrary bytes;
+  zero-terminated since it may contain arbitrary bytes.
 
 - `out` points to a memory buffer of at least $n$ Bytes (the same
   length of the source message), that must be allocated by the caller.
   At the end, this buffer contains the source message that has been
-  encrypted/decrypted with the encryption key;
+  encrypted/decrypted with the encryption key.
 
-- `n` is the length, in Bytes, of the source message;
+- `n` is the length, in Bytes, of the source message.
 
-- `key` points to the encryption/decryption key. The key is
-  interpreted as a sequence of arbitrary bytes, and therefore does not
-  need to be zero-terminated
+- `key` points to the encryption/decryption key. The key is a sequence
+  of arbitrary bytes, and therefore does not need to be
+  zero-terminated.
 
 - `keylen` is the length of the encryption/decryption key.
 
-The _XOR_ algorithm will decrypt any message with any provided key; if
+The _XOR_ algorithm will happily decrypt any message with any key; if
 the key is not correct, the decrypted message will not make any
-sense. For this exercise the plaintext is a zero-terminated ASCII
-string that begins with `0123456789`.
+sense.
 
-The encryption key that has been used in this program is a sequence of
-8 ASCII numeric characters; therefore, the key is a string between
-`"00000000"` and `"99999999"`. Write a program to brute-force the key
-using OpenMP. The program should try every key until a valid message
-is eventually found, i.e., a message that begins with `0123456789`. At
-the end, the program must print the plaintext, which is a famous quote
-from [an old film](https://en.wikipedia.org/wiki/WarGames).
+For this exercise we know that the plaintext is a zero-terminated
+ASCII string that begins with `0123456789`. We also know that the
+encryption key is a sequence of 8 ASCII numeric characters; therefore,
+the key is a string from `"00000000"` and `"99999999"`. The goal is to
+write a program to brute-force the key using OpenMP. The program
+should try every key until a valid message is found, i.e., a message
+that begins with `0123456789`. At the end, the program must print the
+plaintext, which is a famous quote from [an old
+film](https://en.wikipedia.org/wiki/WarGames).
 
-As you can see, the main loop of this program is not in a form that
-can be parallelized with the `omp for` construct (why?).  Therefore,
-you must use the `omp parallel` construct to partition the key space
-among threads. Remember that `omp parallel` applies to a _structured
-block_ with a single entry and a single exit point. Therefore, the
-thread who finds the correct key can not exit the parallel region
-using `return`, `break` or `goto` (the compiler should raise a
-compile-time error). However, we certainly wan to terminate the
-program as soon as the key has been found.  Therefore, we need to
-think of a clean mechanism to exit the loop when the correct key has
-been found.
+The main loop can not be parallelized with the `omp for` construct
+(why?). Therefore, you must use `omp parallel` and manually partition
+the key space among threads. Remember that `omp parallel` can be
+applied to a _structured block_, i.e., a block with a single entry and
+a single exit point. Therefore, the thread who finds the correct key
+can not exit the parallel region using `return`, `break` or `goto`
+(the compiler should raise a compile-time error). However, we
+certainly want to terminate the program as soon as the key is found.
 
 Compile with:
 
@@ -98,11 +91,11 @@ Run with:
         OMP_NUM_THREADS=2 ./omp-brute-force
 
 **Note**: the execution time of the parallel program might change
-irregularly depending on the number $P$ of OpenMP threads. Why?
+irregularly, depending on the number $P$ of OpenMP threads. Why?
 
 ## Files
 
-You can use the `wget` command to easily transfer the files on the lab
+You can use `wget` to transfer the files from the Web page to the
 server:
 
         wget https://www.moreno.marzolla.name/teaching/HPC/handouts/omp-brute-force.c
