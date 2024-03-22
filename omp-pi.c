@@ -23,29 +23,29 @@
 % Moreno Marzolla <moreno.marzolla@unibo.it>
 % Last updated: 2023-10-19
 
-The file [omp-pi.c](omp-pi.c) contains a serial program for computing
-the approximate value of $\pi$ using a Monte Carlo algorithm. These
-algorithms use pseudo-random numbers to compute an approximation of
-some quantity of interest.
+The file [omp-pi.c](omp-pi.c) implements a serial Monte Carlo
+algorithm for computing the approximate value of $\pi$. Monte Carlo
+algorithms use pseudo-random numbers to evaluate some function of
+interest.
 
 ![Figure 1: Monte Carlo computation of the value of $\pi$](pi_Monte_Carlo.svg)
 
-The idea is quite simple (see Figure 1). We generate $N$ random points
-uniformly distributed inside the square with corners at $(-1, -1)$ and
-$(1, 1)$. Let $x$ be the number of points that fall inside the circle
+To estimate $\pi$ we generate $N$ random points uniformly distributed
+inside the square with corners at $(-1, -1)$ and $(1, 1)$ (Figure
+1). Let $x$ be the number of points that fall inside the circle
 inscribed in the square; then, the ratio $x / N$ is an approximation
 of the ratio between the area of the circle and the area of the
 square. Since the area of the circle is $\pi$ and the area of the
-square is $4$, we have $x/N \approx \pi / 4$ which yelds $\pi \approx
-4x / N$. This estimate becomes more accurate as we generate
-more points.
+square is $4$, we have $x/N \approx \pi / 4$, from which $\pi \approx
+4x / N$. This estimate becomes more accurate as we generate more
+points.
 
 The goal of this exercise is to modify the serial program to make use
-of shared-memory parallelism with OpenMP.
+of shared-memory parallelism using OpenMP.
 
 ## The hard (and inefficient) way
 
-aStart with a version that uses the `omp parallel` construct. Let $P$
+Start with a version that uses the `omp parallel` construct. Let $P$
 be the number of OpenMP threads; then, the program operates as
 follows:
 
@@ -53,15 +53,15 @@ follows:
    command-line parameter, and the number $P$ of OpenMP threads using
    the `OMP_NUM_THREADS` environment variable.
 
-2. Thread $p$ generates $N/P$ points using the provided function
-   `generate_points()`, and stores the result in `inside[p]` where
-   `inside[]` is an integer array of length $P$. The array must be
-   declared outside the parallel region since it must be shared across
-   all OpenMP threads.
+2. Thread $p$ generates $N/P$ points using function
+   `generate_points()` (already provided), and stores the result in
+   `inside[p]`. `inside[]` is an integer array of length $P$ that must
+   be declared outside of the parallel region, since it must be shared
+   across all OpenMP threads.
 
 3. At the end of the parallel region, the master (thread 0) computes
-   the sum of the values in the `inside[]` array, and from that value
-   the approximation of $\pi$.
+   $x$ as the sum of the content of `inside[]`; from this the estimate
+   of $\pi$ can be computed as above.
 
 You may initially assume that the number of points $N$ is an integer
 multiple of $P$; when you get a working program, relax this assumption
@@ -69,15 +69,15 @@ to make the computation correct for any value of $N$.
 
 ## The better way
 
-A better approach is to let the compiler parallelize the "for" loop
-inside function `generate_points()` using the `omp parallel` and `omp
-for` constructs. Note that there is a small issue with this exercise:
-since the `rand()` function is non-reentrant, it can not be used
-concurrently by multiple threads. Therefore, we use `rand_r()` which
-_is_ reentrant but requires that each thread keeps a local state
-`seed` and pass it explicitly. The simplest way to allocate and
-initialize a private copy of `seed` is to split the `omp parallel` and
-`omp for` directives, as follows:
+A better approach is to let the compiler parallelize the "for" loop in
+`generate_points()` using `omp parallel` and `omp for`.  There is a
+small issue with this exercise: the `rand()` function is
+non-reentrant, therefore it can not be used concurrently by multiple
+threads. Instead, we use `rand_r()` which _is_ reentrant but requires
+that each thread keeps a local state `seed` and pass it to the
+function. To achieve this we can split the `omp parallel` and `omp
+for` directives, so that a different local seed can be given to each
+thread:
 
 ```C
 #pragma omp parallel default(none) shared(n, n_inside)
