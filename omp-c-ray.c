@@ -28,18 +28,17 @@
 % Last updated: 2023-06-07
 
 The file [omp-c-ray.c](omp-c-ray.c) contains the implementation of a
-[simple ray tracing program](https://github.com/jtsiomb/c-ray) written
+[simple ray tracer](https://github.com/jtsiomb/c-ray) written
 by [John Tsiombikas](http://nuclear.mutantstargoat.com/) and released
-under the GPLv2+ license. The instructions for compilation and use are
-in the source comments. Some input files are provided, and produce the
-images shown in Figure 1.
+under the GPLv2+ license. Figure 1 shows a few images
+that can be produced by this program.
 
-![Figure 1: Some images produced by the program; the input files are,
+![Figure 1: Some images produced by the ray tracer; the input files are,
 from left to right: [sphfract.small.in](sphfract.small.in),
 [spheres.in](spheres.in), [dna.in](dna.in)](omp-c-ray-images.jpg)
 
-Table 1 shows the approximate single-core render time of each image on
-the lab machine (Xeon E5-2603 1.70GHz).
+Table 1 shows the approximate rendering time of each image on
+the lab machine (Xeon E5-2603 1.70GHz), using a single core.
 
 :Table 1: Render time with default parameters (resolution $800 \times
 600$, no oversampling), lab machine using a single core, gcc 9.4.0
@@ -53,15 +52,15 @@ File                                       Time (s)
 ---------------------------------------- ----------
 
 The goal of this exercise is to parallelize the `render()` function
-using appropriate OpenMP directives. The serial program is well
-structured: in particular, functions don't modify global variables, so
-there are not hidden dependences. If you have time, measure the
-_speedup_ and the _strong scaling efficienty_ of the parallel version.
+using OpenMP. The serial program is well structured: functions don't
+modify global variables, so there are not hidden dependences. If you
+have time, measure the _speedup_ and the _strong scaling efficienty_
+of the parallel version.
 
-Although not strictly necessary, it might be helpful to know the
-basics of [how a ray tracer
-works](https://en.wikipedia.org/wiki/Ray_tracing_(graphics)) based on
-the [Whitted recursive
+Although not strictly necessary, it is useful to know
+[how a ray tracer
+works](https://en.wikipedia.org/wiki/Ray_tracing_(graphics)) using
+[Whitted recursive
 algorithm](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.156.1534)
 (Figure 2).
 
@@ -69,27 +68,27 @@ algorithm](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.156.1534)
 
 The scene is represented by a set of geometric primitives (spheres, in
 our case). We generate a _primary ray_ (_V_) from the observer towards
-each pixel. For each ray we determine the intersections with the
+each pixel. For each ray, we determine the intersections with the
 spheres in the scene, if any. The intersection point _p_ that is
 closest to the observer is selected, and one or more _secondary rays_
 are cast, depending on the material of the object _p_ belongs to:
 
-- a _light ray_ (_L_) in the direction of each of the light sources,
-  to see whether _p_ is directly illuminated;
+- A _light ray_ (_L_) towards each light source, to see whether _p_ is
+  directly illuminated.
 
-- if the surface of _p_ is reflective, we generate a _reflected ray_
-  (_R_) and repeat the procedure recursively;
+- If the surface is reflective, we generate a _reflected ray_ (_R_)
+  and repeat the procedure recursively.
 
-- if the surface is translucent, we generate a _transmitted ray_ (_T_)
+- If the surface is translucent, we generate a _transmitted ray_ (_T_)
   and repeat the procedure recursively (`omp-c-ray` does not support
   translucent objects, so this never happens).
 
 The time required to compute the color of a pixel depends on the
 number of spheres and lights in the scene, and on the material of the
-spheres. It also depends on whether reflected rays are cast or
-not. This suggests that there could be a high variability in the time
-required to compute the color of each pixel, which leads to load
-imbalance that should be addressed.
+spheres; reflective or translucent surfaces produce additional rays
+that must be handled. This suggests that the time required to compute
+the color of each pixel is highly variable, which leads to load
+imbalance.
 
 To compile:
 
