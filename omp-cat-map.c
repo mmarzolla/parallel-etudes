@@ -208,7 +208,7 @@ might alter the functions too much) and executed as:
 
 Each measurement is the average of five independent executions.
 
-:Table 1: Execution time (in seconds) of the command `./omp-cat-map 2048 < cat1368.pgm > /dev/null` using all processor cores, with different implementations of the cat map iteration.
+:Table 1: Execution time (in seconds; lower is better) of the command `./omp-cat-map 2048 < cat1368.pgm > /dev/null` using all processor cores, with different implementations of the cat map iteration.
 
 Processor           Cores   GHz  GCC version  No loop interchange   Loop interchange
 ------------------ ------ ----- ------------ -------------------- ------------------
