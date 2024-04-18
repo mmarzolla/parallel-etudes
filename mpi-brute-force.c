@@ -206,7 +206,7 @@ int main( int argc, char *argv[] )
        might block because some processes exited the loop. */
     do {
         for (k = my_start; k < my_start + BLKLEN && k < my_end && local_found < 0; k++) {
-            sprintf(key, "%08d", k);
+	  sprintf(key, "%08u", (unsigned int)k);
             xorcrypt(enc, buf, msglen, key, 8);
             if ( 0 == memcmp(buf, check, CHECK_LEN)) {
                 local_found = k;
