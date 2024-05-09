@@ -1,7 +1,6 @@
 % HPC - List of exercises
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2024-01-05
-
+% Last updated: 2024-04-09
 
 Kernel                           OpenMP   MPI   OpenCL  Pattern
 ------------------------------ --------- ----- -------- --------------------------
@@ -37,6 +36,7 @@ Edge detection                   X               X      2D Stencil
 Gaussian elimination             X                      Reduction
 SAT solver                       X                      Embarrassingly parallel
 Single-Source Shortest Path      X                      Reduction
+All-Pairs Shortest Paths         X                      Embarrassingly parallel
 ------------------------------ --------- ----- -------- --------------------------
 
 ## OpenMP
@@ -169,6 +169,7 @@ Year               Topic
 2018/2019          Earthquake
 2019/2020          Convex Hull
 2020/2021          Skyline
-2021/2022          Hardy, Pomeau, de Pazzis CA
+2021/2022          Hardy, Pomeau, de Pazzis CA (HPP)
 2022/2023          Smoothed Particle Hydrodynamics (SPH)
+2023/2024          Force-directed circles drawing
 -----------------  ----------------------------------------

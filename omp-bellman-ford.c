@@ -2,7 +2,7 @@
  *
  * omp-bellman-ford.c - Single-source shortest paths
  *
- * Copytight (C) 2017, 2018, 2023 Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017, 2018, 2023 Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -505,7 +505,7 @@ int main( int argc, char* argv[] )
 
     if ( argc > 2 ) {
         fprintf(stderr, "Usage: %s [source_node] < problem_file > distance_file\n", argv[0]);
-        return -1;
+        return EXIT_FAILURE;
     }
 
     load_dimacs(stdin, &g);
@@ -519,7 +519,7 @@ int main( int argc, char* argv[] )
         src = atoi(argv[1]);
         if (src < 0 || src >= g.n) {
             fprintf(stderr, "FATAL: invalid source node (should be within %d-%d)\n", 0, g.n-1);
-            exit(-1);
+            exit(EXIT_FAILURE);
         }
     }
 
@@ -555,5 +555,6 @@ int main( int argc, char* argv[] )
 
     free(d_serial);
     free(d_parallel);
-    return 0;
+    free(g.edges);
+    return EXIT_SUCCESS;
 }
