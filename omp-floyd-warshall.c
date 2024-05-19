@@ -71,11 +71,15 @@ che ritorna _true_ (nonzero) se e solo se `x` ha valore `INFINITY`.
 #include <string.h>
 #include <math.h> /* for isinf(), fminf() and HUGE_VAL */
 #include <assert.h>
+#ifdef _OPENMP
 #include <omp.h>
+#else
+double omp_get_wtime( void ) { return 0.0; }
+#endif
 
 typedef struct {
     int src, dst;
-    float w;
+    double w;
 } edge_t;
 
 typedef struct {
@@ -125,8 +129,13 @@ void load_dimacs(FILE *f, graph_t* g)
             /* In the DIMACS format, nodes are numbered starting from
                1; we use zero-based indexing internally, so we
                decrement the ids by one */
-            g->edges[idx].src = src-1;
-            g->edges[idx].dst = dst-1;
+            src--;
+            dst--;
+            assert(src >= 0 && src < g->n);
+            assert(dst >= 0 && dst < g->n);
+            assert(idx < g->m);
+            g->edges[idx].src = src;
+            g->edges[idx].dst = dst;
             g->edges[idx].w = w;
             idx++;
             break;
@@ -141,6 +150,8 @@ void load_dimacs(FILE *f, graph_t* g)
 
 int IDX(int i, int j, int width)
 {
+    assert(i<width);
+    assert(j<width);
     return i * width + j;
 }
 
@@ -204,14 +215,17 @@ int main( int argc, char* argv[] )
 
     load_dimacs(stdin, &g);
 
-    d = (double*)malloc(g.n * g.n * sizeof(*d)); assert(d);
-    p = (int*)malloc(g.n * g.n * sizeof(*p)); assert(p);
+    /* Care must be taken to convert g.n to (size_t) in order to avoid
+       overflows is the number of nodes is very large */
+    d = (double*)malloc((size_t)g.n * (size_t)g.n * sizeof(*d)); assert(d);
+    p = (int*)malloc((size_t)g.n * (size_t)g.n * sizeof(*p)); assert(p);
 
     const float tstart = omp_get_wtime();
     floyd_warshall(&g, d, p);
     const float elapsed = omp_get_wtime() - tstart;
     fprintf(stderr, "Execution time....... %f\n", elapsed);
 
+    printf("d[%d,%d] = %f\n", 0, g.n-1, d[IDX(0, g.n-1, g.n)]);
     free(d);
     free(p);
     free(g.edges);
