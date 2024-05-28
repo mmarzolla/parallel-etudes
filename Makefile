@@ -134,23 +134,23 @@ omp-c-ray-images.jpg: omp-c-ray sphfract.small.in spheres.in dna.in
 	./omp-c-ray < sphfract.small.in > c-ray1.tmp.ppm
 	./omp-c-ray < spheres.in > c-ray2.tmp.ppm
 	./omp-c-ray < dna.in > c-ray3.tmp.ppm
-	montage c-ray?.tmp.ppm -tile 3x1 -geometry +0+0 $@
+	montage c-ray?.tmp.ppm -tile 3x1 -geometry +2+4 $@
 	\rm -f c-ray?.tmp.ppm
 
 simd-map-levels.png: simd-map-levels simd-map-levels-in.pgm
 	./simd-map-levels 100 180 < simd-map-levels-in.pgm > simd-map-levels.tmp.pgm
-	montage simd-map-levels-in.pgm simd-map-levels.tmp.pgm -tile 2x1 -geometry +0+0 -resize 600x $@
+	montage simd-map-levels-in.pgm simd-map-levels.tmp.pgm -tile 2x1 -geometry +2+4 -resize 600x $@
 	\rm -f simd-map-levels.tmp.pgm
 
 edge-detect.png: omp-edge-detect BWstop-sign.pgm
 	./omp-edge-detect < BWstop-sign.pgm > BWstop-sign-edges.pgm
-	montage BWstop-sign.pgm BWstop-sign-edges.pgm -tile 2x1 -geometry +0+0 -resize 400x $@
+	montage BWstop-sign.pgm BWstop-sign-edges.pgm -tile 2x1 -geometry +2+4 -resize 400x $@
 
 cat-map.png: omp-cat-map
 	for niter in 0 1 2 5 10 36; do \
 	  ./omp-cat-map "$${niter}" < cat1368.pgm > `printf "cat-map-demo-%02d.pgm" $${niter}` ; \
 	done
-	montage "cat-map-demo-[0-9]*.pgm" -scale x300 -tile 6x1 -geometry +0+0 $@
+	montage "cat-map-demo-[0-9]*.pgm" -scale x300 -tile 6x1 -geometry +2+4 $@
 	\rm -f "cat-map-demo-[0-9]*.pgm"
 
 cat-map-demo.png: omp-cat-map
@@ -175,7 +175,7 @@ valve-noise.ppm: valve.png
 
 denoise.png: omp-denoise valve-noise.ppm
 	./omp-denoise < valve-noise.ppm > valve-clear.tmp.ppm
-	montage valve-noise.ppm valve-clear.tmp.ppm -tile 2x1 -geometry +0+0 $@
+	montage valve-noise.ppm valve-clear.tmp.ppm -tile 2x1 -geometry +2+4 $@
 	\rm -f valve-clear.tmp.ppm
 
 handouts/%.c: %.c
