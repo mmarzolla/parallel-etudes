@@ -21,7 +21,7 @@ NVCC ?= nvcc
 MPICC ?= mpicc
 NVCFLAGS +=
 
-.PHONY: MAKE_DIRS clean images
+.PHONY: MAKE_DIRS clean distclean images
 
 ALL: MAKE_DIRS ${EXE} ${HTML} ${HANDOUTS_SRC} ${SOLUTIONS_SRC} ${OUTFILES}
 	@cp -a -u ${EXTRAS} ${DATAFILES} ${OUTFILES} handouts/
@@ -188,7 +188,7 @@ handouts/%.h: %.h
 	unifdef -x2 -DSERIAL $< > $@
 
 handouts/%.cl: %.cl
-	unifdef -x2 -DSERIAL $< > $@
+	./expand-includes.sh $< | unifdef -x2 -DSERIAL > $@
 
 solutions/%.c: %.c
 	./expand-includes.sh $< | unifdef -x2 -USERIAL > $@
@@ -200,7 +200,7 @@ solutions/%.h: %.h
 	unifdef -x2 -USERIAL $< > $@
 
 solutions/%.cl: %.cl
-	unifdef -x2 -USERIAL $< > $@
+	./expand-includes.sh $< | unifdef -x2 -USERIAL > $@
 
 pub: ALL
 	rsync -av --delete-after handouts/ ~/public_html/teaching/high-performance-computing/2023-2024/handouts && \

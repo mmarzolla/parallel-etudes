@@ -2,7 +2,7 @@
  *
  * omp-bellman-ford.c - Single-source shortest paths
  *
- * Copyright (C) 2017, 2018, 2023 Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017, 2018, 2023, 2024 Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,49 +22,50 @@
 /***
 % HPC - Single-Source Shortest Path
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-03-27
+% Last updated: 2024-05-30
 
-Lo scopo di questo esercizio è sviluppare una versione parallela
-dell'algoritmo di Dijkstra per il calcolo dei cammini minimi da
-singola sorgente (_Single-Source Shortest Paths_). Dato un grafo
-orientato pesato con $n$ nodi e $m$ archi, i cui archi hanno pesi non
-negativi, l'algoritmo di Dijkstra calcola la distanza (lunghezza del
-cammino di costo minimo) $d[j]$ di ciascun nodo $j$, $0 \leq j < n$ da
-un nodo sorgente $s$ (la distanza del nodo sorgente da se stesso è
-zero, quindi $d[s] = 0$). L'uso di una coda di priorità consente di
-realizzare l'algoritmo in modo che il costo asintotico sia $O(m + n
-\log n)$; in questo esercizio però useremo una implementazione più
-semplice e molto meno efficiente, che ha però il vantaggio di poter
-essere parallelizzata in modo semplice.
+The purpose of this exercise is to implement a parallel version of
+Dijkstra's algorithm for computing shortest paths from a single source
+(_Single-Source Shortest Paths_ problem). Given a directed, weighted
+graph $G$ with $n$ nodes and $m$ edges, where edges have non-negative
+weights, Dijkstra's algorithm computes the distance (length of the
+shortest path) $d[j]$ of each node $j$, $0 \leq j < n$ from a source
+node $s$ (the distance of the source from itself is zero, $d[s] =
+0$). Dijkstra's algorithm requires time $O(m + n \log n)$ using a
+priority queue; however, in this exercise we use a simpler (but less
+efficient) implementation which has the advantage of being easier to
+parallelize.
 
-L'algoritmo di Dijkstra costruisce l'albero dei cammini minimi in modo
-iterativo, aggiungendo un nuovo arco ad ogni iterazione fino a
-raggiungere tutti i nodi collegati con la sorgente. Detta $d[i]$ la
-distanza del nodo $i$ dalla sorgente $s$. Inizialmente tutte le
-distanze sono poste a $\infty$. Ad ogni iterazione si estende l'albero
-dei cammini minimi aggiungendo l'arco $(i, j)$, tale che:
+Dijkstra's algorithm constructs the shortest path tree incrementally,
+adding a new edge at each iterations, until all nodes reachable from
+the source has been encountered. Let $d[i]$ be the distance of node
+$i$ from the source $s$. Initially, all distances are set to $\infty$;
+at each iteration the shortest paths tree grows by the edge $(u, v)$
+that satisfies all the following properties:
 
-1. il nodo $i$ sia già stato raggiunto dall'albero dei cammini minimi (cioè $d[i] < \infty$);
-2. il nodo $j$ non sia ancora stato raggiunto dall'albero dei cammini minimi (cioè $d[j] = \infty$)
-3. la quantità $d[i] + w(i, j)$ sia minima tra tutti gli archi che soddisfano le due proprietà precedenti.
+1. Node $u$ is already part of the shortest paths tree, i.e., its
+distance $d[i] < \infinity$ has been computed.
+2. Node $v$ is not yet part of the shortest paths tree, i.e.,
+its distance has not been computed ($d[j] = \infty$)-
+3. The quantity $d[u] + w(v, w)$ is minimal among all edges
+satisfying properties 1 and 2 above.
 
-La scelta dell'arco da aggiungere ad ogni passo viene fatta esaminando
-tutti gli archi del grafo (ciò rende l'implementazione proposta
-inefficiente). Lo pseudocodice dell'algoritmo può essere descritto
-come segue:
+The edge $(u, v)$ satisfying the three properties above is found by
+looking at all edges (a better solution would be to use a priority
+queue). Therefore, Dijkstra's algorithm can be expressed as follows:
 
 ```
-Dijkstra(grafo G=(V, E, w), int s)
+Dijkstra(graph G=(V, E, w), int s)
 	double d[0..n - 1]
-	// Inizializza tutte le distanze a +∞
+	// Set all distances to +∞
 	for i ← 0 to n – 1 do
 		d[i] ← +∞
 	endfor
 	d[s] ← 0
 	do
-		best_dist ← +∞ // minima distanza dalla sorgente tra tutti i nodi non ancora raggiunti
-		best_node ← -1 // nodo non ancora raggiunto con minima distanza dalla sorgente
-		foreach edge (i, j) Î E do
+		best_dist ← +∞
+		best_node ← -1
+		foreach edge (i, j) in E do
 			if (d[i] < +∞ and d[j] = +∞ and d[i] + w(i, j) < best_dist) then
 				best_dist ← d[i] + w(i, j)
 				best_node ← j
@@ -73,30 +74,36 @@ Dijkstra(grafo G=(V, E, w), int s)
 		if ( best_node ≠ -1 ) then
 			d[best_node] ← best_dist
 		endif
-	while ( best_node ≠ -1 ) // Fino a quando abbiamo raggiunto tutti i nodi
+	while ( best_node ≠ -1 )
 ```
 
-Il file [omp-bellman-ford.c](omp-bellman-ford.c) contiene
-l'implementazione seriale dell'algoritmo precedente. Il programma
-accetta un parametro intero opzionale sulla riga di comando, che
-rappresenta l'id del nodo sorgente (default 0). Il programma legge da
-standard input una descrizione del grafo in formato DIMACS. Vengono
-forniti alcuni esempi: [rome99.gr](rome99.gr) (porzione di mappa
-stradale di Roma), [DE.gr](DE.gr) (porzione di mappa del Delaware),
-[VT.gr](VT.gr) (porzione di mappa del Vermont), [ME.gr](ME.gr)
-(porzione di mappa del Maine) e [NV.gr](NV.gr) (porzione di mappa del
-Nevada). Suggerisco di iniziare con [rome99.gr](rome99.gr) perché
-rappresenta il grafo più piccolo. L'elaborazione del grafo del Nevada
-richiede molto tempo. Al termine dell'esecuzione vengono prodotte n
-righe di output della forma
+The file [omp-bellman-ford.c](omp-bellman-ford.c) contains the serial
+implementation of the algorithm above. The program reads the input
+graph from stdin according to a simple textual format described below;
+the program also receives an optional command-line argument
+representing the id of the source node (default 0).
+
+The graph file is in DIMACS format; a few examples are provided:
+[rome99.gr](rome99.gr) (portion of the road map of Rome),
+[DE.gr](DE.gr) (portion of the road map of Delaware), [VT.gr](VT.gr)
+(Vermont), [ME.gr](ME.gr) (Maine) and [NV.gr](NV.gr) (Nevada). I
+suggest to start with [rome99.gr](rome99.gr) because it is the
+smallest graph. Nevada graph processing It takes a long time.
+
+At the end of the execution, the program prints $n$
+output lines
 
         d i j dist
 
-che mostrano la distanza dist tra il nodo $i$ e il nodo $j$ ($i$ sarà
-sempre il nodo sorgente). Le caratteristiche dei grafi, e le distanze
-tra il nodo $0$ e il nodo $n-1$ sono indicati nella tabella seguente:
+where `i` is the id of the source node, and `dist` is the distance of
+node `j` from the source.
 
-Grafo                       Nodi (n)    Archi (m)    Distanza $0 \rightarrow n-1$
+Table 1 shows the sizes of the graphs, and the distance of node $n-1$
+from node 0.
+
+Table 1:
+
+Graph                      Nodes (n)    Edges (m)    Distance $0 \rightarrow n-1$
 -------------------------  --------- ------------ -------------------------------
 [rome99.gr](rome99.g)           3353         8870                         30290.0
 [DE.gr](DE.gr)                 49109       121024                         69204.0
@@ -104,8 +111,8 @@ Grafo                       Nodi (n)    Archi (m)    Distanza $0 \rightarrow n-1
 [ME.gr](ME.gr)                194505       429842                        108545.0
 [NV.gr](NV.gr)                261155       622086                        188894.0
 
-È possibile stampare la distanza tra la sorgente e il nodo $n-1$ con
-il comando:
+To print the distance from node 0 to noew $n-1$ you can use the
+following command:
 
         ./omp-bellman-ford < rome99.gr | tail -1
 
@@ -184,9 +191,9 @@ typedef struct {
 } edge_t;
 
 typedef struct {
-    int n; /* number of nodes */
-    int m; /* length of the edges array */
-    edge_t *edges; /* array of edges */
+    int n;              /* number of nodes              */
+    int m;              /* length of the edges array    */
+    edge_t *edges;      /* array of edges               */
 } graph_t;
 
 int cmp_edges(const void* p1, const void* p2)
