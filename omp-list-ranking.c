@@ -23,9 +23,9 @@
 % Moreno Marzolla <moreno.marzolla@unibo.it>
 % Last updated: 2022-08-11
 
-The goal of this exercise is to implement the _list ranking_ algorithm
-(also known as _pointer jumping_). The algorithm takes a list of
-length $n$ as input. Each node contains the following attributes:
+The goal of this exercise is to implement the _list ranking_
+algorithm, also known as _pointer jumping_. The algorithm takes a list
+of length $n$ as input. Each node contains the following attributes:
 
 - An arbitrary value `val`, representing some information stored at
   each node;
@@ -43,15 +43,17 @@ not required that the algorithm keeps the original values of the
 `next` attribute, i.e., upon termination the relationships between
 nodes may be undefined.
 
-        Allocate an array of N integers.
-        Initialize: for each processor/list node n, in parallel:
-           If n.next = nil, set d[n] ← 0.
-           Else, set d[n] ← 1.
-        While any node n has n.next ≠ nil:
-           For each processor/list node n, in parallel:
-              If n.next ≠ nil:
-                  Set d[n] ← d[n] + d[n.next].
-                  Set n.next ← n.next.next.
+```
+Allocate an array of N integers.
+Initialize: for each processor/list node n, in parallel:
+   If n.next = nil, set d[n] ← 0.
+      Else, set d[n] ← 1.
+   While any node n has n.next ≠ nil:
+      For each processor/list node n, in parallel:
+         If n.next ≠ nil:
+             Set d[n] ← d[n] + d[n.next].
+             Set n.next ← n.next.next.
+```
 
 ![Figure 1: List ranking algorithm](omp-list-ranking.svg)
 
@@ -140,7 +142,7 @@ void rank( list_node_t *nodes, int n )
 #pragma omp for
             for (int i=0; i<n; i++) {
                 if (nodes[i].next != NULL) {
-                    done = 0;
+                    done = 0; // not a real race condition
                     next_rank[i] = nodes[i].rank + nodes[i].next->rank;
                     next_next[i] = nodes[i].next->next;
                 } else {
@@ -161,6 +163,7 @@ void rank( list_node_t *nodes, int n )
 }
 
 
+#if 0
 void rank2( list_node_t *nodes, int n )
 {
     int done = 0;
@@ -202,7 +205,7 @@ void rank2( list_node_t *nodes, int n )
     free(next_rank);
     free(next_next);
 }
-
+#endif
 
 /* Inizializza il contenuto della lista. Per agevolare il controllo di
    correttezza, il valore presente in ogni nodo coincide con il rango
