@@ -45,59 +45,57 @@ it.
 
 Table 1: List of exercises
 
-Kernel                           OpenMP   MPI   OpenCL  Pattern
------------------------------- --------- ----- -------- --------------------------
-Password cracking                X         X            Embarrassingly parallel
-Dot product                      X         X     X      Reduction, Scatter/Gather
-Array sum                                  X            Reduction, Scatter/Gather
-Monte Carlo Pi                   X         X            Embarrassingly parallel, Reduction
-Sieve of Eratosthenes            X               X      Embarrassingly parallel, Reduction
-Character frequencies            X         X     X      Embarrassingly parallel, Reduction
-Inclusive scan                   X         X            Scan
-Dynamic task scheduling          X                      Master-Worker
-MergeSort                        X                      Task-level parallelism
-Binary Tree traversal            X                      Task-level parallelism
-Ray tracing                      X         X            Embarrassingly parallel, Scatter/Gather
-Levenstein's distance            X                      2D stencil, wavefront
-Ray casting                      X               X      Embarrassingly parallel
-Arnold's cat map                 X               X      Embarrassingly parallel
-Mandelbrot set                   X         X     X      Embarrassingly parallel, Load balancing
-Area of the Mandelbrot set       X         X     X      Embarrassingly parallel, Load balancing, Reduction
-Image denoising                  X               X      2D Stencil
-List ranking                     X                      Pointer Jumping
-Area of union of circles                   X            Embarrassingly parallel, Scatter/Gather, Reduction
-Bounding Box                               X            Scatter/Gather, Reduction
-Rule 30 CA                       X         X     X      1D Stencil, Point-to-point
-Linear search                              X            Embarrassingly parallel, Reduction
-Binary search                    X               X      Divide-and-conquer
-Odd-Even Sort                    X         X     X      Scatter/Gather, Point-to-point
-Coupled oscillators                              X      1D Stencil
-Anneal CA                                        X      2D Stencil
-N-body simulation                X               X      Embarrassingly parallel, Load balancing, Reduction
-Knapsack problem                 X               X      Non-uniform 1D stencil
-Edge detection                   X               X      2D Stencil
-Gaussian elimination             X                      Reduction
-SAT solver                       X                      Embarrassingly parallel
-Single-Source Shortest Path      X                      Reduction
-All-Pairs Shortest Paths         X                      Embarrassingly parallel
------------------------------- --------- ----- -------- --------------------------
+| Kernel                      | OpenMP | MPI | OpenCL | Pattern                                            |
+|-----------------------------|--------|-----|--------|----------------------------------------------------|
+| Password cracking           | X      | X   |        | Embarrassingly parallel                            |
+| Dot product                 | X      | X   | X      | Reduction, Scatter/Gather                          |
+| Array sum                   |        | X   |        | Reduction, Scatter/Gather                          |
+| Monte Carlo Pi              | X      | X   |        | Embarrassingly parallel, Reduction                 |
+| Sieve of Eratosthenes       | X      |     | X      | Embarrassingly parallel, Reduction                 |
+| Character frequencies       | X      | X   | X      | Embarrassingly parallel, Reduction                 |
+| Inclusive scan              | X      | X   |        | Scan                                               |
+| Dynamic task scheduling     | X      |     |        | Master-Worker                                      |
+| MergeSort                   | X      |     |        | Task-level parallelism                             |
+| Binary Tree traversal       | X      |     |        | Task-level parallelism                             |
+| Ray tracing                 | X      | X   |        | Embarrassingly parallel, Scatter/Gather            |
+| Levenstein's distance       | X      |     |        | 2D stencil, wavefront                              |
+| Ray casting                 | X      |     | X      | Embarrassingly parallel                            |
+| Arnold's cat map            | X      |     | X      | Embarrassingly parallel                            |
+| Mandelbrot set              | X      | X   | X      | Embarrassingly parallel, Load balancing            |
+| Area of the Mandelbrot set  | X      | X   | X      | Embarrassingly parallel, Load balancing, Reduction |
+| Image denoising             | X      |     | X      | 2D Stencil                                         |
+| List ranking                | X      |     |        | Pointer Jumping                                    |
+| Area of union of circles    |        | X   |        | Embarrassingly parallel, Scatter/Gather, Reduction |
+| Bounding Box                |        | X   |        | Scatter/Gather, Reduction                          |
+| Rule 30 CA                  | X      | X   | X      | 1D Stencil, Point-to-point                         |
+| Linear search               |        | X   |        | Embarrassingly parallel, Reduction                 |
+| Binary search               | X      |     | X      | Divide-and-conquer                                 |
+| Odd-Even Sort               | X      | X   | X      | Scatter/Gather, Point-to-point                     |
+| Coupled oscillators         |        |     | X      | 1D Stencil                                         |
+| Anneal CA                   |        |     | X      | 2D Stencil                                         |
+| N-body simulation           | X      |     | X      | Embarrassingly parallel, Load balancing, Reduction |
+| Knapsack problem            | X      |     | X      | Non-uniform 1D stencil                             |
+| Edge detection              | X      |     | X      | 2D Stencil                                         |
+| Gaussian elimination        | X      |     |        | Reduction                                          |
+| SAT solver                  | X      |     |        | Embarrassingly parallel                            |
+| Single-Source Shortest Path | X      |     |        | Reduction                                          |
+| All-Pairs Shortest Paths    | X      |     |        | Embarrassingly parallel                            |
 
 The final exam of the HPC course requires the parallelization of a
 slightly more complex application, which is provided by the instructor
 in serial form. Over the years, the following programs (not available
 in this repository) have been proposed as exercises:
 
-Academic Year      Topic
------------------  ----------------------------------------
-2016/2017          Biham-Middleton-Levine CA
-2017/2018          Larger-than-Life CA
-2018/2019          Earthquake
-2019/2020          Convex Hull
-2020/2021          Skyline
-2021/2022          Hardy, Pomeau, de Pazzis CA (HPP)
-2022/2023          Smoothed Particle Hydrodynamics (SPH)
-2023/2024          Force-directed circles drawing
------------------  ----------------------------------------
+| Academic Year | Topic                                 |
+|---------------|---------------------------------------|
+| 2016/2017     | Biham-Middleton-Levine CA             |
+| 2017/2018     | Larger-than-Life CA                   |
+| 2018/2019     | Earthquake                            |
+| 2019/2020     | Convex Hull                           |
+| 2020/2021     | Skyline                               |
+| 2021/2022     | Hardy, Pomeau, de Pazzis CA (HPP)     |
+| 2022/2023     | Smoothed Particle Hydrodynamics (SPH) |
+| 2023/2024     | Force-directed circles drawing        |
 
 ## OpenMP
 
