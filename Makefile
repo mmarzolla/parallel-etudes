@@ -11,7 +11,7 @@ DATAFILES := $(wildcard *.in) $(wildcard *.txt) $(wildcard *.gr) $(wildcard *.cn
 OUTFILES :=
 HANDOUTS_SRC := ${SRC:%.c=handouts/%.c} ${SRC:%.cu=handouts/%.cu} ${SRC:%.cl=handouts/%.cl} ${INC:%.h=handouts/%.h}
 SOLUTIONS_SRC := ${SRC:%.c=solutions/%.c} ${SRC:%.cu=solutions/%.cu} ${SRC:%.cl=solutions/%.cl} ${INC:%.h=solutions/%.h}
-HTML := ${SRC:%.c=handouts/%.html} ${SRC:%.cu=handouts/%.html} handouts/exercises-list.html
+HTML := ${SRC:%.c=handouts/%.html} ${SRC:%.cu=handouts/%.html}
 EXTRAS += lab.css $(wildcard *.png *.svg *.jpg *.pgm *.ppm *.md *.sh *.odp *.odg) mpi-rule30.pdf
 IMGS := omp-c-ray-images.jpg denoise.png simd-map-levels.png edge-detect.png cat-map.png cat-map-demo.png anneal-demo.png
 CFLAGS += -std=c99 -Wall -Wpedantic
