@@ -53,8 +53,11 @@ int primes(int n)
         isprime[i] = 1;
 
     sclKernel mark_kernel = sclCreateKernel("mark_kernel");
-    sclKernel next_prime_kernel = sclCreateKernel("next_prime_kernel");
+#ifdef USE_REDUCE
     sclKernel next_prime_kernel_reduce = sclCreateKernel("next_prime_kernel_reduce");
+#else
+    sclKernel next_prime_kernel = sclCreateKernel("next_prime_kernel");
+#endif
 
     cl_mem d_isprime = sclMallocCopy(n+1, isprime, CL_MEM_READ_WRITE);
     cl_mem d_nprimes = sclMallocCopy(sizeof(nprimes), &nprimes, CL_MEM_READ_WRITE);
@@ -72,14 +75,14 @@ int primes(int n)
                                 GRID, BLOCK,
                                 ":b :d :d :d :b :L",
                                 d_isprime, k, from, to, d_nprimes, BLOCK.sizes[0] * sizeof(int));
-#if 1
-        sclSetArgsEnqueueKernel(next_prime_kernel,
-                                DIM1(1), DIM1(1),
+#ifdef USE_REDUCE
+        sclSetArgsEnqueueKernel(next_prime_kernel_reduce,
+                                DIM1(SCL_DEFAULT_WG_SIZE1D), DIM1(SCL_DEFAULT_WG_SIZE1D),
                                 ":b :d :d :b",
                                 d_isprime, k, n, d_next_prime);
 #else
-        sclSetArgsEnqueueKernel(next_prime_kernel_reduce,
-                                DIM1(SCL_DEFAULT_WG_SIZE1D), DIM1(SCL_DEFAULT_WG_SIZE1D),
+        sclSetArgsEnqueueKernel(next_prime_kernel,
+                                DIM1(1), DIM1(1),
                                 ":b :d :d :b",
                                 d_isprime, k, n, d_next_prime);
 #endif

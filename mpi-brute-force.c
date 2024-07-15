@@ -180,7 +180,9 @@ int main( int argc, char *argv[] )
        generate the encrypted message */
     const char *msg = "0123456789A strange game. The only winning move is not to play."; /* plaintext message */
     const int msglen = strlen(msg)+1; /* length of the encrypted message, including the trailing \0 */
+#if 0
     char enc_key[] = "40224426"; /* encryption key */
+#endif
     const int NUM_KEYS = 100000000;    /* total number of possible keys */
     const char check[] = "0123456789"; /* the decrypted message starts with this string */
     const int CHECK_LEN = strlen(check);
