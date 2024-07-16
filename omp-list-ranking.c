@@ -2,7 +2,7 @@
  *
  * omp-list-ranking.c - Parallel list ranking
  *
- * Copyright (C) 2021, 2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2021, 2022, 2024 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - List ranking
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-08-11
+% Last updated: 2024-07-16
 
 The goal of this exercise is to implement the _list ranking_
 algorithm, also known as _pointer jumping_. The algorithm takes a list
@@ -100,9 +100,8 @@ typedef struct list_node_t {
 /* Print the content of array `nodes` of length `n` */
 void list_print(const list_node_t *nodes, int n)
 {
-    int i;
     printf("**\n** list content\n**\n");
-    for (i=0; i<n; i++) {
+    for (int i=0; i<n; i++) {
         printf("[%d] val=%d rank=%d\n", i, nodes[i].val, nodes[i].rank);
     }
     printf("\n");
@@ -161,51 +160,6 @@ void rank( list_node_t *nodes, int n )
     free(next_rank);
     free(next_next);
 }
-
-
-#if 0
-void rank2( list_node_t *nodes, int n )
-{
-    int done = 0;
-    int *next_rank = (int*)malloc(n * sizeof(*next_rank));
-    list_node_t **next_next = (list_node_t**)malloc(n * sizeof(*next_next));
-
-    /* initialize ranks */
-#pragma omp parallel for default(none) shared(nodes,n)
-    for (int i=0; i<n; i++) {
-        if (nodes[i].next == NULL)
-            nodes[i].rank = 0;
-        else
-            nodes[i].rank = 1;
-    }
-
-    /* compute ranks */
-#pragma omp parallel default(none) shared(done,n,nodes,next_rank,next_next)
-    while (!done) {
-        done = 1;
-#pragma omp barrier
-#pragma omp for
-        for (int i=0; i<n; i++) {
-            if (nodes[i].next != NULL) {
-                done = 0;
-                next_rank[i] = nodes[i].rank + nodes[i].next->rank;
-                next_next[i] = nodes[i].next->next;
-            } else {
-                next_rank[i] = nodes[i].rank;
-                next_next[i] = nodes[i].next;
-            }
-        }
-        /* Update ranks */
-#pragma omp for
-        for (int i=0; i<n; i++) {
-            nodes[i].rank = next_rank[i];
-            nodes[i].next = next_next[i];
-        }
-    }
-    free(next_rank);
-    free(next_next);
-}
-#endif
 
 /* Inizializza il contenuto della lista. Per agevolare il controllo di
    correttezza, il valore presente in ogni nodo coincide con il rango
