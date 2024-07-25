@@ -545,9 +545,9 @@ void load_scene(FILE *fp)
         char type;
         double fov;
 
-        while (*ptr == ' ' || *ptr == '\t') /* checking '\0' is implied */
+        while ((*ptr == ' ') || (*ptr == '\t')) /* checking '\0' is implied */
             ptr++;
-        if (*ptr == '#' || *ptr == '\n')
+        if ((*ptr == '#') || (*ptr == '\n') || (*ptr == '\0'))
             continue;
 
         type = *ptr;
