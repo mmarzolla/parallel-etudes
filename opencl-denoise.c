@@ -48,13 +48,13 @@ To execute:
 
 Example:
 
-        ./opencl-denoise < giornale.ppm > giornale-denoised.ppm
+        ./opencl-denoise < valve-noise.ppm > valve-denoised.ppm
 
 ## File
 
 - [opencl-denoise.c](opencl-denoise.c)
 - [simpleCL.c](simpleCL.c) [simpleCL.h](simpleCL.h) [hpc.h](hpc.h)
-- [giornale.ppm](giornale.ppm) (sample input)
+- [valve-noise.ppm](valve-noise.ppm) (sample input)
 
  ***/
 

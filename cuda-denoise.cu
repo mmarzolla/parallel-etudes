@@ -56,12 +56,12 @@ To execute:
 
 Example:
 
-        ./cuda-denoise < giornale.ppm > giornale-denoised.ppm
+        ./cuda-denoise < valve-noise.ppm > valve-denoised.ppm
 
 ## Files
 
 - [cuda-denoise.cu](cuda-denoise.cu)
-- [giornale.ppm](giornale.ppm) (sample input)
+- [valve-noise.ppm](valve-noise.ppm) (sample input)
 
  ***/
 

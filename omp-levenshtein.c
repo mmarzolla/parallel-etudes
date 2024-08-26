@@ -21,7 +21,7 @@
 /***
 % HPC - Levenshtein edit distance
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-08-14
+% Last updated: 2024-08-26
 
 The file [omp-levenshtein.c](omp-levenhstein.c) contains a serial
 implementation of [Levenshtein's
@@ -29,16 +29,15 @@ algorithm](https://en.wikipedia.org/wiki/Levenshtein_distance) for
 computing the _edit distance_ between two strings.  Levenshtein's edit
 distance is a measure of similarity, and is related to the minimum
 number of _edit operations_ that are required to transform one string
-into another. There are several types of edit operations that have
-been considered in the literature. In this program we consider the
-following operations: (i) insertion; (ii) deletion; and (iii)
-replacement. All operations involve a single character at a time.
+into another. Several types of edit operations have been considered in
+the literature; in this program we consider insertion, deletion and
+replacement of single characters while scanning the string from left
+to right.
 
 Levenshtein's distance can be computed using _dynamic programming_.
-To solve this exercise you are not required to know the details;
-however, for the sake of completeness (and for those who are
-interested in the details), a brief description of the algorithm is
-provided in the following.
+To solve this exercise you are not required to know the details; for
+the sake of completeness (and for those who are interested), a brief
+description of the algorithm is provided below.
 
 Let $s[]$ and $t[]$ be two strings of lengths $n \leq 0, m \leq 0$
 respectively. Let $L[i][j]$ be the edit distance between the prefix of
@@ -97,11 +96,11 @@ where $1_P$ is the _indicator function_ for predicate $P$, i.e., an
 expression whose value is 1 iff $P$ is true, 0 otherwise.  The result
 is $L[n+1][m+1]$.
 
-The core of the algorithm is the computation of $L[][]$ of size $(n+1)
-\times (m+1)$; the equation above shows that filling the matrix using
-two nested loops, and is based on a _three-point stencil_, since the
-value of each element depends of the value above, on the left, and on
-the upper left corner.
+The core of the algorithm is the computation of the entries of matrix
+$L[][]$ of size $(n+1) \times (m+1)$; the equation above shows that
+the matrix can be filled using two nested loops, and is based on a
+_three-point stencil_ since the value of each element depends of the
+value above, on the left, and on the upper left corner.
 
 Unfortunately, it is not possible to apply an `omp parallel for`
 directive to either loops due to loop-carried dependences. However, we

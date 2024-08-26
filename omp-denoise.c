@@ -52,12 +52,12 @@ To execute:
 
 Example:
 
-        OMP_NUM_THREADS=4 ./omp-denoise < giornale.ppm > giornale-denoised.ppm
+        OMP_NUM_THREADS=4 ./omp-denoise < valve-noise.ppm > valve--denoised.ppm
 
 ## Files
 
 - [omp-denoise.c](omp-denoise.c)
-- [giornale.ppm](giornale.ppm) (sample input)
+- [valve-noise.ppm](valve-noise.ppm) (sample input)
 
  ***/
 #include <stdio.h>
