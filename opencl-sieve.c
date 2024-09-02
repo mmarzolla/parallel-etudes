@@ -21,7 +21,7 @@
 /***
 % HPC - Sieve of Eratosthenes
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2024-01-04
+% Last updated: 2024-09-02
 
 ## Files
 
@@ -54,9 +54,13 @@ int primes(int n)
 
     sclKernel mark_kernel = sclCreateKernel("mark_kernel");
 #ifdef USE_REDUCE
-    sclKernel next_prime_kernel_reduce = sclCreateKernel("next_prime_kernel_reduce");
+    sclKernel next_prime_kernel = sclCreateKernel("next_prime_kernel_reduce");
+    const sclDim GRID_next = DIM1(1);
+    const sclDim BLOCK_next = DIM1(SCL_DEFAULT_WG_SIZE1D);
 #else
     sclKernel next_prime_kernel = sclCreateKernel("next_prime_kernel");
+    const sclDim GRID_next = DIM1(1);
+    const sclDim BLOCK_next = DIM1(1);
 #endif
 
     cl_mem d_isprime = sclMallocCopy(n+1, isprime, CL_MEM_READ_WRITE);
@@ -75,17 +79,10 @@ int primes(int n)
                                 GRID, BLOCK,
                                 ":b :d :d :d :b :L",
                                 d_isprime, k, from, to, d_nprimes, BLOCK.sizes[0] * sizeof(int));
-#ifdef USE_REDUCE
-        sclSetArgsEnqueueKernel(next_prime_kernel_reduce,
-                                DIM1(SCL_DEFAULT_WG_SIZE1D), DIM1(SCL_DEFAULT_WG_SIZE1D),
-                                ":b :d :d :b",
-                                d_isprime, k, n, d_next_prime);
-#else
         sclSetArgsEnqueueKernel(next_prime_kernel,
-                                DIM1(1), DIM1(1),
+                                GRID_next, BLOCK_next,
                                 ":b :d :d :b",
                                 d_isprime, k, n, d_next_prime);
-#endif
         const int oldk = k;
         sclMemcpyDeviceToHost(&k, d_next_prime, sizeof(k));
         assert(k > oldk);

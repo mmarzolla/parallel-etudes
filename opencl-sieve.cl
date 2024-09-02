@@ -68,25 +68,22 @@ mark_kernel( __global char *isprime,
  * Store in *next_prime the next prime strictly greater than k, or n
  * if we reached the end of array isprime[]
  */
-__kernel void
+__kernel void __attribute__((reqd_work_group_size(1, 1, 1)))
 next_prime_kernel(__global const char *isprime,
                   int k,
                   int n,
                   __global int *next_prime)
 {
-    const int li = get_local_id(0);
-    if (0 == li) {
+    k++;
+    while (k < n && isprime[k] == 0)
         k++;
-        while (k < n && isprime[k] == 0)
-            k++;
-        *next_prime = k;
-    }
+    *next_prime = k;
 }
 
 /**
- * The same, but using a reduction; however, this is likely less
- * efficient than the kernel above, since the next prims is unlikely
- * to be too far away from `k`.
+ * The same, but using a reduction; this is likely less efficient than
+ * the kernel above, since the next prims is unlikely to be too far
+ * away from `k`.
  */
 __kernel void __attribute__((reqd_work_group_size(SCL_DEFAULT_WG_SIZE1D, 1, 1)))
 next_prime_kernel_reduce(__global const char *isprime,
