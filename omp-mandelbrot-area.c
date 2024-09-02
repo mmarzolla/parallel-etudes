@@ -127,7 +127,6 @@ int main( int argc, char *argv[] )
 {
     int i, j, ninside = 0, npoints = 1000;
     double area, error;
-    const double EPS = 1.0e-5;
 
     if (argc > 2) {
         fprintf(stderr, "Usage: %s [npoints]\n", argv[0]);
@@ -151,13 +150,13 @@ int main( int argc, char *argv[] )
 #else
     /* The "schedule(dynamic,64)" clause is here as an example only;
        the chunk size (64) might not be the best. */
-#pragma omp parallel for collapse(2) default(none) shared(npoints,EPS,XMIN,XMAX,YMIN,YMAX) reduction(+:ninside) schedule(dynamic, 64)
+#pragma omp parallel for collapse(2) default(none) shared(npoints,XMIN,XMAX,YMIN,YMAX) reduction(+:ninside) schedule(dynamic, 64)
 #endif
     for (i=0; i<npoints; i++) {
         for (j=0; j<npoints; j++) {
             struct d_complex c;
-            c.re = XMIN + (XMAX-XMIN)*j/npoints + EPS;
-            c.im = YMIN + (YMAX-YMIN)*i/npoints + EPS;
+            c.re = XMIN + (XMAX-XMIN)*j/npoints;
+            c.im = YMIN + (YMAX-YMIN)*i/npoints;
             ninside += inside(c);
         }
     }

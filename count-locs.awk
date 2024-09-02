@@ -8,6 +8,7 @@
 #
 # Written by Moreno Marzolla
 # last updated on 2024-01-22
+
 BEGIN {
     FS = ","
 }
@@ -30,13 +31,13 @@ BEGIN {
 
 END {
     printf("\\toprule\n");
-    printf("{\\bf Kernel} & {\\bf OpenMP} & {\\bf MPI} & {\\bf CUDA} & {\\bf OpenCL} \\\\\n");
+    printf("{\\bf Kernel} \t&\t {\\bf OpenMP} \t&\t {\\bf MPI} \t&\t {\\bf CUDA} \t&\t {\\bf OpenCL} \t\\\\\n");
     printf("\\midrule\n");
     # Change iteration order so that the following loop enumerate the
     # programs by name
     PROCINFO["sorted_in"] = "@ind_str_asc";
     for (prog in progs) {
-        printf("%25s & %4d & %4d & %4d & %4d \\\\\n",
+        printf("%25s \t&\t %4d \t&\t %4d \t&\t %4d \t&\t %4d \t\\\\\n",
                prog,
                loc[prog, "omp"],
                loc[prog, "mpi"],
@@ -44,14 +45,14 @@ END {
                loc[prog, "opencl"]);
     }
     printf("\\midrule\n");
-    printf("%25s & %4d & %4d & %4d & %4d \\\\\n",
+    printf("%25s \t&\t %4d \t&\t %4d \t&\t %4d \t&\t %4d \t\\\\\n",
            "{\\bf Number of programs}",
            count["omp"],
            count["mpi"],
            count["cuda"],
            count["opencl"]);
 
-    printf("%25s & %04d & %04d & %04d & %04d \\\\\n",
+    printf("%25s \t&\t %04d \t&\t %04d \t&\t %04d \t&\t %04d \t\\\\\n",
            "{\\bf Total LOCs}",
            total_locs["omp"],
            total_locs["mpi"],
