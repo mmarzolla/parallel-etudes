@@ -61,11 +61,6 @@ Example:
 
 ***/
 
-/* The following #define is required by the implementation of
-   hpc_gettime(). It MUST be defined before including any other
-   file. */
-#define _XOPEN_SOURCE 600
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -85,10 +80,11 @@ int IDX(int i, int j, int width)
 }
 
 #ifndef SERIAL
-__device__ sobel_kernel(const unsigned char *in,
-                        unsigned char *edges,
-                        int width, int height,
-                        int threshold)
+__global__ void
+sobel_kernel(const unsigned char *in,
+             unsigned char *edges,
+             int width, int height,
+             int threshold)
 {
     const unsigned char WHITE = 255;
     const unsigned char BLACK = 0;
