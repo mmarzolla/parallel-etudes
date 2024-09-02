@@ -2,7 +2,7 @@
  *
  * omp-sieve.c -- Sieve of Eratosthenes
  *
- * Copyright (C) 2018--2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2018--2024 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Sieve of Eratosthenes
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-03-14
+% Last updated: 2024-09-02
 
 ![Eratosthenes (276 BC--194 BC)](Eratosthenes.png "Etching of an ancient seal identified as Eartosthenes")
 
@@ -73,25 +73,25 @@ The goal of this exercise is to write a parallel version of the sieve
 of Erathostenes; to this aim, you might want to use the following
 hints.
 
-The main program contains the loop:
+The function `primes()` contains the loop:
 
 ```C
-count = n - 1;
+nprimes = n - 1;
 for (i=2; i*i <= n; i++) {
 	if (isprime[i]) {
-		count -= mark(isprime, i, i*i, n+1);
+                nprimes -= mark(isprime, i, i*i, n+1);
 	}
 }
 ```
 
-To compute $\pi(n)$ we start by initializing `count` as the number of
-elements in the set $\{2, \ldots n\}$; every time we mark a value for
-the first time, we decrement `count` so that, at the end, we have
-$\pi(n) = \texttt{count}$.
+To compute $\pi(n)$ we start by initializing `nprimes` as the number
+of elements in the set $\{2, \ldots n\}$; every time we mark a value
+for the first time, we decrement `nprimes` so that, at the end, we
+have $\pi(n) = \texttt{nprimes}$.
 
 The function `mark()` has the following signature:
 
-        long mark( char *isprime, int k, long from, long to )
+        long mark( char *isprime, long k, long from, long to )
 
 and its purpose is to mark all multiples of `k`, starting from $k
 \times k$, that belong to the set $\{\texttt{from}, \ldots,
@@ -162,7 +162,7 @@ implementation.
    how many numbers have been marked for the first time. `from` does
    not need to be a multiple of `k`, although in this program it
    always is. */
-long mark( char *isprime, int k, long from, long to )
+long mark( char *isprime, long k, long from, long to )
 {
     long nmarked = 0l;
 #ifdef SERIAL
@@ -232,9 +232,37 @@ long mark( char *isprime, int k, long from, long to )
     return nmarked;
 }
 
+/* Return the number of primes in the set {2, ... n} */
+long primes( long n )
+{
+    long i;
+    long nprimes = n-1;
+    char *isprime = (char*)malloc(n+1); assert(isprime != NULL);
+
+    /* Initially, all numbers are considered primes */
+    for (i=0; i<=n; i++)
+        isprime[i] = 1;
+
+    /* main iteration of the sieve */
+    for (i=2; i*i <= n; i++) {
+        if (isprime[i]) {
+            nprimes -= mark(isprime, i, i*i, n+1);
+        }
+    }
+    /* Uncomment to print the list of primes */
+    /*
+    for (i=2; i<=n; i++) {
+        if (isprime[i]) {printf("%ld ", i);}
+    }
+    printf("\n");
+    */
+    free(isprime);
+    return nprimes;
+}
+
 int main( int argc, char *argv[] )
 {
-    long n = 1000000l, nprimes, i;
+    long n = 1000000l;
 
     if ( argc > 2 ) {
         fprintf(stderr, "Usage: %s [n]\n", argv[0]);
@@ -250,28 +278,9 @@ int main( int argc, char *argv[] )
         return EXIT_FAILURE;
     }
 
-    char *isprime = (char*)malloc(n+1); assert(isprime != NULL);
-    /* Initially, all numbers are considered primes */
-    for (i=0; i<=n; i++)
-        isprime[i] = 1;
-
-    nprimes = n-1;
     const double tstart = omp_get_wtime();
-    /* main iteration of the sieve */
-    for (i=2; i*i <= n; i++) {
-        if (isprime[i]) {
-            nprimes -= mark(isprime, i, i*i, n+1);
-        }
-    }
+    const long nprimes = primes(n);
     const double elapsed = omp_get_wtime() - tstart;
-    /* Uncomment to print the list of primes */
-    /*
-    for (i=2; i<=n; i++) {
-        if (isprime[i]) {printf("%ld ", i);}
-    }
-    printf("\n");
-    */
-    free(isprime);
 
     printf("There are %ld primes in {2, ..., %ld}\n", nprimes, n);
 
