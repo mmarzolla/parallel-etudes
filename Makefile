@@ -21,7 +21,7 @@ NVCC ?= nvcc
 MPICC ?= mpicc
 NVCFLAGS +=
 
-.PHONY: MAKE_DIRS clean distclean images
+.PHONY: MAKE_DIRS clean distclean images count-locs
 
 ALL: MAKE_DIRS ${EXE} ${HTML} ${HANDOUTS_SRC} ${SOLUTIONS_SRC} ${OUTFILES}
 	@cp -a -u ${EXTRAS} ${DATAFILES} ${OUTFILES} handouts/
@@ -212,3 +212,6 @@ clean:
 
 distclean: clean
 	\rm -rf handouts/* solutions/*
+
+count-locs:
+	cloc --by-file --csv *.c *.cl *.cu | gawk -f count-locs.awk

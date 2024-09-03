@@ -67,7 +67,7 @@ To compile:
 
 To execute:
 
-        ./open-mandelbrot [ysize]
+        ./opencl-mandelbrot [ysize]
 
 Example:
 
