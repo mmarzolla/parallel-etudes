@@ -77,7 +77,7 @@ The function `primes()` contains the loop:
 
 ```C
 nprimes = n - 1;
-for (i=2; i*i <= n; i++) {
+for (i=2; ((long)i)*i <= (long)n; i++) {
 	if (isprime[i]) {
                 nprimes -= mark(isprime, i, i*i, n+1);
 	}
@@ -251,8 +251,9 @@ int primes( int n )
     for (int i=0; i<=n; i++)
         isprime[i] = 1;
 
-    /* main iteration of the sieve */
-    for (int i=2; i*i <= n; i++) {
+    /* main iteration of the sieve; the expression i*i <= n is
+       promoted to `long` to avoid overflow. */
+    for (int i=2; ((long)i)*i <= (long)n; i++) {
         if (isprime[i]) {
             nprimes -= mark(isprime, i, i*i, n+1);
         }
@@ -260,7 +261,7 @@ int primes( int n )
     /* Uncomment to print the list of primes */
     /*
     for (int i=2; i<=n; i++) {
-        if (isprime[i]) {printf("%ld ", i);}
+        if (isprime[i]) { printf("%d ", i); }
     }
     printf("\n");
     */

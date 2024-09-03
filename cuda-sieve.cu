@@ -54,21 +54,21 @@ int mark( char *isprime, int k, int from, int to )
     return nmarked;
 }
 #else
-#define BLKDIM 32
+#define BLKDIM 1024
 
 /**
  * Mark all multiples of k belonging to the set {from, ... to-1}.
  * from must be a multiple of k. The number of elements that are
  * marked for the first time is atomically subtracted from *nprimes.
  */
-__kernel void
+__global__ void
 mark_kernel( char *isprime,
              int k,
              int from,
              int to,
-             int *nprimes,
-             char *mark)
+             int *nprimes )
 {
+    __shared__ int mark[BLKDIM];
     const int i = from + (threadIdx.x + blockIdx.x * blockDim.x)*k;
     const int li = threadIdx.x;
 
@@ -90,11 +90,11 @@ mark_kernel( char *isprime,
         __syncthreads();
     }
     if (0 == li) {
-        atomic_sub(nprimes, mark[0]);
+        atomicSub(nprimes, mark[0]);
     }
 }
 
-__kernel void
+__global__ void
 next_prime_kernel(const char *isprime,
                   int k,
                   int n,
@@ -120,35 +120,38 @@ int primes(int n)
 
 #ifdef SERIAL
     /* main iteration of the sieve */
-    for (int i=2; i*i <= n; i++) {
+    for (int i=2; ((long)i)*i <= (long)n; i++) {
         if (isprime[i]) {
             nprimes -= mark(isprime, i, i*i, n+1);
         }
     }
 #else
     char *d_isprime;
-    ing *d_nprimes, *d_next_prime;
+    int *d_nprimes, *d_next_prime;
 
     cudaSafeCall( cudaMalloc( (void**)&d_isprime, n+1) );
+    cudaSafeCall( cudaMemcpy( d_isprime, isprime, n+1, cudaMemcpyHostToDevice) );
+
     cudaSafeCall( cudaMalloc( (void**)&d_nprimes, sizeof(*d_nprimes)) );
+    cudaSafeCall( cudaMemcpy( d_nprimes, &nprimes, sizeof(nprimes), cudaMemcpyHostToDevice) );
+
     cudaSafeCall( cudaMalloc( (void**)&d_next_prime, sizeof(*d_next_prime)) );
 
-    const dim3 BLOCK(BLKSIZE);
-    const dim3 GRID((to - from + k-1)/k);
+    const dim3 BLOCK(BLKDIM);
     /* main iteration of the sieve */
     int k = 2;
-    while (k*k <= n) {
+    while (((long)k)*k <= (long)n) {
         const int from = k*k;
         const int to = n;
         const int nelem = (to - from + k-1)/k;
         const dim3 GRID((nelem + BLKDIM - 1)/BLKDIM);
-        mark_kernel<<<GRID, BLOCK>>>(d_isprime, k, from, to, d_nprimes, d_isprime);
-        next_prime_kernel<<<1, 1>>>(d_isprime, k, n, d_next_prime);
+        mark_kernel<<<GRID, BLOCK>>>(d_isprime, k, from, to, d_nprimes); cudaCheckError();
+        next_prime_kernel<<<1, 1>>>(d_isprime, k, n, d_next_prime); cudaCheckError();
         const int oldk = k;
         cudaSafeCall( cudaMemcpy(&k, d_next_prime, sizeof(k), cudaMemcpyDeviceToHost) );
         assert(k > oldk);
     }
-    cudaSafeCall( cudaMemcpy(&nprimes, d_nprimes, sizeof(nprimes), cudaMemcpyHostToDevice) );
+    cudaSafeCall( cudaMemcpy(&nprimes, d_nprimes, sizeof(nprimes), cudaMemcpyDeviceToHost) );
     cudaSafeCall( cudaFree(d_nprimes) );
     cudaSafeCall( cudaFree(d_isprime) );
 #endif
@@ -169,7 +172,6 @@ int main( int argc, char *argv[] )
         n = atol(argv[1]);
     }
 
-    sclInitFromFile("opencl-sieve.cl");
     const double tstart = hpc_gettime();
     const int nprimes = primes(n);
     const double elapsed = hpc_gettime() - tstart;
@@ -177,8 +179,6 @@ int main( int argc, char *argv[] )
     printf("There are %d primes in {2, ..., %d}\n", nprimes, n);
 
     printf("Elapsed time: %f\n", elapsed);
-
-    sclFinalize();
 
     return EXIT_SUCCESS;
 }
