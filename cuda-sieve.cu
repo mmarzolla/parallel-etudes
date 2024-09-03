@@ -36,7 +36,24 @@
 
 #include "hpc.h"
 
-#ifndef SERIAL
+#ifdef SERIAL
+/* Mark all mutliples of `k` in the set {`from`, ..., `to`-1}; return
+   how many numbers have been marked for the first time. `from` does
+   not need to be a multiple of `k`, although in this program it
+   always is. */
+int mark( char *isprime, int k, int from, int to )
+{
+    int nmarked = 0;
+    from = ((from + k - 1)/k)*k; /* start from the lowest multiple of p that is >= from */
+    for ( int x=from; x<to; x+=k ) {
+        if (isprime[x]) {
+            isprime[x] = 0;
+            nmarked++;
+        }
+    }
+    return nmarked;
+}
+#else
 #define BLKDIM 32
 
 /**
@@ -101,6 +118,14 @@ int primes(int n)
     for (int i=0; i<=n; i++)
         isprime[i] = 1;
 
+#ifdef SERIAL
+    /* main iteration of the sieve */
+    for (int i=2; i*i <= n; i++) {
+        if (isprime[i]) {
+            nprimes -= mark(isprime, i, i*i, n+1);
+        }
+    }
+#else
     char *d_isprime;
     ing *d_nprimes, *d_next_prime;
 
@@ -126,9 +151,10 @@ int primes(int n)
     cudaSafeCall( cudaMemcpy(&nprimes, d_nprimes, sizeof(nprimes), cudaMemcpyHostToDevice) );
     cudaSafeCall( cudaFree(d_nprimes) );
     cudaSafeCall( cudaFree(d_isprime) );
+#endif
+    free(isprime);
     return nprimes;
 }
-#endif
 
 int main( int argc, char *argv[] )
 {
