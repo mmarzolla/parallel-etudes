@@ -91,7 +91,7 @@ have $\pi(n) = \texttt{nprimes}$.
 
 The function `mark()` has the following signature:
 
-        long mark( char *isprime, long k, long from, long to )
+        int mark( char *isprime, int k, int from, int to )
 
 and its purpose is to mark all multiples of `k`, starting from $k
 \times k$, that belong to the set $\{\texttt{from}, \ldots,
@@ -111,6 +111,15 @@ parallel for`) and compute the bounds of each partition by hand.  It
 is not trivial to do so correctly, but this is quite instructive since
 during the lectures we only considered the simple case of partitioning
 a range $0, \ldots, n-1$, while here the range does not start at zero.
+
+> **Note**: depending on your implementation, you may or may not
+> encounter overflow problems of the `int` data type. For example,
+> assume that you want to evaluate the expression
+> `(n*my_id)/num_threads`, where all variables are of type `int`. If
+> _n_ is large, then `n*my_id` might overflow even if the result of
+> the expression could be represented as an `int`. A simple solution
+> is to cast _n_ to `long`, so that the compiler will promote to
+> `long` all other variables: `(((long)n)*my_id)/num_threads`.
 
 Once you have a working parallel version, you can take the easier
 route to use the `omp parallel for` directive and let the compiler
@@ -162,13 +171,13 @@ implementation.
    how many numbers have been marked for the first time. `from` does
    not need to be a multiple of `k`, although in this program it
    always is. */
-long mark( char *isprime, long k, long from, long to )
+int mark( char *isprime, int k, int from, int to )
 {
-    long nmarked = 0l;
+    int nmarked = 0;
 #ifdef SERIAL
     /* [TODO] Parallelize this function */
     from = ((from + k - 1)/k)*k; /* start from the lowest multiple of p that is >= from */
-    for ( long x=from; x<to; x+=k ) {
+    for ( int x=from; x<to; x+=k ) {
         if (isprime[x]) {
             isprime[x] = 0;
             nmarked++;
@@ -181,18 +190,18 @@ long mark( char *isprime, long k, long from, long to )
        length. The starting point of each segment is then adjusted to
        the next multiple of p, before starting the "for" loop. */
     const int max_threads = omp_get_max_threads();
-    long nmarked_p[max_threads];
+    int nmarked_p[max_threads];
 #pragma omp parallel default(none) shared(isprime, from, to, k, nmarked_p)
     {
         const int my_id = omp_get_thread_num();
         const int num_threads = omp_get_num_threads();
-        const long n = (to - from);
-        long my_from = from + (n*my_id)/num_threads;
+        const int n = (to - from);
+        int my_from = from + (((long)n)*my_id)/num_threads;
         assert(my_from >= 0);
         my_from = ((my_from + k - 1)/k)*k; /* start from the lowest multiple of k that is >= my_from */
-        const long my_to = from + (n*(my_id+1))/num_threads;
+        const int my_to = from + (((long)n)*(my_id+1))/num_threads;
         nmarked_p[my_id] = 0;
-        for ( long x=my_from; x<my_to; x+=k ) {
+        for ( int x=my_from; x<my_to; x+=k ) {
             if (isprime[x]) {
                 isprime[x] = 0;
                 nmarked_p[my_id]++;
@@ -220,7 +229,7 @@ long mark( char *isprime, long k, long from, long to )
     {
         const int my_id = omp_get_thread_num();
         const int num_threads = omp_get_num_threads();
-        for ( long x=from + k*my_id; x<to; x += k*num_threads ) {
+        for ( int x=from + k*my_id; x<to; x += k*num_threads ) {
             if (isprime[x]) {
                 isprime[x] = 0;
                 nmarked++;
@@ -233,25 +242,24 @@ long mark( char *isprime, long k, long from, long to )
 }
 
 /* Return the number of primes in the set {2, ... n} */
-long primes( long n )
+int primes( int n )
 {
-    long i;
-    long nprimes = n-1;
+    int nprimes = n-1;
     char *isprime = (char*)malloc(n+1); assert(isprime != NULL);
 
     /* Initially, all numbers are considered primes */
-    for (i=0; i<=n; i++)
+    for (int i=0; i<=n; i++)
         isprime[i] = 1;
 
     /* main iteration of the sieve */
-    for (i=2; i*i <= n; i++) {
+    for (int i=2; i*i <= n; i++) {
         if (isprime[i]) {
             nprimes -= mark(isprime, i, i*i, n+1);
         }
     }
     /* Uncomment to print the list of primes */
     /*
-    for (i=2; i<=n; i++) {
+    for (int i=2; i<=n; i++) {
         if (isprime[i]) {printf("%ld ", i);}
     }
     printf("\n");
@@ -262,7 +270,7 @@ long primes( long n )
 
 int main( int argc, char *argv[] )
 {
-    long n = 1000000l;
+    int n = 1000000;
 
     if ( argc > 2 ) {
         fprintf(stderr, "Usage: %s [n]\n", argv[0]);
@@ -270,19 +278,19 @@ int main( int argc, char *argv[] )
     }
 
     if ( argc == 2 ) {
-        n = atol(argv[1]);
+        n = atoi(argv[1]);
     }
 
-    if (n > (1ul << 31)) {
+    if (n < 0) {
         fprintf(stderr, "FATAL: n too large\n");
         return EXIT_FAILURE;
     }
 
     const double tstart = omp_get_wtime();
-    const long nprimes = primes(n);
+    const int nprimes = primes(n);
     const double elapsed = omp_get_wtime() - tstart;
 
-    printf("There are %ld primes in {2, ..., %ld}\n", nprimes, n);
+    printf("There are %d primes in {2, ..., %d}\n", nprimes, n);
 
     printf("Elapsed time: %f\n", elapsed);
 

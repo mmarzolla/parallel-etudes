@@ -69,8 +69,10 @@ int primes(int n)
     /* main iteration of the sieve */
     int k = 2;
     cl_mem d_next_prime = sclMalloc(sizeof(k), CL_MEM_WRITE_ONLY);
+    /* promote k to `long` to avoid overflow; promote `n` to `long` to
+       avoid compiler warning */
     while (((long)k)*k <= (long)n) {
-        const int from = k*k;
+        const int from = k*k; /* here we know that k*k does not overflow */
         const int to = n;
         const sclDim BLOCK = DIM1(SCL_DEFAULT_WG_SIZE1D);
         const sclDim GRID = DIM1(sclRoundUp((to - from + k-1)/k, SCL_DEFAULT_WG_SIZE1D));
