@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * opencl-letters.c - Character counts
+ * cuda-letters.cu - Character counts
  *
  * Copyright (C) 2018--2024 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
@@ -21,17 +21,17 @@
 /***
 % HPC - Character counts
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2024-01-04
+% Last updated: 2024-09-03
 
 ![By Willi Heidelbach, CC BY 2.5, <https://commons.wikimedia.org/w/index.php?curid=1181525>](letters.jpg)
 
-The file [opencl-letters.c](opencl-letters.c) contains a serial
-program that computes the number of occurrences of each lowercase
-letter in an ASCII file read from standard input. The program is
-case-insensitive, meaning that uppercase characters are treated as if
-they were lowercase; non-letter characters are ignored. We provide
-some substantial ASCII documents to experiment with, that have been
-made available by the [Project Gutenberg](https://www.gutenberg.org/);
+The file [cuda-letters.cu](cuda-letters.cu) contains a serial program
+that computes the number of occurrences of each lowercase letter in an
+ASCII file read from standard input. The program is case-insensitive,
+meaning that uppercase characters are treated as if they were
+lowercase; non-letter characters are ignored. We provide some
+substantial ASCII documents to experiment with, that have been made
+available by the [Project Gutenberg](https://www.gutenberg.org/);
 despite the fact that these documents have been written by different
 authors, the frequencies of characters are quite similar. Indeed, it
 is well known that the relative frequencies of characters are
@@ -40,30 +40,24 @@ experiment with other free books in other languages that are available
 on [Project Gutenberg Web site](https://www.gutenberg.org/).
 
 In this exercise you are required to transform the program to make use
-of OpenCL parallelism.
+of CUDA parallelism.
 
 Compile with:
 
-        gcc -std=c99 -Wall -Wpedantic opencl-letters.c simpleCL.c -o opencl-letters -lOpenCL
+        nvcc cuda-letters.cu -o cuda-letters
 
 Run with:
 
-        ./opencl-letters < the-war-of-the-worlds.txt
+        ./cuda-letters < the-war-of-the-worlds.txt
 
 ## Files
 
-* [opencl-letters.c](opencl-letters.c)
-* [simpleCL.h](simpleCL.h) [simpleCL.c](simpleCL.c)
+* [cuda-letters.cu](cuda-letters.cu)
 * [War and Peace](war-and-peace.txt) by L. Tolstoy
 * [The Hound of the Baskervilles](the-hound-of-the-baskervilles.txt) by A. C. Doyle
 * [The War of the Worlds](the-war-of-the-worlds.txt) by H. G. Wells
 
 ***/
-
-/* The following #define is required by the implementation of
-   hpc_gettime(). It MUST be defined before including any other
-   file. */
-#define _XOPEN_SOURCE 600
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -72,12 +66,41 @@ Run with:
 #include <assert.h>
 
 #include "hpc.h"
-#include "simpleCL.h"
 
 #define ALPHA_SIZE 26
-
 #ifndef SERIAL
-sclKernel hist_kernel;
+#define BLKDIM 1024
+
+__global__ void
+hist_kernel( const char *text,
+             int len,
+             int *hist )
+{
+    const int i = threadIdx.x + blockIdx.x * blockDim.x;
+    const int li = threadIdx.x;
+    __shared__ int local_hist[ALPHA_SIZE];
+
+    /* reset local histogram */
+    if (li < ALPHA_SIZE)
+        local_hist[li] = 0;
+
+    __syncthreads();
+
+    if (i < len) {
+        char c = text[i];
+
+        if (c >= 'A' && c <= 'Z')
+            c = (c - 'A') + 'a';
+
+        if (c >= 'a' && c <= 'z')
+            atomicInc(&local_hist[ c - 'a' ]);
+    }
+
+    __synchtreads();
+
+    if (li < ALPHA_SIZE)
+        atomicAdd(&hist[li], local_hist[li]);
+}
 #endif
 
 /**
@@ -107,28 +130,25 @@ int make_hist( const char *text, int hist[ALPHA_SIZE] )
     }
     return nlet;
 #else
-    const sclDim BLOCK = DIM1(SCL_DEFAULT_WG_SIZE1D);
-    const sclDim GRID = DIM1(sclRoundUp(len, SCL_DEFAULT_WG_SIZE1D));
+    const dim3 BLOCK(BLKDIM);
+    const dim3 GRID((len + BLKDIM-1)/BLKDIM);
     const size_t HIST_SIZE = ALPHA_SIZE * sizeof(hist[0]);
+    char *d_text;
+    int *d_hist;
 
     for (int i=0; i<ALPHA_SIZE; i++) {
         hist[i] = 0;
     }
-    /* Note: sclMallocCopy requires the second parameter to be
-       non-const; this is actually required by the low-level OpenCL
-       function clCreateBuffer. Hopefully it is ok to simply "cast
-       away the const" */
-    cl_mem d_text = sclMallocCopy(len+1, (char*)text, CL_MEM_READ_ONLY);
-    cl_mem d_hist = sclMallocCopy(HIST_SIZE, hist, CL_MEM_READ_WRITE);
+    cudaSafeCall( cudaMalloc( (void**)&d_text, text, len+1) );
+    cudaSafeCall( cudaMemcpy( d_text, text, len+1, cudaMemcpyHostToDevice) );
+    cudaSAfeCall( cudaMalloc( (void**)&d_hist, HIST_SIZE) );
+    cudaSafeCall( cudaMemcpy( d_hist, hist, HIST_SIZE, cudaMemcpyHostToDevice) );
 
-    sclSetArgsLaunchKernel(hist_kernel,
-                           GRID, BLOCK,
-                           ":b :d :b",
-                           d_text, len, d_hist);
+    hist_kernel<<< GRID, BLOCK >>>(d_text, len, d_hist); cudaCheckError();
 
-    sclMemcpyDeviceToHost(hist, d_hist, HIST_SIZE);
-    sclFree(d_text);
-    sclFree(d_hist);
+    cudaSafeCall( cudaMemcpy(hist, d_hist, HIST_SIZE, cudaMemcpyDeviceToHost) );
+    cudaSafeCall( cudaFree(d_text) );
+    cudaSafeCall( cudaFree(d_hist) );
     return 0;
 #endif
 }
@@ -157,10 +177,6 @@ int main( void )
 
     const size_t len = fread(text, 1, size-1, stdin);
     text[len] = '\0'; /* put a termination mark at the end of the text */
-#ifndef SERIAL
-    sclInitFromFile("opencl-letters.cl");
-    hist_kernel = sclCreateKernel("hist_kernel");
-#endif
 
     const double tstart = hpc_gettime();
     make_hist(text, hist);
@@ -169,8 +185,6 @@ int main( void )
     fprintf(stderr, "Elapsed time: %f\n", elapsed);
 
     free(text);
-
-    sclFinalize();
 
     return EXIT_SUCCESS;
 }
