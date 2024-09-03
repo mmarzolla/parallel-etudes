@@ -21,7 +21,7 @@
 /***
 % HPC - Mandelbrot set
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2024-02-03
+% Last updated: 2024-09-03
 
 ![](mandelbrot-set.png)
 
@@ -58,7 +58,7 @@ Both images should be identical; if not, something is wrong.
 
 To compile:
 
-        nvcc cuda-mandelbrot.c -o cuda-mandelbrot -lOpenCL
+        nvcc cuda-mandelbrot.c -o cuda-mandelbrot
 
 To execute:
 
@@ -108,7 +108,7 @@ __constant__ pixel_t colors[] = {
     {204, 128, 0},
     {153, 87, 0},
     {106, 52, 3} };
-int __constant NCOLORS = sizeof(colors)/sizeof(colors[0]);
+__constant__ int NCOLORS = sizeof(colors)/sizeof(colors[0]);
 
 /*
  * Iterate the recurrence:
@@ -192,10 +192,10 @@ int main( int argc, char *argv[] )
     cudaSafeCall( cudaMalloc((void**)&d_bitmap, BMAP_SIZE) );
 
     const dim3 BLOCK(BLKDIM, BLKDIM);
-    const dim3 GRID((xsize + BLKDIM-1)/BLMDIM, (ysize + BLKDIM-1)/BLKDIM);
+    const dim3 GRID((xsize + BLKDIM-1)/BLKDIM, (ysize + BLKDIM-1)/BLKDIM);
 
     const double tstart = hpc_gettime();
-    mandelbrot_kernel<<<GRID, BLODK>>>(xsize, ysize, d_bitmap);
+    mandelbrot_kernel<<<GRID, BLOCK>>>(xsize, ysize, d_bitmap);
 
     cudaSafeCall( cudaMemcpy(bitmap, d_bitmap, BMAP_SIZE, cudaMemcpyDeviceToHost) );
 
