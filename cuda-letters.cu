@@ -93,10 +93,10 @@ hist_kernel( const char *text,
             c = (c - 'A') + 'a';
 
         if (c >= 'a' && c <= 'z')
-            atomicInc(&local_hist[ c - 'a' ]);
+            atomicAdd(&local_hist[ c - 'a' ], 1);
     }
 
-    __synchtreads();
+    __syncthreads();
 
     if (li < ALPHA_SIZE)
         atomicAdd(&hist[li], local_hist[li]);
@@ -139,9 +139,9 @@ int make_hist( const char *text, int hist[ALPHA_SIZE] )
     for (int i=0; i<ALPHA_SIZE; i++) {
         hist[i] = 0;
     }
-    cudaSafeCall( cudaMalloc( (void**)&d_text, text, len+1) );
+    cudaSafeCall( cudaMalloc( (void**)&d_text, len+1) );
     cudaSafeCall( cudaMemcpy( d_text, text, len+1, cudaMemcpyHostToDevice) );
-    cudaSAfeCall( cudaMalloc( (void**)&d_hist, HIST_SIZE) );
+    cudaSafeCall( cudaMalloc( (void**)&d_hist, HIST_SIZE) );
     cudaSafeCall( cudaMemcpy( d_hist, hist, HIST_SIZE, cudaMemcpyHostToDevice) );
 
     hist_kernel<<< GRID, BLOCK >>>(d_text, len, d_hist); cudaCheckError();
