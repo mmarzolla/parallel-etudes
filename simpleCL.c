@@ -539,8 +539,9 @@ void sclInitFromFile( const char *filename )
     rewind(f);
     char *source = (char *)malloc( size + 1 );
     assert(source != NULL);
-    if( fread( source, 1, size, f ) != size ) {
-        sclPanic("Error loading program file \"%s\"\n", filename);
+    const size_t nread = fread( source, 1, size, f );
+    if( nread != size ) {
+        sclPanic("Error loading program file \"%s\": expected %zu bytes, got %zu\n", filename, size, nread);
     }
     source[ size ] = '\0';
     fclose( f );
@@ -803,6 +804,7 @@ sclDim DIM0(void)
 {
     sclDim result;
     result.ndims = 0; /* means undefined */
+    result.sizes[0] = result.sizes[1] = result.sizes[2] = 1;
     return result;
 }
 
@@ -818,6 +820,7 @@ sclDim DIM1(size_t x)
     sclDim result;
     result.ndims = 1;
     result.sizes[0] = x;
+    result.sizes[1] = result.sizes[2] = 1;
     return result;
 }
 
@@ -835,6 +838,7 @@ sclDim DIM2(size_t x, size_t y)
     result.ndims = 2;
     result.sizes[0] = x;
     result.sizes[1] = y;
+    result.sizes[2] = 1;
     return result;
 }
 
