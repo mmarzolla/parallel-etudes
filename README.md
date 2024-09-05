@@ -1,41 +1,36 @@
 # Parallel Etudes
 
-This repository contains the source code of exercises that are used in
-the lab sessions for the High Performance Computing (HPC) course,
-University of Bologna.
+This repository contains the source code of programminf exercises that
+are used in the lab sessions of the High Performance Computing (HPC)
+course, University of Bologna, first cycle degree in Computer Science
+and Engineering.
 
 The lab sessions are organized as follows: each exercise includes a
-specification document in the form of a HTML page, and a working
-serial implementation of the program to be realized. The goal is to
-parallelize the serial program using the technology that has been
-previously introduced in the class (OpenMP, MPI, CUDA/OpenCL). At the
-end of the lab session, the solution to all exercises is made
-available.
+detailed specification and a working serial implementation. The goal
+is to parallelize the serial program using one of the technologies
+that have been introduced in the last class (OpenMP, MPI,
+CUDA/OpenCL). Possible solutions are made available at the end of each
+lab session.
 
-Some exercises are quite simple, while others are slightly more
+Some exercises are quite simple, while others are more
 complex. However, the level of difficulty is quite low since students
 are expected to fully solve at least one exercise during each lab
 session.
 
-There are a couple of interesting points that differentiate these
-exercises from other parallel programming exercises, or parallel
-benchmarks:
+Some notable points:
 
-- They require little or no knowledge outside parallel programming to
-  be solved; in particular, they require very little or no knowledge
+- These exercises require little or no knowledge outside parallel
+  programming; in particular, they do not require advanced knowledge
   of physics, linear algebra or numerical analysis.
 
-- Many exercises are small applications that are designed to be
-  interesting. These applications are taken from different domains,
-  e.g., 3D graphics, Cellular Automata, gravitational N-body solvers,
-  cryptography and so on. Some applications produce images or movies
-  as output, rather than numbers or dry output messages.
+- Many exercises are designed to be interesting, and are taken from
+  different domains such as 3D graphics, Cellular Automata,
+  gravitational N-body solvers, cryptography and so on. Some programs
+  produce images or movies as output, to make them more appealing.
 
-- Some programs are parallelized using multiple programming paradigms.
-  For example, the same N-body solver might be proposed during OpenMP
-  lab sessions, then MPI, and then CUDA/OpenCL. This is quite useful
-  to see how each parallel programming paradigm can be applied to the
-  same problem.
+- Some exercises can be parallelized using multiple programming
+  paradigms.  This is quite useful to appreciate the strengths and
+  weaknesses of each paradigm.
 
 ## List of exercises
 
@@ -45,46 +40,45 @@ it.
 
 Table 1: List of exercises
 
-| Kernel                      | OpenMP | MPI | OpenCL | Pattern                                            |
-|-----------------------------|--------|-----|--------|----------------------------------------------------|
-| Password cracking           | X      | X   |        | Embarrassingly parallel                            |
-| Dot product                 | X      | X   | X      | Reduction, Scatter/Gather                          |
-| Array sum                   |        | X   |        | Reduction, Scatter/Gather                          |
-| Monte Carlo Pi              | X      | X   |        | Embarrassingly parallel, Reduction                 |
-| Sieve of Eratosthenes       | X      |     | X      | Embarrassingly parallel, Reduction                 |
-| Character frequencies       | X      | X   | X      | Embarrassingly parallel, Reduction                 |
-| Inclusive scan              | X      | X   |        | Scan                                               |
-| Dynamic task scheduling     | X      |     |        | Master-Worker                                      |
-| MergeSort                   | X      |     |        | Task-level parallelism                             |
-| Binary Tree traversal       | X      |     |        | Task-level parallelism                             |
-| Ray tracing                 | X      | X   |        | Embarrassingly parallel, Scatter/Gather            |
-| Levenstein's distance       | X      |     |        | 2D stencil, wavefront                              |
-| Ray casting                 | X      |     | X      | Embarrassingly parallel                            |
-| Arnold's cat map            | X      |     | X      | Embarrassingly parallel                            |
-| Mandelbrot set              | X      | X   | X      | Embarrassingly parallel, Load balancing            |
-| Area of the Mandelbrot set  | X      | X   | X      | Embarrassingly parallel, Load balancing, Reduction |
-| Image denoising             | X      |     | X      | 2D Stencil                                         |
-| List ranking                | X      |     |        | Pointer Jumping                                    |
-| Area of union of circles    |        | X   |        | Embarrassingly parallel, Scatter/Gather, Reduction |
-| Bounding Box                |        | X   |        | Scatter/Gather, Reduction                          |
-| Rule 30 CA                  | X      | X   | X      | 1D Stencil, Point-to-point                         |
-| Linear search               |        | X   |        | Embarrassingly parallel, Reduction                 |
-| Binary search               | X      |     | X      | Divide-and-conquer                                 |
-| Odd-Even Sort               | X      | X   | X      | Scatter/Gather, Point-to-point                     |
-| Coupled oscillators         |        |     | X      | 1D Stencil                                         |
-| Anneal CA                   |        |     | X      | 2D Stencil                                         |
-| N-body simulation           | X      |     | X      | Embarrassingly parallel, Load balancing, Reduction |
-| Knapsack problem            | X      |     | X      | Non-uniform 1D stencil                             |
-| Edge detection              | X      |     | X      | 2D Stencil                                         |
-| Gaussian elimination        | X      |     |        | Reduction                                          |
-| SAT solver                  | X      |     |        | Embarrassingly parallel                            |
-| Single-Source Shortest Path | X      |     |        | Reduction                                          |
-| All-Pairs Shortest Paths    | X      |     |        | Embarrassingly parallel                            |
+| Kernel                      | OpenMP | MPI | CUDA | OpenCL | Pattern                                            |
+|-----------------------------|--------|-----|------|--------|----------------------------------------------------|
+| Password cracking           | X      | X   |      |        | Embarrassingly parallel                            |
+| Dot product                 | X      | X   | X    | X      | Reduction, Scatter/Gather                          |
+| Array sum                   |        | X   |      |        | Reduction, Scatter/Gather                          |
+| Monte Carlo Pi              | X      | X   |      |        | Embarrassingly parallel, Reduction                 |
+| Sieve of Eratosthenes       | X      |     | X    | X      | Embarrassingly parallel, Reduction                 |
+| Character frequencies       | X      | X   | X    | X      | Embarrassingly parallel, Reduction                 |
+| Inclusive scan              | X      | X   |      |        | Scan                                               |
+| Dynamic task scheduling     | X      |     |      |        | Master-Worker                                      |
+| MergeSort                   | X      |     |      |        | Task-level parallelism                             |
+| Binary Tree traversal       | X      |     |      |        | Task-level parallelism                             |
+| Ray tracing                 | X      | X   |      |        | Embarrassingly parallel, Scatter/Gather            |
+| Levenstein's distance       | X      |     |      |        | 2D stencil, wavefront                              |
+| Arnold's cat map            | X      |     | X    | X      | Embarrassingly parallel                            |
+| Mandelbrot set              | X      | X   | X    | X      | Embarrassingly parallel, Load balancing            |
+| Area of the Mandelbrot set  | X      | X   |      | X      | Embarrassingly parallel, Load balancing, Reduction |
+| Image denoising             | X      |     | X    | X      | 2D Stencil                                         |
+| List ranking                | X      |     |      |        | Pointer Jumping                                    |
+| Area of union of circles    |        | X   |      |        | Embarrassingly parallel, Scatter/Gather, Reduction |
+| Bounding Box                |        | X   |      |        | Scatter/Gather, Reduction                          |
+| Rule 30 CA                  | X      | X   | X    | X      | 1D Stencil, Point-to-point                         |
+| Linear search               |        | X   |      |        | Embarrassingly parallel, Reduction                 |
+| Binary search               | X      |     |      | X      | Divide-and-conquer                                 |
+| Odd-Even Sort               | X      | X   | X    | X      | Scatter/Gather, Point-to-point                     |
+| Coupled oscillators         |        |     | X    | X      | 1D Stencil                                         |
+| Anneal CA                   |        |     | X    | X      | 2D Stencil                                         |
+| N-body simulation           | X      |     | X    | X      | Embarrassingly parallel, Load balancing, Reduction |
+| Knapsack problem            | X      |     | X    | X      | Non-uniform 1D stencil                             |
+| Edge detection              | X      |     | X    | X      | 2D Stencil                                         |
+| Gaussian elimination        | X      |     |      |        | Reduction                                          |
+| SAT solver                  | X      |     |      |        | Embarrassingly parallel                            |
+| Single-Source Shortest Path | X      |     |      |        | Reduction                                          |
+| All-Pairs Shortest Paths    | X      |     |      |        | Embarrassingly parallel                            |
 
-The final exam of the HPC course requires the parallelization of a
-slightly more complex application, which is provided by the instructor
-in serial form. Over the years, the following programs (not available
-in this repository) have been proposed as exercises:
+The final exam involves slightly more complex applications, which are
+provided by the instructor in serial form. Over the years, the
+following programs (not available in this repository) have been
+proposed:
 
 | Academic Year | Topic                                 |
 |---------------|---------------------------------------|
@@ -95,7 +89,7 @@ in this repository) have been proposed as exercises:
 | 2020/2021     | Skyline                               |
 | 2021/2022     | Hardy, Pomeau, de Pazzis CA (HPP)     |
 | 2022/2023     | Smoothed Particle Hydrodynamics (SPH) |
-| 2023/2024     | Force-directed circles drawing        |
+| 2023/2024     | Force-directed circles packing        |
 
 ## OpenMP
 
