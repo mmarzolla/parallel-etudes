@@ -19,13 +19,13 @@
  ****************************************************************************/
 
 /***
-% HPC - List ranking
+% HPC - Parallel list ranking
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2024-07-16
+% Last updated: 2024-09-24
 
 The goal of this exercise is to implement the _list ranking_
-algorithm, also known as _pointer jumping_. The algorithm takes a list
-of length $n$ as input. Each node contains the following attributes:
+algorithm. The algorithm takes a list of length $n$ as input. Each
+node contains the following attributes:
 
 - An arbitrary value `val`, representing some information stored at
   each node;
@@ -35,13 +35,18 @@ of length $n$ as input. Each node contains the following attributes:
 - A pointer to the next element of the list (or `NULL`, if the node has
   no successor).
 
-Upon termination, the algorithm must set the `rank` atribute to the
-distance (number of links) from the _end_ of the list. Therefore, the
-last node of the list has `rank = 0`, the previous one has `rank = 1`,
-and so forth up to the head of the list that has `rank = n-1`. It is
-not required that the algorithm keeps the original values of the
-`next` attribute, i.e., upon termination the relationships between
-nodes may be undefined.
+Upon termination, the algorithm must set the `rank` atribute of a node
+to its distance (number of links) to the _end_ of the list. Therefore,
+the last node has `rank = 0`, the previous one has `rank = 1`, and so
+forth up to the head of the list that has `rank = n-1`. It is not
+required that the algorithm keeps the original values of the `next`
+attribute, i.e., upon termination the relationships between nodes may
+be undefined.
+
+List ranking can be implemented using a technique called _pointer
+jumping_. The following pseudocode (source:
+<https://en.wikipedia.org/wiki/Pointer_jumping>) shows a possible
+implementation, with a few caveats described below.
 
 ```
 Allocate an array of N integers.
@@ -55,7 +60,23 @@ Initialize: for each processor/list node n, in parallel:
              Set n.next ← n.next.next.
 ```
 
-![Figure 1: List ranking algorithm](omp-list-ranking.svg)
+First of all, right before the `While` cycle there must be a barrier
+synchronization so that all distances are properly initialized before
+the actual pointer jumping algorithm starts.
+
+Then, the pseudocode above assumes that all instructions are executed
+in a SIMD way, which is something that does not happen with OpenMP.
+In particular, the instruction
+
+```
+Set d[n] ← d[n] + d[n.next].
+```
+
+has a loop-carried dependency on `d[]`. Indeed, the pseudocode assumes
+that all processors _first_ compute `d[n] + d[n.next]`, and _then, all
+at the same time_, set the new value of `d[n]`.
+
+![Figure 1: Pointer jumping algorithm](omp-list-ranking.svg)
 
 To compile:
 
@@ -121,8 +142,8 @@ void list_print(const list_node_t *nodes, int n)
 void rank( list_node_t *nodes, int n )
 {
     int done = 0;
-    int *next_rank = (int*)malloc(n * sizeof(*next_rank));
-    list_node_t **next_next = (list_node_t**)malloc(n * sizeof(*next_next));
+    int *new_rank = (int*)malloc(n * sizeof(*new_rank));
+    list_node_t **new_next = (list_node_t**)malloc(n * sizeof(*new_next));
 
     /* initialize ranks */
 #pragma omp parallel for default(none) shared(nodes,n)
@@ -136,29 +157,29 @@ void rank( list_node_t *nodes, int n )
     /* compute ranks */
     while (!done) {
         done = 1;
-#pragma omp parallel default(none) shared(done,n,nodes,next_rank,next_next)
+#pragma omp parallel default(none) shared(done,n,nodes,new_rank,new_next)
         {
 #pragma omp for
             for (int i=0; i<n; i++) {
                 if (nodes[i].next != NULL) {
                     done = 0; // not a real race condition
-                    next_rank[i] = nodes[i].rank + nodes[i].next->rank;
-                    next_next[i] = nodes[i].next->next;
+                    new_rank[i] = nodes[i].rank + nodes[i].next->rank;
+                    new_next[i] = nodes[i].next->next;
                 } else {
-                    next_rank[i] = nodes[i].rank;
-                    next_next[i] = nodes[i].next;
+                    new_rank[i] = nodes[i].rank;
+                    new_next[i] = nodes[i].next;
                 }
             }
             /* Update ranks */
 #pragma omp for
             for (int i=0; i<n; i++) {
-                nodes[i].rank = next_rank[i];
-                nodes[i].next = next_next[i];
+                nodes[i].rank = new_rank[i];
+                nodes[i].next = new_next[i];
             }
         }
     }
-    free(next_rank);
-    free(next_next);
+    free(new_rank);
+    free(new_next);
 }
 
 /* Inizializza il contenuto della lista. Per agevolare il controllo di
@@ -166,8 +187,7 @@ void rank( list_node_t *nodes, int n )
    che ci aspettiamo venga calcolato. */
 void init(list_node_t *nodes, int n)
 {
-    int i;
-    for (i=0; i<n; i++) {
+    for (int i=0; i<n; i++) {
         nodes[i].val = n-1-i;
         nodes[i].rank = -1;
         nodes[i].next = (i+1<n ? nodes + (i + 1) : NULL);
@@ -177,8 +197,7 @@ void init(list_node_t *nodes, int n)
 /* Controlla la correttezza del risultato */
 int check(const list_node_t *nodes, int n)
 {
-    int i;
-    for (i=0; i<n; i++) {
+    for (int i=0; i<n; i++) {
         if (nodes[i].rank != nodes[i].val) {
             fprintf(stderr, "FAILED: rank[%d]=%d, expected %d\n", i, nodes[i].rank, nodes[i].val);
             return 0;

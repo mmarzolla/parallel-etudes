@@ -2,7 +2,7 @@
  *
  * omp-brute-force.c - Brute-force password cracking
  *
- * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2022, 2024 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Brute-force password cracking
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2022-10-18
+% Last updated: 2024-09-20
 
 ![[DES cracker board](https://en.wikipedia.org/wiki/EFF_DES_cracker) developed in 1998 by the Electronic Frontier Foundation (EFF); this device can be used to brute-force a DES key. The original uploader was Matt Crypto at English Wikipedia. Later versions were uploaded by Ed g2s at en.wikipedia - CC BY 3.0 us, <https://commons.wikimedia.org/w/index.php?curid=2437815>](des-cracker.jpg)
 
@@ -91,7 +91,7 @@ Run with:
         OMP_NUM_THREADS=2 ./omp-brute-force
 
 **Note**: the execution time of the parallel program might change
-irregularly, depending on the number $P$ of OpenMP threads. Why?
+irregularly depending on $P$. Why?
 
 ## Files
 
@@ -172,7 +172,7 @@ int main( int argc, char *argv[] )
     const int n = 100000000; /* number of possible keys */
     char key[KEY_LEN+1]; /* sprintf will output the trailing \0, so we need one byte more for the key */
     int k; /* numeric value of the key to try */
-    int found = 0;
+    volatile int found = 0;
     char* out = (char*)malloc(msglen); /* where to put the decrypted message */
     assert(out != NULL);
 
@@ -196,7 +196,7 @@ int main( int argc, char *argv[] )
     const int msglen = strlen(msg)+1; /* length of the encrypted message, including the trailing \0 */
     char enc_key[] = "40224426"; /* encryption key */
     const int n = 100000000;    /* total number of possible keys */
-    int found = 0;
+    volatile int found = 0;
     const char check[] = "0123456789"; /* the decrypted message starts with this string */
     const int CHECK_LEN = strlen(check);
 
