@@ -429,7 +429,7 @@ int main( int argc, char* argv[] )
 #endif
     fprintf(stderr, "      Iterations : %d\n", niter);
     fprintf(stderr, "    width,height : %d,%d\n", img.width, img.height);
-    fprintf(stderr, "        Mops/sec : %f\n", 1.0e-6 * img.width * img.height * niter / elapsed);
+    fprintf(stderr, "        Mops/sec : %.4f\n", 1.0e-6 * img.width * img.height * niter / elapsed);
     fprintf(stderr, "Elapsed time (s) : %f\n\n", elapsed);
 
     free_pgm( &img );
