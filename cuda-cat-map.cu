@@ -40,18 +40,18 @@ x' = (2x + y) \bmod N, \qquad y' = (x + y) \bmod N
 $$
 
 ("mod" is the integer remainder operator, i.e., operator `%` of the C
-language). We may assume that $(0, 0)$ is top left and $(N-1, N-1)$
+language). We assume that $(0, 0)$ is top left and $(N-1, N-1)$ is
 bottom right, so that the bitmap can be encoded as a regular
 two-dimensional C matrix.
 
-The transformation corresponds to a linear "stretching" of the image,
-that is then broken down into triangles that are rearranged as shown
-in Figure 1.
+The transformation performs a linear "stretching" of the image, which
+is then broken down into triangles that are rearranged as shown in
+Figure 1.
 
-![Figur3 1: Arnold's cat map](cat-map.svg)
+![Figure 1: Arnold's cat map](cat-map.svg)
 
-Arnold's cat map has interesting properties. Let $C^k(x, y)$ be the
-result of iterating $k$ times the function $C$, i.e.:
+Arnold's cat map has some interesting properties. Let $C^k(x, y)$ be
+the result of iterating function $C()$ $k$ times, i.e.:
 
 $$
 C^k(x, y) = \begin{cases}
@@ -63,12 +63,12 @@ $$
 Therefore, $C^2(x,y) = C(C(x,y))$, $C^3(x,y) = C(C(C(x,y)))$, and so
 on.
 
-If we take an image and apply $C$ once, we get a severely distorted
-version of the input. If we apply $C$ on the resulting image, we get
-an even more distorted image. As we keep applying $C$, the original
-image is no longer discernible. However, after a certain number of
-iterations that depends on $N$ and has been proved to never exceed
-$3N$, we get back the original image! (Figure 2).
+If we apply $C$ to an image, we get a severely distorted version of
+the input. If we apply $C$ on the resulting image, we get an even more
+distorted image. As we keep applying $C$, the original image is no
+longer discernible. However, after a certain number of iterations that
+depends on $N$ and has been proved to never exceed $3N$, we get back
+the original image! (Figure 2).
 
 ![Figure 2: Some iterations of the cat map](cat-map-demo.png)
 
