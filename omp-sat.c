@@ -2,7 +2,7 @@
  *
  * omp-sat.c - Brute-force SAT solver
  *
- * Copyright (C) 2018, 2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2018, 2023, 2024 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Brute-force SAT solver
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-03-27
+% Last modified: 2024-09-27
 
 To compile:
 
@@ -29,7 +29,7 @@ To compile:
 
 To execute:
 
-        ./omp-sat < sat.cnf
+        ./omp-sat < queens-05.cnf
 
 ## Files
 
