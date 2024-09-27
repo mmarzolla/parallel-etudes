@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * omp-sat.c - Brute-force SAT solver
+ * opencl-sat.c - Brute-force SAT solver
  *
- * Copyright (C) 2018, 2023 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2018, 2023, 2024 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,29 +21,33 @@
 /***
 % HPC - Brute-force SAT solver
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-03-27
+% Last updated: 2024-09-27
 
 To compile:
 
-        gcc -fopenmp -Wall -Wpedantic omp-sat.c -o omp-sat
+        gcc -Wall -Wpedantic opencl-sat.c simpleCL.c -o opencl-sat -LOpenCL
 
 To execute:
 
-        ./omp-sat < sat.cnf
+        ./opencl-sat < sat.cnf
 
 ## Files
 
-- [omp-sat.c](omp-sat.c)
+- [opencl-sat.c](opencl-sat.c)
 - Some input files: <queens-05.cnf>, <uf20-01.cnf>, <uf20-077.cnf>
 ***/
 
-#include <omp.h>
+#define _XOPEN_SOURCE 600
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdint.h>
 #include <assert.h>
+
+#include "simpleCL.h"
+#include "hpc.h"
 
 #define MAXLITERALS 30
 #define MAXCLAUSES 512
@@ -165,37 +169,66 @@ void load_dimacs( FILE *f, problem_t *p )
     fprintf(stderr, "DIMACS CNF files: %d clauses, %d literals\n", c, p->nlit);
 }
 
+sclKernel eval_kernel;
+
 int sat( const problem_t *p)
 {
     const int nlit = p->nlit;
-    const int max_value = (1u << nlit) - 1;
-    int cur_value;
-    int nsat = 0;
-    bool v[MAXLITERALS];
+    const int nclauses = p->nclauses;
+    const int max_value = (1 << nlit) - 1;
 
+    const sclDim block = DIM1(nclauses);
+    const int GRID_SIZE = 1 << 16;
+    const sclDim grid = DIM1(GRID_SIZE);
+    const int NSAT_SIZE = sizeof(int) * GRID_SIZE;
+
+    int *nsat = (int*)malloc(NSAT_SIZE); assert(nsat);
+    cl_mem d_nsat, d_lit;
+
+    int cur_value;
     assert( sizeof(cur_value) < nlit );
-#pragma omp parallel for default(none) private(v) shared(p, max_value) reduction(+:nsat)
-    for (cur_value=0; cur_value<max_value; cur_value++) {
-        /* convert cur_value in binary */
-        int idx = 1; /* NOTE: v[0] is not used */
-        for (uint32_t mask=1; mask < max_value; mask = mask << 1) {
-            v[idx] = ((cur_value & mask) != 0);
-            idx++;
-        }
-        nsat += eval(p, v);
+
+    for (int i=0; i<GRID_SIZE; i++) {
+        nsat[i] = 0;
     }
-    return nsat;
+    d_lit = sclMallocCopy(MAXLITERALS * MAXCLAUSES * sizeof(int), (void*)(p->lit), CL_MEM_READ_ONLY);
+    d_nsat = sclMallocCopy(NSAT_SIZE, nsat, CL_MEM_READ_WRITE);
+
+    for (cur_value=0; cur_value<max_value; cur_value += GRID_SIZE) {
+        sclSetArgsEnqueueKernel(eval_kernel,
+                                grid, block,
+                                ":b :d :d :d :b",
+                                d_lit,
+                                p->nlit,
+                                p->nclauses,
+                                cur_value,
+                                d_nsat);
+    }
+    sclMemcpyDeviceToHost(nsat, d_nsat, NSAT_SIZE);
+
+    int result = 0;
+    for (int i=0; i<GRID_SIZE; i++)
+        result += nsat[i];
+
+    free(nsat);
+    sclFree(d_nsat);
+    sclFree(d_lit);
+    return result;
 }
 
 int main( void )
 {
     problem_t p;
 
+    sclInitFromFile("opencl-sat.cl");
+    eval_kernel = sclCreateKernel("eval_kernel");
+
     load_dimacs(stdin, &p);
     pretty_print(&p);
-    const double tstart = omp_get_wtime();
+    const double tstart = hpc_gettime();
     int nsolutions = sat(&p);
-    const double elapsed = omp_get_wtime() - tstart;
+    const double elapsed = hpc_gettime() - tstart;
     printf("%d solutions in %f seconds\n", nsolutions, elapsed);
+    sclFinalize();
     return EXIT_SUCCESS;
 }
