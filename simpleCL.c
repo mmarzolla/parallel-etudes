@@ -4,9 +4,9 @@
  *
  * Simplified C API for OpenCL programming
  *
- * Copyright 2011 Oscar Amoros Huguet, Cristian Garcia Marin
- * Copyright 2013 Camil Demetrescu
- * Copyright 2021, 2023 Moreno Marzolla
+ * Copyright (C) 2011 Oscar Amoros Huguet, Cristian Garcia Marin
+ * Copyright (C) 2013 Camil Demetrescu
+ * Copyright (C) 2021, 2023 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

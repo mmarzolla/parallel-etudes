@@ -2,7 +2,7 @@
  *
  * opencl-nbody-simd.cl - SIMD kernels for opencl-nbody.c
  *
- * Copyright 2021 Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2021 Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
