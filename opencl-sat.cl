@@ -22,7 +22,7 @@
 #include <stdint.h>
 
 #define MAXLITERALS 30
-#define MAXCLAUSES 300
+#define MAXCLAUSES 512
 
 // 1D workgroup, with one work-item for each clause
 __kernel void
@@ -32,40 +32,46 @@ eval_kernel(__global const int lit[MAXCLAUSES][MAXLITERALS],
             int v,
             __global int *nsat)
 {
-    __local bool temp[MAXCLAUSES];
+    __local bool term[MAXCLAUSES];
     const int lindex = get_local_id(0);
-    const int gindex = get_global_id(0);
+    const int gindex = get_group_id(0);
     const int c = lindex;
+    const int max_value = (1 << nlit) - 1;
 
     v += gindex;
 
-    temp[c] = c >= nclauses;
-
-    barrier(CLK_LOCAL_MEM_FENCE);
+    if (v >= max_value)
+        return;
 
     if (c >= nclauses)
         return;
 
+    term[c] = false;
+
+    /* In the CNF format, literals are indexed from 1; therefore, the
+       bit mask must be shifted left one position. */
+    v = v << 1;
     for (int l=0; lit[c][l]; l++) {
         int x = lit[c][l];
         if (x > 0) {
-            x--;
-            temp[c] |= ((v & (1 << x)) != 0);
+            term[c] |= ((v & (1 << x)) != 0);
         } else {
-            x++;
-            temp[c] |= !((v & (1 << (-x))) != 0);
+            term[c] |= !((v & (1 << (-x))) != 0);
         }
     }
 
     barrier(CLK_LOCAL_MEM_FENCE);
-    // Reduce using logical "and" along dimension 1
-    for (int bsize = nclauses / 2; bsize > 0; bsize /= 2) {
-        if ( c < bsize ) {
-            temp[c] &= temp[c + bsize];
+    // Reduce using logical "and"; we require that `MAXCLAUSES` be a
+    // power of two in order for the reduction to work. Actually, a
+    // more efficient solution would be to round `nclauses` to the
+    // next power of two.
+    for (int bsize = MAXCLAUSES / 2; bsize > 0; bsize /= 2) {
+        if ( c + bsize < nclauses ) {
+            term[c] &= term[c + bsize];
         }
         barrier(CLK_LOCAL_MEM_FENCE);
     }
 
     if (c == 0)
-        nsat[gindex] += temp[0];
+        nsat[gindex] += term[0];
 }

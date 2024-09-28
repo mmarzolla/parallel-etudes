@@ -21,7 +21,7 @@
 /***
 % HPC - Brute-force SAT solver
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last modified: 2024-09-27
+% Last modified: 2024-09-28
 
 To compile:
 
@@ -45,7 +45,9 @@ To execute:
 #include <stdint.h>
 #include <assert.h>
 
+/* MAXLITERALS must be at most (bit width of int) - 2 */
 #define MAXLITERALS 30
+/* MAXCLAUSES must be a power of two */
 #define MAXCLAUSES 512
 
 typedef struct {
@@ -65,21 +67,24 @@ int abs(int x)
 }
 
 /**
- * Evaluate problem |p| in conjunctive normal form by setting the i-th
- * variable to v[i]. Returns the value of the boolean expression
- * encoded by |p|.
+ * Evaluate problem `p` in conjunctive normal form by setting the i-th
+ * variable to the value of bit (i+1) of `v` (bit 0 is the leftmost
+ * bit, which is not used). Returns the value of the boolean
+ * expression encoded by `p`.
  */
-bool eval(const problem_t* p, const bool *v)
+bool eval(const problem_t* p, int v)
 {
-    int c, l;
-    for (c=0; c < p->nclauses; c++) {
+    /* In the CNF format, literals are indexed from 1; therefore, the
+       bit mask must be shifted left one position. */
+    v = v << 1;
+    for (int c=0; c < p->nclauses; c++) {
         bool term = false;
-        for (l=0; p->lit[c][l]; l++) {
+        for (int l=0; p->lit[c][l]; l++) {
             const int x = p->lit[c][l];
             if (x > 0) {
-                term |= v[x];
+                term |= ((v & (1 << x)) != 0);
             } else {
-                term |= !v[-x];
+                term |= !((v & (1 << -x)) != 0);
             }
         }
         if ( false == term ) { return false; }
@@ -88,7 +93,7 @@ bool eval(const problem_t* p, const bool *v)
 }
 
 /**
- * Pretty-prints problem |p|
+ * Pretty-prints problem `p`
  */
 void pretty_print( const problem_t *p )
 {
@@ -114,9 +119,9 @@ void pretty_print( const problem_t *p )
 }
 
 /**
- * Load a DIMACS CNF file |f| and initialize problem |p|.  The DIMACS
+ * Load a DIMACS CNF file `f` and initialize problem `p`.  The DIMACS
  * CNF format specification fan be found at
- * https://www.cs.ubc.ca/~hoos/SATLIB/Benchmarks/SAT/satformat.ps
+ * <https://www.cs.ubc.ca/~hoos/SATLIB/Benchmarks/SAT/satformat.ps>
  */
 void load_dimacs( FILE *f, problem_t *p )
 {
@@ -133,7 +138,7 @@ void load_dimacs( FILE *f, problem_t *p )
     p->nlit = -1;
     c = l = 0;
     /* From
-       https://github.com/marijnheule/march-SAT-solver/blob/master/parser.c */
+       <https://github.com/marijnheule/march-SAT-solver/blob/master/parser.c> */
     do {
         result = fscanf(f, " p cnf %i %i \n", &prob_l, &prob_c);
         if ( result > 0 && result != EOF )
@@ -168,21 +173,14 @@ void load_dimacs( FILE *f, problem_t *p )
 int sat( const problem_t *p)
 {
     const int nlit = p->nlit;
-    const int max_value = (1u << nlit) - 1;
+    const int max_value = (1 << nlit) - 1;
     int cur_value;
     int nsat = 0;
-    bool v[MAXLITERALS];
 
     assert( sizeof(cur_value) < nlit );
-#pragma omp parallel for default(none) private(v) shared(p, max_value) reduction(+:nsat)
+#pragma omp parallel for default(none) private(cur_value) shared(p, max_value) reduction(+:nsat)
     for (cur_value=0; cur_value<max_value; cur_value++) {
-        /* convert cur_value in binary */
-        int idx = 1; /* NOTE: v[0] is not used */
-        for (uint32_t mask=1; mask < max_value; mask = mask << 1) {
-            v[idx] = ((cur_value & mask) != 0);
-            idx++;
-        }
-        nsat += eval(p, v);
+        nsat += eval(p, cur_value);
     }
     return nsat;
 }
@@ -190,6 +188,8 @@ int sat( const problem_t *p)
 int main( void )
 {
     problem_t p;
+    assert(MAXLITERALS <= 8*sizeof(int)-2);
+    assert((MAXCLAUSES & (MAXCLAUSES-1)) == 0); /* "bit hack" to check whether MAXCLAUSES is a power of two */
 
     load_dimacs(stdin, &p);
     pretty_print(&p);

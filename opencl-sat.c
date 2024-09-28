@@ -21,7 +21,7 @@
 /***
 % HPC - Brute-force SAT solver
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2024-09-27
+% Last updated: 2024-09-28
 
 To compile:
 
@@ -49,7 +49,9 @@ To execute:
 #include "simpleCL.h"
 #include "hpc.h"
 
+/* MAXLITERALS must be at most (bit width of int) - 2 */
 #define MAXLITERALS 30
+/* MAXCLAUSES must be a power of two */
 #define MAXCLAUSES 512
 
 typedef struct {
@@ -179,7 +181,7 @@ int sat( const problem_t *p)
 
     const sclDim block = DIM1(nclauses);
     const int GRID_SIZE = 1 << 16;
-    const sclDim grid = DIM1(GRID_SIZE);
+    const sclDim grid = DIM1(GRID_SIZE * nclauses);
     const int NSAT_SIZE = sizeof(int) * GRID_SIZE;
 
     int *nsat = (int*)malloc(NSAT_SIZE); assert(nsat);
@@ -195,6 +197,9 @@ int sat( const problem_t *p)
     d_nsat = sclMallocCopy(NSAT_SIZE, nsat, CL_MEM_READ_WRITE);
 
     for (cur_value=0; cur_value<max_value; cur_value += GRID_SIZE) {
+        /* FIXME the grid size is not correct for the last kernel
+           launch, if max_value is not an integer multiple of
+           GRID_SIZE */
         sclSetArgsEnqueueKernel(eval_kernel,
                                 grid, block,
                                 ":b :d :d :d :b",
@@ -219,6 +224,9 @@ int sat( const problem_t *p)
 int main( void )
 {
     problem_t p;
+
+    assert(MAXLITERALS <= 8*sizeof(int)-2);
+    assert((MAXCLAUSES & (MAXCLAUSES-1)) == 0); /* "bit hack" to check whether MAXCLAUSES is a power of two */
 
     sclInitFromFile("opencl-sat.cl");
     eval_kernel = sclCreateKernel("eval_kernel");
