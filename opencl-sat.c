@@ -180,7 +180,7 @@ int sat( const problem_t *p)
     const int max_value = (1 << nlit) - 1;
 
     const sclDim block = DIM1(nclauses);
-    const int GRID_SIZE = 1 << 16;
+    const int GRID_SIZE = 1 << 18;
     const sclDim grid = DIM1(GRID_SIZE * nclauses);
     const int NSAT_SIZE = sizeof(int) * GRID_SIZE;
 
