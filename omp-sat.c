@@ -66,6 +66,17 @@ int abs(int x)
     return (x>=0 ? x : -x);
 }
 
+void print_binary(int v)
+{
+    for (int mask = 1 << 30; mask; mask = (mask >> 1)) {
+        if (v & mask)
+            printf("1");
+        else
+            printf("0");
+    }
+    printf("\n");
+}
+
 /**
  * Evaluate problem `p` in conjunctive normal form by setting the i-th
  * variable to the value of bit (i+1) of `v` (bit 0 is the leftmost
@@ -89,7 +100,22 @@ bool eval(const problem_t* p, int v)
         }
         if ( false == term ) { return false; }
     }
+    print_binary(v);
     return true;
+}
+
+int sat( const problem_t *p)
+{
+    const int nlit = p->nlit;
+    const int max_value = (1 << nlit) - 1;
+    int cur_value;
+    int nsat = 0;
+
+#pragma omp parallel for default(none) private(cur_value) shared(p, max_value) reduction(+:nsat)
+    for (cur_value=0; cur_value<=max_value; cur_value++) {
+        nsat += eval(p, cur_value);
+    }
+    return nsat;
 }
 
 /**
@@ -168,21 +194,6 @@ void load_dimacs( FILE *f, problem_t *p )
     }
     p->nclauses = c;
     fprintf(stderr, "DIMACS CNF files: %d clauses, %d literals\n", c, p->nlit);
-}
-
-int sat( const problem_t *p)
-{
-    const int nlit = p->nlit;
-    const int max_value = (1 << nlit) - 1;
-    int cur_value;
-    int nsat = 0;
-
-    assert( sizeof(cur_value) < nlit );
-#pragma omp parallel for default(none) private(cur_value) shared(p, max_value) reduction(+:nsat)
-    for (cur_value=0; cur_value<max_value; cur_value++) {
-        nsat += eval(p, cur_value);
-    }
-    return nsat;
 }
 
 int main( void )

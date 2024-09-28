@@ -38,7 +38,7 @@ eval_kernel(__global const int lit[MAXCLAUSES][MAXLITERALS],
 
     v += gindex;
 
-    if (v >= max_value || c >= nclauses)
+    if (v > max_value || c >= nclauses)
         return;
 
     term[c] = false;

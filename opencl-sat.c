@@ -186,9 +186,7 @@ int sat( const problem_t *p)
 
     int *nsat = (int*)malloc(NSAT_SIZE); assert(nsat);
     cl_mem d_nsat, d_lit;
-
     int cur_value;
-    assert( sizeof(cur_value) < nlit );
 
     for (int i=0; i<GRID_SIZE; i++) {
         nsat[i] = 0;
@@ -196,7 +194,7 @@ int sat( const problem_t *p)
     d_lit = sclMallocCopy(MAXLITERALS * MAXCLAUSES * sizeof(int), (void*)(p->lit), CL_MEM_READ_ONLY);
     d_nsat = sclMallocCopy(NSAT_SIZE, nsat, CL_MEM_READ_WRITE);
 
-    for (cur_value=0; cur_value<max_value; cur_value += GRID_SIZE) {
+    for (cur_value=0; cur_value<=max_value; cur_value += GRID_SIZE) {
         /* FIXME the grid size is not correct for the last kernel
            launch, if max_value is not an integer multiple of
            GRID_SIZE */
