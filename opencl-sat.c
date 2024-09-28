@@ -60,6 +60,8 @@ typedef struct {
     int nclauses;
 } problem_t;
 
+sclKernel eval_kernel;
+
 int max(int a, int b)
 {
     return (a>b ? a : b);
@@ -71,26 +73,53 @@ int abs(int x)
 }
 
 /**
- * Evaluate problem |p| in conjunctive normal form by setting the i-th
- * variable to v[i]. Returns the value of the boolean expression
- * encoded by |p|.
+ * OpenCL implementation of a brute-force SAT solver. This
+ * implementation uses 1D workgroup of 1D work-items. Each work-item
+ * has `nclauses` threads and evaluates a clause. Multiple work-items
+ * evaluate multiple clauses in parallel. We can not launch `nclauses`
+ * work-items, since that might exceed hardware limits. Therefore,
+ * multiple kernel launches are required in the "for" loop below.
  */
-bool eval(const problem_t* p, const bool *v)
+int sat( const problem_t *p)
 {
-    int c, l;
-    for (c=0; c < p->nclauses; c++) {
-        bool term = false;
-        for (l=0; p->lit[c][l]; l++) {
-            const int x = p->lit[c][l];
-            if (x > 0) {
-                term |= v[x];
-            } else {
-                term |= !v[-x];
-            }
-        }
-        if ( false == term ) { return false; }
+    const int NLIT = p->nlit;
+    const int NCLAUSES = p->nclauses;
+    const int MAX_VALUE = (1 << NLIT) - 1;
+    const sclDim BLOCK = DIM1(NCLAUSES);
+    const int GRID_SIZE = 1 << 18;
+    const sclDim GRID = DIM1(GRID_SIZE * NCLAUSES);
+    const int NSAT_SIZE = sizeof(int) * GRID_SIZE;
+
+    int *nsat = (int*)malloc(NSAT_SIZE); assert(nsat);
+    cl_mem d_nsat, d_lit;
+    int cur_value;
+
+    for (int i=0; i<GRID_SIZE; i++) {
+        nsat[i] = 0;
     }
-    return true;
+    d_lit = sclMallocCopy(MAXLITERALS * MAXCLAUSES * sizeof(int), (void*)(p->lit), CL_MEM_READ_ONLY);
+    d_nsat = sclMallocCopy(NSAT_SIZE, nsat, CL_MEM_READ_WRITE);
+
+    for (cur_value=0; cur_value<=MAX_VALUE; cur_value += GRID_SIZE) {
+        sclSetArgsEnqueueKernel(eval_kernel,
+                                GRID, BLOCK,
+                                ":b :d :d :d :b",
+                                d_lit,
+                                p->nlit,
+                                p->nclauses,
+                                cur_value,
+                                d_nsat);
+    }
+    sclMemcpyDeviceToHost(nsat, d_nsat, NSAT_SIZE);
+
+    int result = 0;
+    for (int i=0; i<GRID_SIZE; i++)
+        result += nsat[i];
+
+    free(nsat);
+    sclFree(d_nsat);
+    sclFree(d_lit);
+    return result;
 }
 
 /**
@@ -169,54 +198,6 @@ void load_dimacs( FILE *f, problem_t *p )
     }
     p->nclauses = c;
     fprintf(stderr, "DIMACS CNF files: %d clauses, %d literals\n", c, p->nlit);
-}
-
-sclKernel eval_kernel;
-
-int sat( const problem_t *p)
-{
-    const int nlit = p->nlit;
-    const int nclauses = p->nclauses;
-    const int max_value = (1 << nlit) - 1;
-
-    const sclDim block = DIM1(nclauses);
-    const int GRID_SIZE = 1 << 18;
-    const sclDim grid = DIM1(GRID_SIZE * nclauses);
-    const int NSAT_SIZE = sizeof(int) * GRID_SIZE;
-
-    int *nsat = (int*)malloc(NSAT_SIZE); assert(nsat);
-    cl_mem d_nsat, d_lit;
-    int cur_value;
-
-    for (int i=0; i<GRID_SIZE; i++) {
-        nsat[i] = 0;
-    }
-    d_lit = sclMallocCopy(MAXLITERALS * MAXCLAUSES * sizeof(int), (void*)(p->lit), CL_MEM_READ_ONLY);
-    d_nsat = sclMallocCopy(NSAT_SIZE, nsat, CL_MEM_READ_WRITE);
-
-    for (cur_value=0; cur_value<=max_value; cur_value += GRID_SIZE) {
-        /* FIXME the grid size is not correct for the last kernel
-           launch, if max_value is not an integer multiple of
-           GRID_SIZE */
-        sclSetArgsEnqueueKernel(eval_kernel,
-                                grid, block,
-                                ":b :d :d :d :b",
-                                d_lit,
-                                p->nlit,
-                                p->nclauses,
-                                cur_value,
-                                d_nsat);
-    }
-    sclMemcpyDeviceToHost(nsat, d_nsat, NSAT_SIZE);
-
-    int result = 0;
-    for (int i=0; i<GRID_SIZE; i++)
-        result += nsat[i];
-
-    free(nsat);
-    sclFree(d_nsat);
-    sclFree(d_lit);
-    return result;
 }
 
 int main( void )

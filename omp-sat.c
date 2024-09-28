@@ -66,6 +66,7 @@ int abs(int x)
     return (x>=0 ? x : -x);
 }
 
+#if 0
 void print_binary(int v)
 {
     for (int mask = 1 << 30; mask; mask = (mask >> 1)) {
@@ -76,6 +77,7 @@ void print_binary(int v)
     }
     printf("\n");
 }
+#endif
 
 /**
  * Evaluate problem `p` in conjunctive normal form by setting the i-th
@@ -100,19 +102,18 @@ bool eval(const problem_t* p, int v)
         }
         if ( false == term ) { return false; }
     }
-    print_binary(v);
     return true;
 }
 
 int sat( const problem_t *p)
 {
-    const int nlit = p->nlit;
-    const int max_value = (1 << nlit) - 1;
+    const int NLIT = p->nlit;
+    const int MAX_VALUE = (1 << NLIT) - 1;
     int cur_value;
     int nsat = 0;
 
-#pragma omp parallel for default(none) private(cur_value) shared(p, max_value) reduction(+:nsat)
-    for (cur_value=0; cur_value<=max_value; cur_value++) {
+#pragma omp parallel for default(none) private(cur_value) shared(p, MAX_VALUE) reduction(+:nsat)
+    for (cur_value=0; cur_value<=MAX_VALUE; cur_value++) {
         nsat += eval(p, cur_value);
     }
     return nsat;

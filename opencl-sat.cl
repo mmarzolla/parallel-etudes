@@ -22,7 +22,6 @@
 #define MAXLITERALS 30
 #define MAXCLAUSES 512
 
-// 1D workgroup, with one work-item for each clause
 __kernel void
 eval_kernel(__global const int lit[MAXCLAUSES][MAXLITERALS],
             int nlit,
@@ -34,11 +33,11 @@ eval_kernel(__global const int lit[MAXCLAUSES][MAXLITERALS],
     const int lindex = get_local_id(0);
     const int gindex = get_group_id(0);
     const int c = lindex;
-    const int max_value = (1 << nlit) - 1;
+    const int MAX_VALUE = (1 << nlit) - 1;
 
     v += gindex;
 
-    if (v > max_value || c >= nclauses)
+    if (v > MAX_VALUE || c >= nclauses)
         return;
 
     term[c] = false;
@@ -56,6 +55,7 @@ eval_kernel(__global const int lit[MAXCLAUSES][MAXLITERALS],
     }
 
     barrier(CLK_LOCAL_MEM_FENCE);
+
     // Reduce using logical "and"; we require that `MAXCLAUSES` be a
     // power of two in order for the reduction to work. Actually, a
     // more efficient solution would be to round `nclauses` to the
