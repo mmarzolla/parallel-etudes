@@ -99,8 +99,8 @@ int sat( const problem_t *p)
         nsat[i] = 0;
     }
 
-    d_x = sclMallocCopy(MAXCLAUSES * sizeof(*(p->x)), p->x, CL_MEM_READ_ONLY);
-    d_nx = sclMallocCopy(MAXCLAUSES * sizeof(*(p->nx)), p->nx, CL_MEM_READ_ONLY);
+    d_x = sclMallocCopy(MAXCLAUSES * sizeof(*(p->x)), (void*)(p->x), CL_MEM_READ_ONLY);
+    d_nx = sclMallocCopy(MAXCLAUSES * sizeof(*(p->nx)), (void*)(p->nx), CL_MEM_READ_ONLY);
     d_nsat = sclMallocCopy(NSAT_SIZE, nsat, CL_MEM_READ_WRITE);
 
     for (cur_value=0; cur_value<=MAX_VALUE; cur_value += GRID_SIZE) {
