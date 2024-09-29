@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * omp-sat.c - Brute-force SAT solver
+ * mpi-sat.c - Brute-force SAT solver
  *
  * Copyright (C) 2018, 2023, 2024 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
@@ -80,15 +80,15 @@ true.
 
 To compile:
 
-        gcc -fopenmp -Wall -Wpedantic omp-sat.c -o omp-sat
+        mpicc -Wall -Wpedantic mpi-sat.c -o mpi-sat
 
 To execute:
 
-        ./omp-sat < queens-05.cnf
+        mpirun -n 4 ./mpi-sat < queens-05.cnf
 
 ## Files
 
-- [omp-sat.c](omp-sat.c)
+- [mpi-sat.c](mpi-sat.c)
 - Some input files: <queens-05.cnf>, <uf20-01.cnf>, <uf20-077.cnf>
 ***/
 
@@ -98,7 +98,7 @@ To execute:
 #include <string.h>
 #include <stdint.h>
 #include <assert.h>
-#include <omp.h>
+#include <mpi.h>
 
 /* MAXLITERALS must be at most (bit width of int) - 2 */
 #define MAXLITERALS 30
@@ -110,6 +110,8 @@ typedef struct {
     int nlit;
     int nclauses;
 } problem_t;
+
+int my_rank, comm_sz;
 
 int max(int a, int b)
 {
@@ -144,13 +146,22 @@ int sat( const problem_t *p)
 {
     const int NLIT = p->nlit;
     const int MAX_VALUE = (1 << NLIT) - 1;
-    int cur_value;
-    int nsat = 0;
+    const int my_start = ((MAX_VALUE+1)*my_rank) / comm_sz;
+    const int my_end = ((MAX_VALUE+1)*(my_rank+1)) / comm_sz;
 
-#pragma omp parallel for default(none) private(cur_value) shared(p, MAX_VALUE) reduction(+:nsat)
-    for (cur_value=0; cur_value<=MAX_VALUE; cur_value++) {
-        nsat += eval(p, cur_value);
+    int my_nsat = 0, nsat;
+
+    for (int cur_value=my_start; cur_value < my_end; cur_value++) {
+        my_nsat += eval(p, cur_value);
     }
+
+    MPI_Reduce(&my_nsat,        // sendbuf
+               &nsat,           // recvbuf
+               1,               // count
+               MPI_INT,         // datatype
+               MPI_SUM,         // op
+               0,               // root
+               MPI_COMM_WORLD);
     return nsat;
 }
 
@@ -245,15 +256,52 @@ int main( int argc, char *argv[] )
     assert(MAXLITERALS <= 8*sizeof(int)-1);
     assert((MAXCLAUSES & (MAXCLAUSES-1)) == 0); /* "bit hack" to check whether MAXCLAUSES is a power of two */
 
-    if (argc != 1) {
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
+
+    if (argc != 1 && my_rank == 0) {
         fprintf(stderr, "Usage: %s < input\n", argv[0]);
-        return EXIT_FAILURE;
+        MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
     }
-    load_dimacs(stdin, &p);
-    pretty_print(&p);
-    const double tstart = omp_get_wtime();
+
+    if (my_rank == 0) {
+        load_dimacs(stdin, &p);
+        pretty_print(&p);
+    }
+
+    MPI_Bcast(&p.x,             // buffer
+              MAXCLAUSES,       // count
+              MPI_INT,          // datatype
+              0,                // root
+              MPI_COMM_WORLD);
+
+    MPI_Bcast(&p.nx,            // buffer
+              MAXCLAUSES,       // count
+              MPI_INT,          // datatype
+              0,                // root
+              MPI_COMM_WORLD);
+
+    MPI_Bcast(&p.nlit,          // buffer
+              1,                // count
+              MPI_INT,          // datatype
+              0,                // root
+              MPI_COMM_WORLD);
+
+    MPI_Bcast(&p.nclauses,      // buffer
+              1,                // count
+              MPI_INT,          // datatype
+              0,                // root
+              MPI_COMM_WORLD);
+
+    const double tstart = MPI_Wtime();
     int nsolutions = sat(&p);
-    const double elapsed = omp_get_wtime() - tstart;
-    printf("%d solutions in %f seconds\n", nsolutions, elapsed);
+    const double elapsed = MPI_Wtime() - tstart;
+
+    if (my_rank == 0)
+        printf("%d solutions in %f seconds\n", nsolutions, elapsed);
+
+    MPI_Finalize();
+
     return EXIT_SUCCESS;
 }

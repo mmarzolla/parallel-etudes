@@ -71,7 +71,7 @@ Table 1: List of exercises
 | Knapsack problem            | X      |     | X    | X      | Non-uniform 1D stencil                             |
 | Edge detection              | X      |     | X    | X      | 2D Stencil                                         |
 | Gaussian elimination        | X      |     |      |        | Reduction                                          |
-| SAT solver                  | X      |     |      | X      | Embarrassingly parallel                            |
+| SAT solver                  | X      | X   |      | X      | Embarrassingly parallel, Reduction                 |
 | Single-Source Shortest Path | X      |     |      |        | Reduction                                          |
 | All-Pairs Shortest Paths    | X      |     |      |        | Embarrassingly parallel                            |
 
