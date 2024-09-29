@@ -85,19 +85,19 @@ void print_binary(int v)
  * bit, which is not used). Returns the value of the boolean
  * expression encoded by `p`.
  */
-bool eval(const problem_t* p, int v)
+bool eval(const problem_t* p, const int v)
 {
     /* In the CNF format, literals are indexed from 1; therefore, the
        bit mask must be shifted left one position. */
-    v = v << 1;
+    const int v1 = v << 1;
     for (int c=0; c < p->nclauses; c++) {
         bool term = false;
         for (int l=0; p->lit[c][l]; l++) {
             const int x = p->lit[c][l];
             if (x > 0) {
-                term |= ((v & (1 << x)) != 0);
+                term |= ((v1 & (1 << x)) != 0);
             } else {
-                term |= !((v & (1 << -x)) != 0);
+                term |= !((v1 & (1 << -x)) != 0);
             }
         }
         if ( false == term ) { return false; }

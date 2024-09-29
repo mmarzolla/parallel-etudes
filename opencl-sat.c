@@ -73,12 +73,13 @@ int abs(int x)
 }
 
 /**
- * OpenCL implementation of a brute-force SAT solver. This
- * implementation uses 1D workgroup of 1D work-items. Each work-item
- * has `nclauses` threads and evaluates a clause. Multiple work-items
- * evaluate multiple clauses in parallel. We can not launch `nclauses`
- * work-items, since that might exceed hardware limits. Therefore,
- * multiple kernel launches are required in the "for" loop below.
+ * OpenCL implementation of a brute-force SAT solver. It uses 1D
+ * workgroup of 1D work-items; each work-item has `nclauses` threads
+ * and evaluates a clause. Different work-items evaluate different
+ * clauses in parallel. We can not launch `MAX_VALUE` work-items (one
+ * for each possible bitmap), since that might exceed hardware
+ * limits. Therefore, multiple kernel launches are required in the
+ * "for" loop below.
  */
 int sat( const problem_t *p)
 {
@@ -86,7 +87,7 @@ int sat( const problem_t *p)
     const int NCLAUSES = p->nclauses;
     const int MAX_VALUE = (1 << NLIT) - 1;
     const sclDim BLOCK = DIM1(NCLAUSES);
-    const int GRID_SIZE = 1 << 18;
+    const int GRID_SIZE = 1 << 18; /* you might need to change this depending on your hardware */
     const sclDim GRID = DIM1(GRID_SIZE * NCLAUSES);
     const int NSAT_SIZE = sizeof(int) * GRID_SIZE;
 
@@ -97,6 +98,7 @@ int sat( const problem_t *p)
     for (int i=0; i<GRID_SIZE; i++) {
         nsat[i] = 0;
     }
+
     d_lit = sclMallocCopy(MAXLITERALS * MAXCLAUSES * sizeof(int), (void*)(p->lit), CL_MEM_READ_ONLY);
     d_nsat = sclMallocCopy(NSAT_SIZE, nsat, CL_MEM_READ_WRITE);
 

@@ -29,18 +29,22 @@ eval_kernel(__global const int lit[MAXCLAUSES][MAXLITERALS],
             int v,
             __global int *nsat)
 {
-    __local bool term[MAXCLAUSES];
+    __local bool exp; // Value of the expression handled by this work-item
     const int lindex = get_local_id(0);
     const int gindex = get_group_id(0);
     const int c = lindex;
     const int MAX_VALUE = (1 << nlit) - 1;
+    bool term = false;
 
     v += gindex;
 
     if (v > MAX_VALUE || c >= nclauses)
         return;
 
-    term[c] = false;
+    if (c == 0)
+        exp = true;
+
+    barrier(CLK_LOCAL_MEM_FENCE);
 
     /* In the CNF format, literals are indexed from 1; therefore, the
        bit mask must be shifted left one position. */
@@ -48,25 +52,18 @@ eval_kernel(__global const int lit[MAXCLAUSES][MAXLITERALS],
     for (int l=0; lit[c][l]; l++) {
         int x = lit[c][l];
         if (x > 0) {
-            term[c] |= ((v & (1 << x)) != 0);
+            term |= ((v & (1 << x)) != 0);
         } else {
-            term[c] |= !((v & (1 << (-x))) != 0);
+            term |= !((v & (1 << (-x))) != 0);
         }
     }
+
+    /* If one term is false, the whole expression is false. */
+    if (! term)
+        exp = false;
 
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    // Reduce using logical "and"; we require that `MAXCLAUSES` be a
-    // power of two in order for the reduction to work. Actually, a
-    // more efficient solution would be to round `nclauses` to the
-    // next power of two.
-    for (int bsize = MAXCLAUSES / 2; bsize > 0; bsize /= 2) {
-        if ( c + bsize < nclauses ) {
-            term[c] &= term[c + bsize];
-        }
-        barrier(CLK_LOCAL_MEM_FENCE);
-    }
-
     if (c == 0)
-        nsat[gindex] += term[0];
+        nsat[gindex] += exp;
 }
