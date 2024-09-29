@@ -6,7 +6,7 @@
  *
  * Copyright (C) 2011 Oscar Amoros Huguet, Cristian Garcia Marin
  * Copyright (C) 2013 Camil Demetrescu
- * Copyright (C) 2021, 2023 Moreno Marzolla
+ * Copyright (C) 2021, 2023, 2024 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,10 +33,10 @@
 /***
 % `simpleCL`: A Simple C Wrapper for OpenCL
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-01-21
+% Last modified: 2024-09-29
 
 `simpleCL` is a C wrapper for OpenCL. Its goal is to make OpenCL
-programming less tedious, by hiding most of the burden associated with
+programming less tedious by hiding most of the burden associated with
 the myriad of low-level calls that are necessary to setup the device,
 create the kernels and run them.
 
@@ -59,33 +59,33 @@ simplify such conversion.
 `simpleCL` has some drawbacks that make it unsuitable for
 general-purpose OpenCL programming:
 
-- It exposes a limited ad constrained subset of OpenCL capabilities,
-  namely, those that are relevant for the HPC course mentioned above;
+- It exposes a limited subset of OpenCL capabilities, namely, those
+  that are relevant for the HPC course mentioned above;
 
-- `simpleCL` performs extensive error checking in order to facilitate
-  debugging. No provision has been made to make these checks optional
-  (e.g., with a comple-time or run-time flag), so applications relying
-  on `simpleCL` should expect some level of performance degradation.
+- It performs extensive error checking to facilitate debugging. No
+  provision has been made to make these checks optional (e.g., with a
+  comple-time or run-time flag), so applications relying on `simpleCL`
+  should expect some level of performance degradation.
 
 # General overview
 
-The five basic steps for OpenCL programming with `simpleCL` are:
+The basic steps for OpenCL programming with `simpleCL` are:
 
-1. Initialize an OpenCL-capable device and load a program
+1. Initialize an OpenCL device and load a program.
 
-2. Allocate memory on the device
+2. Allocate memory on the device.
 
-3. Copy input from host to device, if necessary
+3. Copy input from host to device, if necessary.
 
-4. Launch a kernel
+4. Launch a kernel.
 
-5. Copy results from device to host
+5. Copy results from device to host.
 
-6. Free memory on the device
+6. Free memory on the device.
 
-7. Terminate OpenCL
+7. Terminate OpenCL.
 
-Steps 2--6 can be repeated as necessary.
+Steps 2--6 can be repeated as many times as necessary.
 
  ***/
 
@@ -388,26 +388,27 @@ const char *sclGetErrorString( cl_int err )
 
 # Initialization
 
-Before using any of the functions provided by the `simpleCL`
-interface, it is necessary to initialize an OpenCL capable device and
-loading a program on the device. This can be done using either `void
-sclInitFromString(const char *source)` or `void sclInitFromFile(const
-char *filename)`.
+Before using any of the functions provided by `simpleCL`, it is
+necessary to initialize an OpenCL device and load a program on the
+device. This can be done using either `void sclInitFromString(const
+char *source)` or `void sclInitFromFile(const char *filename)`.
 
-Device selection works as follows:
+Since multiple OpenCL devices may be available at the same time,
+it is possible to select which one to use in the following ways:
 
 - If the environment variable `SCL_DEFAULT_DEVICE` is set, its value
-  is used as the index of the default device. OpenCL devices are
-  enumerated in the order they are reported by the lower-level OpenCL
-  calls, starting from device 0.
+  is the numerical index of the device to use. OpenCL devices are
+  enumerated in the order reported by the lower-level OpenCL calls,
+  starting from device 0.
 
-- Otherwise, if the environment variable `SCL_DEFAULT_DEVICE` is not
-  set or is set to an invalid value, the first OpenCL device that is
-  enumerated by the low-level OpenCL calls is the default device.
+- If the environment variable `SCL_DEFAULT_DEVICE` is not set or is
+  set to an invalid value, the first OpenCL device enumerated by the
+  low-level OpenCL calls is used.
 
-For debugging purposes, the list of devices found and some additional
-information is printed to stderr.  These messages can be suppressed by
-setting the environment variable `SCL_NDEBUG` to any value.
+For debugging purposes, the list of available devices and some
+additional information is printed to stderr by this function.  These
+messages can be suppressed by setting the environment variable
+`SCL_NDEBUG` to any value.
 
 After initialization, the following symbols are defined for both host
 and device code:
@@ -426,9 +427,10 @@ hardware. The other values are the size of 1D, 2D and 3D workgroups.
 Initialize the default OpenCL device and loads the program whose
 source code is in the string `source`.
 
-This function may be called at most once.
+This function may be called at most once; typically it is called at
+the beginning of the main program.
 
- ***/
+***/
 void sclInitFromString( const char *source )
 {
     cl_uint nPlatforms = 0;
@@ -522,10 +524,11 @@ void sclInitFromString( const char *source )
 
 ## `void sclInitFromFile( const char *filename )`
 
-Initialize the default OpenCL device and loads the program whose
+Initialize the default OpenCL device and load the program whose
 source code is in file `filename`.
 
-This function may be called at most once.
+This function may be called at most once; typically it is called at
+the beginning of the main program.
 
 ***/
 void sclInitFromFile( const char *filename )
@@ -553,7 +556,7 @@ void sclInitFromFile( const char *filename )
 
 ## `void sclFinalize(void)`
 
-Waits for all pending operations on the device to complete, and clean
+Wait for all pending operations on the device to complete, and clean
 up the environment. After this function is called, no more OpenCL
 commands can be issued.
 
@@ -591,22 +594,21 @@ void sclFinalize( void )
 
 ## `cl_mem sclMalloc(size_t size, cl_int mode)
 
-The function 'sclMalloc()` allocates `size` bytes on the current
-device and returns the associated memory object. `mode` is a bitmask
-that is used to specify the type of memory that must be allocated;
-The supported values are:
+Allocate `size` bytes on the current device and return the associated
+memory object. `mode` specifies the type of memory that must be
+allocated; the supported values are:
 
 - `CL_MEM_READ_WRITE`: the memory block will be read and written by
   kernels; this is probably the case in most situations.
 
 - `CL_MEM_READ_ONLY`: the memory block will be read but not written by
-  kernels (it can be written by the host, anyway).
+  kernels (it can be written by the host, however).
 
 - `CL_MEM_WRITE_ONLY`: the memory block will be written but not read
   by kernels (read attempts from kernel code will produce undefined
   behavior).
 
- ***/
+***/
 cl_mem sclMalloc( size_t size, cl_int mode )
 {
     sclCheckDeviceInitialized();
@@ -624,14 +626,13 @@ cl_mem sclMalloc( size_t size, cl_int mode )
 
 ## `cl_mem sclMallocCopy(size_t size, void *hostPointer, cl_int mode)`
 
-The function `sclMallocCopy() allocates a block of `size` bytes on the
-device, and initializes it with the content of host memory starting
-from the address `hostPointer`. See `sclMalloc()` for the meaning of
-`mode`.
+Allocate a block of `size` bytes on the device, and initialize it with
+the content of host memory starting from the address
+`hostPointer`. See `sclMalloc()` for the meaning of `mode`.
 
 This function is locally equivalent to `sclMalloc()` followed by
-`sclMemcpyHostToDevice()`; however, it might be more efficient to use
-`sclMallocCopy()`, depending on the device.
+`sclMemcpyHostToDevice()`; however, it might be more efficient,
+depending on the device.
 
 ***/
 cl_mem sclMallocCopy( size_t size, void* hostPointer, cl_int mode )
@@ -657,10 +658,10 @@ offset `origin`. Access modes of the sub-buffer (`CL_MEM_READ_ONLY`,
 of `buffer`.
 
 Sub-buffers can be useful in cases when only a portion of a memory
-region has to be transferred from host to device (or the other way
-around).
+region has to be transferred from host to device or from device to
+host.
 
- ***/
+***/
 cl_mem sclCreateSubBuffer(cl_mem buffer, size_t origin, size_t size)
 {
     struct _cl_buffer_region {
@@ -678,10 +679,10 @@ cl_mem sclCreateSubBuffer(cl_mem buffer, size_t origin, size_t size)
 
 ## `void sclFree(cl_mem buf)`
 
-Frees the memory buffer `buf` that was previously allocated with
+Reliquish the memory buffer `buf` that was previously allocated with
 `sclMalloc()` or `sclMallocCopy()`.
 
- ***/
+***/
 void sclFree( cl_mem buf )
 {
     sclCheckDeviceInitialized();
@@ -694,14 +695,14 @@ void sclFree( cl_mem buf )
 
 ## `void sclMemcpyHostToDevice(cl_mem dest, const void *src, size_t size)`
 
-Copies `size` bytes from host memory starting at address `src` to
-device memory referred to by `dest`. The copy operation is
-asynchronous: this function terminates as soon as the data transfer
-command has been queued for execution, but the actual copy might take
-place later on. However, it is safe to modify the content of the host
-memory block `src` as soon as this function returns.
+Copy `size` bytes from host memory starting at address `src` to device
+memory referred to by `dest`. This function operates asynchronously:
+it terminates as soon as the data transfer command has been queued for
+execution, but the actual copy might take place later. However, it is
+safe to modify the content of the host memory block `src` as soon as
+this function returns.
 
- ***/
+***/
 void sclMemcpyHostToDevice( cl_mem dest, const void *src, size_t size )
 {
     sclCheckDeviceInitialized();
@@ -714,11 +715,11 @@ void sclMemcpyHostToDevice( cl_mem dest, const void *src, size_t size )
 
 ## `void sclMemcpyDeviceToHost(void *dest, cl_mem src, size_t size)`
 
-Copies `size` bytes from the device memory buffer `src` to host memory
-starting at address `dest`. Upon return, the destination buffer is
-guaranteed to contain the data.
+Copy `size` bytes from the device memory buffer `src` to host memory
+starting at address `dest`. This function operates synchronously: on
+return, the destination buffer is guaranteed to contain the data.
 
- ***/
+***/
 void sclMemcpyDeviceToHost( void *dest, const cl_mem src, size_t size )
 {
     sclCheckDeviceInitialized();
@@ -731,11 +732,12 @@ void sclMemcpyDeviceToHost( void *dest, const cl_mem src, size_t size )
 
 ## `void sclMemcpyDeviceToHostOffset(void *dest, cl_mem src, size_t offset, size_t size)`
 
-Copies `size` bytes from `offset` bytes from the beginning of device
-memory buffer `src` to host memory starting at address `dest`. Upon
-return, the destination buffer is guaranteed to contain the data.
+Copy `size` bytes from `offset` bytes from the beginning of device
+memory buffer `src` to host memory starting at address `dest`. This
+function operates synchronously: on return, the destination buffer is
+guaranteed to contain the data.
 
- ***/
+***/
 void sclMemcpyDeviceToHostOffset( void *dest, const cl_mem src, size_t offset, size_t size )
 {
     sclCheckDeviceInitialized();
@@ -748,7 +750,7 @@ void sclMemcpyDeviceToHostOffset( void *dest, const cl_mem src, size_t offset, s
 
 ## `void sclMemset(cl_mem dest, int val, size_t size)`
 
-Fills the device memory buffer `dest` of size `size` with bytes
+Fill the device memory buffer `dest` of size `size` with bytes
 containing the value `val`. `val` is converted to `unsigned char`
 before being written, as the standard C function `memset()` does.
 
@@ -797,9 +799,9 @@ void sclMemset( cl_mem dest, int val, size_t size )
 
 # Kernel management
 
+The `sclDim` datatype is used to represent 1D, 2D or 3D work-groups.
 
-
- ***/
+***/
 sclDim DIM0(void)
 {
     sclDim result;
@@ -812,7 +814,7 @@ sclDim DIM0(void)
 
 ## `sclDim DIM1(size_t x)`
 
-Returns a new `sclDim` object representing a 1D block of size `x`.
+Return a new `sclDim` object representing a 1D block of size `x`.
 
  ***/
 sclDim DIM1(size_t x)
@@ -828,10 +830,10 @@ sclDim DIM1(size_t x)
 
 ## `sclDim DIM2(size_t x, size_t y)`
 
-Returns a new `sclDim` object representing a 2D block of size `x`
-by `y`.
+Return a new `sclDim` object representing a 2D block of size `x` by
+`y`.
 
- ***/
+***/
 sclDim DIM2(size_t x, size_t y)
 {
     sclDim result;
@@ -846,10 +848,10 @@ sclDim DIM2(size_t x, size_t y)
 
 ## `sclDim DIM3(size_t x, size_t y, size_t z)`
 
-Returns a new `sclDim` object representing a 3D block of size `x`
+Return a new `sclDim` object representing a 3D block of size `x`
 by `y` by `z`.
 
- ***/
+***/
 sclDim DIM3(size_t x, size_t y, size_t z)
 {
     sclDim result;
@@ -1024,13 +1026,13 @@ void sclSetArgsLaunchKernel( sclKernel kernel,
 
 ### Parameters
 
-- `kernel`: kernel to execute, created by `sclCreateKernel()`
+- `kernel`: kernel to execute, created by `sclCreateKernel()`.
 
-- `global_work_size`: problem size
+- `global_work_size`: problem size.
 
-- `local_work_size`: workgroup size
+- `local_work_size`: workgroup size.
 
-- `fmt`: format string for the parameters (see below)
+- `fmt`: format string for the parameters (see below).
 
 ### Synopsis
 
@@ -1073,9 +1075,7 @@ compatible with `local_work_size` set to `DIM3(64, 32, 1)`, but is
 _not_ compatible with `local_work_size` set to `DIM3(112, 128, 3)`
 since 128 is not an integer multiple of 112.
 
-### Example
-
- ***/
+***/
 void sclSetArgsLaunchKernel( sclKernel kernel,
                              const sclDim global_work_size,
                              const sclDim local_work_size,
@@ -1160,6 +1160,10 @@ void sclPrintHardwareStatus( void )
 
 /***
 
+```C
+cl_int sclDeviceSynchronize( void )
+```
+
 Wait for completion of all pending commands.
 
  ***/
@@ -1174,6 +1178,10 @@ cl_int sclDeviceSynchronize( void )
 
 /***
 
+```C
+size_t sclRoundUp(size_t s, size_t m)
+```
+
 Return the lowest integer multiple of `m` that is greater than or
 equal to `s`. For example, if `s=13, m=5` this function returns `15`,
 which is the lowest multiple of `5` that is greater than or equal to
@@ -1184,7 +1192,7 @@ The function is useful when computing the size of a global grid as the
 lowest multiple of the default local dimensions that has enough items
 as the input.
 
- ***/
+***/
 size_t sclRoundUp(size_t s, size_t m)
 {
     return ((s+m-1)/m)*m;

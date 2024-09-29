@@ -35,7 +35,6 @@ eval_kernel(__global const int *x,
     const int gindex = get_group_id(0);
     const int c = lindex;
     const int MAX_VALUE = (1 << nlit) - 1;
-    bool term = false;
 
     v += gindex;
 
@@ -47,7 +46,7 @@ eval_kernel(__global const int *x,
 
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    term = (v & x[c]) | (~v & nx[c]);
+    const bool term = (v & x[c]) | (~v & nx[c]);
 
     /* If one term is false, the whole expression is false. */
     if (! term)

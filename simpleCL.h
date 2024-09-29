@@ -177,12 +177,16 @@ void sclReleaseKernel( sclKernel soft );
  *
  * Parameters:
  *
- * `kernel` the kernel to launch; must have been created with `sclCreateKernel()`
- * `global_work_size`
- * `local_work_size`
+ * `kernel` the kernel to launch; must have been created with `sclCreateKernel()`.
+ * `global_work_size` the global size.
+ * `local_work_size` the local size.
  */
 void sclLaunchKernel( sclKernel kernel, const sclDim global_work_size, const sclDim local_work_size );
 
+/**
+ * Enqueue a kernel and returns immediately; the kernel might be
+ * executed at a later time.
+ */
 void sclEnqueueKernel( sclKernel kernel, const sclDim global_work_size, const sclDim local_work_size );
 
 void sclSetArgsLaunchKernel( sclKernel kernel, const sclDim global_work_size, const sclDim local_work_size, const char* fmt, ... );
@@ -207,8 +211,23 @@ void sclPrintHardwareStatus( void );
 
 const char *sclGetErrorString( cl_int err );
 
+/**
+ * Return the smallest multiple of `m` that is greater than or equal
+ * to `s`.
+ */
 size_t sclRoundUp(size_t s, size_t m);
 
+/**
+ * The following functions simplify the computation of the optimal
+ * block and grid dimensions to cover a domain of given size.  The
+ * domain can be 1D (`sclWGSetup1D()`), 2D (`sclWGSetup2D()`) or 3D
+ * (`sclWgSetup3D()`).
+ *
+ * Specifically, given a domain of length `xsize`, the call
+ * `sclWGSetup1D(xsize, grid, block)` sets `grid` and `block` to a
+ * suitable size so that at least `xsize` work-items are created (they
+ * could be more).
+ */
 void sclWGSetup1D(size_t xsize, sclDim *grid, sclDim *block);
 
 void sclWGSetup2D(size_t xsize, size_t ysize, sclDim *grid, sclDim *block);
