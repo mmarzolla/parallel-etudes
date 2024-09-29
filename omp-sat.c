@@ -254,7 +254,6 @@ void load_dimacs( FILE *f, problem_t *p )
 int main( int argc, char *argv[] )
 {
     problem_t p;
-    FILE *f;
 
     assert(MAXLITERALS <= 8*sizeof(int)-1);
     assert((MAXCLAUSES & (MAXCLAUSES-1)) == 0); /* "bit hack" to check whether MAXCLAUSES is a power of two */
