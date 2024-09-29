@@ -60,7 +60,9 @@ typedef struct {
     int nclauses;
 } problem_t;
 
+#ifndef SERIAL
 sclKernel eval_kernel;
+#endif
 
 int max(int a, int b)
 {
@@ -72,14 +74,46 @@ int abs(int x)
     return (x>=0 ? x : -x);
 }
 
+#ifdef SERIAL
+/**
+ * Evaluate problem `p` in conjunctive normal form by setting the i-th
+ * variable to the value of bit (i+1) of `v` (bit 0 is the leftmost
+ * bit, which is not used). Returns the value of the boolean
+ * expression encoded by `p`.
+ */
+bool eval(const problem_t* p, const int v)
+{
+    bool result = true;
+    for (int c=0; c < p->nclauses && result; c++) {
+        const bool term = (v & p->x[c]) | (~v & p->nx[c]);
+        result &= term;
+    }
+    return result;
+}
+
+/**
+ * Returns the number of solutions to the SAT problem `p`.
+ */
+int sat( const problem_t *p)
+{
+    const int NLIT = p->nlit;
+    const int MAX_VALUE = (1 << NLIT) - 1;
+    int nsat = 0;
+
+    for (int cur_value=0; cur_value<=MAX_VALUE; cur_value++) {
+        nsat += eval(p, cur_value);
+    }
+    return nsat;
+}
+#else
 /**
  * OpenCL implementation of a brute-force SAT solver. It uses 1D
- * workgroup of 1D work-items; each work-item has `nclauses` threads
- * and evaluates a clause. Different work-items evaluate different
- * clauses in parallel. We can not launch `MAX_VALUE` work-items (one
- * for each possible bitmap), since that might exceed hardware
- * limits. Therefore, multiple kernel launches are required in the
- * "for" loop below.
+ * workgroup of 1D work-items; each workgroup has `p->nclauses`
+ * work-items and evaluates a clause. Different work-items evaluate
+ * different clauses in parallel. We can not launch `MAX_VALUE`
+ * work-items (one for each possible combination of assignments),
+ * since that might exceed hardware limits. Therefore, multiple kernel
+ * launches are required in the "for" loop below.
  */
 int sat( const problem_t *p)
 {
@@ -93,7 +127,6 @@ int sat( const problem_t *p)
 
     int *nsat = (int*)malloc(NSAT_SIZE); assert(nsat);
     cl_mem d_nsat, d_x, d_nx;
-    int cur_value;
 
     for (int i=0; i<GRID_SIZE; i++) {
         nsat[i] = 0;
@@ -103,7 +136,7 @@ int sat( const problem_t *p)
     d_nx = sclMallocCopy(MAXCLAUSES * sizeof(*(p->nx)), (void*)(p->nx), CL_MEM_READ_ONLY);
     d_nsat = sclMallocCopy(NSAT_SIZE, nsat, CL_MEM_READ_WRITE);
 
-    for (cur_value=0; cur_value<=MAX_VALUE; cur_value += GRID_SIZE) {
+    for (int cur_value=0; cur_value<=MAX_VALUE; cur_value += GRID_SIZE) {
         sclSetArgsEnqueueKernel(eval_kernel,
                                 GRID, BLOCK,
                                 ":b :b :d :d :d :b",
@@ -126,9 +159,10 @@ int sat( const problem_t *p)
     sclFree(d_nx);
     return result;
 }
+#endif
 
 /**
- * Pretty-prints problem |p|
+ * Pretty-prints problem `p`
  */
 void pretty_print( const problem_t *p )
 {
@@ -222,9 +256,11 @@ int main( int argc, char *argv[] )
         fprintf(stderr, "Usage: %s < input\n", argv[0]);
         return EXIT_FAILURE;
     }
+#ifndef SERIAL
 
     sclInitFromFile("opencl-sat.cl");
     eval_kernel = sclCreateKernel("eval_kernel");
+#endif
 
     load_dimacs(stdin, &p);
     pretty_print(&p);

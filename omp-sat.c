@@ -144,11 +144,12 @@ int sat( const problem_t *p)
 {
     const int NLIT = p->nlit;
     const int MAX_VALUE = (1 << NLIT) - 1;
-    int cur_value;
     int nsat = 0;
 
-#pragma omp parallel for default(none) private(cur_value) shared(p, MAX_VALUE) reduction(+:nsat)
-    for (cur_value=0; cur_value<=MAX_VALUE; cur_value++) {
+#ifndef SERIAL
+#pragma omp parallel for default(none) shared(p, MAX_VALUE) reduction(+:nsat)
+#endif
+    for (int cur_value=0; cur_value<=MAX_VALUE; cur_value++) {
         nsat += eval(p, cur_value);
     }
     return nsat;
