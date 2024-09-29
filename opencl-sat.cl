@@ -23,7 +23,8 @@
 #define MAXCLAUSES 512
 
 __kernel void
-eval_kernel(__global const int lit[MAXCLAUSES][MAXLITERALS],
+eval_kernel(__global const int *x,
+            __global const int *nx,
             int nlit,
             int nclauses,
             int v,
@@ -46,17 +47,7 @@ eval_kernel(__global const int lit[MAXCLAUSES][MAXLITERALS],
 
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    /* In the CNF format, literals are indexed from 1; therefore, the
-       bit mask must be shifted left one position. */
-    v = v << 1;
-    for (int l=0; lit[c][l]; l++) {
-        int x = lit[c][l];
-        if (x > 0) {
-            term |= ((v & (1 << x)) != 0);
-        } else {
-            term |= !((v & (1 << (-x))) != 0);
-        }
-    }
+    term = (v & x[c]) | (~v & nx[c]);
 
     /* If one term is false, the whole expression is false. */
     if (! term)

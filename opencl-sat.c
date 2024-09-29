@@ -21,7 +21,7 @@
 /***
 % HPC - Brute-force SAT solver
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2024-09-28
+% Last modified: 2024-09-29
 
 To compile:
 
@@ -55,7 +55,7 @@ To execute:
 #define MAXCLAUSES 512
 
 typedef struct {
-    int lit[MAXCLAUSES][MAXLITERALS];
+    int x[MAXCLAUSES], nx[MAXCLAUSES];
     int nlit;
     int nclauses;
 } problem_t;
@@ -92,21 +92,23 @@ int sat( const problem_t *p)
     const int NSAT_SIZE = sizeof(int) * GRID_SIZE;
 
     int *nsat = (int*)malloc(NSAT_SIZE); assert(nsat);
-    cl_mem d_nsat, d_lit;
+    cl_mem d_nsat, d_x, d_nx;
     int cur_value;
 
     for (int i=0; i<GRID_SIZE; i++) {
         nsat[i] = 0;
     }
 
-    d_lit = sclMallocCopy(MAXLITERALS * MAXCLAUSES * sizeof(int), (void*)(p->lit), CL_MEM_READ_ONLY);
+    d_x = sclMallocCopy(MAXCLAUSES * sizeof(*(p->x)), p->x, CL_MEM_READ_ONLY);
+    d_nx = sclMallocCopy(MAXCLAUSES * sizeof(*(p->nx)), p->nx, CL_MEM_READ_ONLY);
     d_nsat = sclMallocCopy(NSAT_SIZE, nsat, CL_MEM_READ_WRITE);
 
     for (cur_value=0; cur_value<=MAX_VALUE; cur_value += GRID_SIZE) {
         sclSetArgsEnqueueKernel(eval_kernel,
                                 GRID, BLOCK,
-                                ":b :d :d :d :b",
-                                d_lit,
+                                ":b :b :d :d :d :b",
+                                d_x,
+                                d_nx,
                                 p->nlit,
                                 p->nclauses,
                                 cur_value,
@@ -120,7 +122,8 @@ int sat( const problem_t *p)
 
     free(nsat);
     sclFree(d_nsat);
-    sclFree(d_lit);
+    sclFree(d_x);
+    sclFree(d_nx);
     return result;
 }
 
@@ -129,21 +132,23 @@ int sat( const problem_t *p)
  */
 void pretty_print( const problem_t *p )
 {
-    int c, l;
-    for (c=0; (c < MAXCLAUSES) && p->lit[c][0]; c++) {
+    for (int c=0; c < p->nclauses; c++) {
         printf("( ");
-        for (l=0; (l < MAXLITERALS) && p->lit[c][l]; l++) {
-            if (p->lit[c][l] > 0 ) {
-                printf("x_%d ", p->lit[c][l]);
-            } else {
-                printf("¬x_%d ", -(p->lit[c][l]));
+        int x = p->x[c];
+        int nx = p->nx[c];
+        for (int l=0, printed=0; l < MAXLITERALS; l++) {
+            if (x & 1) {
+                printf("%sx_%d", printed ? " ∨ " : "", l);
+                printed = 1;
+            } else if (nx & 1) {
+                printf("%s¬x_%d", printed ? " ∨ " : "", l);
+                printed = 1;
             }
-            if ((l < MAXLITERALS-1) && p->lit[c][l+1] ) {
-                printf("∨ ");
-            }
+            x = x >> 1;
+            nx = nx >> 1;
         }
-        printf(")");
-        if ((c < MAXCLAUSES-1) && p->lit[c+1][0]) {
+        printf(" )");
+        if (c < p->nclauses - 1) {
             printf(" ∧");
         }
         printf("\n");
@@ -151,9 +156,9 @@ void pretty_print( const problem_t *p )
 }
 
 /**
- * Load a DIMACS CNF file |f| and initialize problem |p|.  The DIMACS
- * CNF format specification fan be found at
- * https://www.cs.ubc.ca/~hoos/SATLIB/Benchmarks/SAT/satformat.ps
+ * Load a DIMACS CNF file `f` and initialize problem `p`.  The DIMACS
+ * CNF format specification can be found at
+ * <https://www.cs.ubc.ca/~hoos/SATLIB/Benchmarks/SAT/satformat.ps>
  */
 void load_dimacs( FILE *f, problem_t *p )
 {
@@ -161,16 +166,14 @@ void load_dimacs( FILE *f, problem_t *p )
     int c, l, val;
     int prob_c, prob_l;
 
-    /* Set all literals to false */
+    /* Clear all bitmasks */
     for (c=0; c<MAXCLAUSES; c++) {
-        for (l=0; l<MAXLITERALS; l++) {
-            p->lit[c][l] = 0;
-        }
+        p->x[c] = p->nx[c] = 0;
     }
     p->nlit = -1;
     c = l = 0;
     /* From
-       https://github.com/marijnheule/march-SAT-solver/blob/master/parser.c */
+       <https://github.com/marijnheule/march-SAT-solver/blob/master/parser.c> */
     do {
         result = fscanf(f, " p cnf %i %i \n", &prob_l, &prob_c);
         if ( result > 0 && result != EOF )
@@ -188,12 +191,18 @@ void load_dimacs( FILE *f, problem_t *p )
     }
     while (fscanf(f, "%d", &val) == 1) {
         if (val == 0) {
+            /* Check the previous clause for consistency */
+            assert( (p->x[c] & p->nx[c]) == 0 );
             /* New clause */
             l = 0;
             c++;
         } else {
             /* New literal */
-            p->lit[c][l] = val;
+            if (val > 0) {
+                p->x[c] |= (1 << (val-1));
+            } else {
+                p->nx[c] |= (1 << -(val+1));
+            }
             p->nlit = max(p->nlit, abs(val));
             l++;
         }
@@ -202,12 +211,17 @@ void load_dimacs( FILE *f, problem_t *p )
     fprintf(stderr, "DIMACS CNF files: %d clauses, %d literals\n", c, p->nlit);
 }
 
-int main( void )
+int main( int argc, char *argv[] )
 {
     problem_t p;
 
-    assert(MAXLITERALS <= 8*sizeof(int)-2);
+    assert(MAXLITERALS <= 8*sizeof(int)-1);
     assert((MAXCLAUSES & (MAXCLAUSES-1)) == 0); /* "bit hack" to check whether MAXCLAUSES is a power of two */
+
+    if (argc != 1) {
+        fprintf(stderr, "Usage: %s < input\n", argv[0]);
+        return EXIT_FAILURE;
+    }
 
     sclInitFromFile("opencl-sat.cl");
     eval_kernel = sclCreateKernel("eval_kernel");
