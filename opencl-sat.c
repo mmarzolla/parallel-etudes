@@ -104,7 +104,6 @@ int sat( const problem_t *p)
     d_nsat = sclMallocCopy(NSAT_SIZE, nsat, CL_MEM_READ_WRITE);
 
     for (cur_value=0; cur_value<=MAX_VALUE; cur_value += GRID_SIZE) {
-        printf("%d\n", cur_value);
         sclSetArgsEnqueueKernel(eval_kernel,
                                 GRID, BLOCK,
                                 ":b :b :d :d :d :b",
