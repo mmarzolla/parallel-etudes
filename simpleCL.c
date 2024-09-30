@@ -33,7 +33,7 @@
 /***
 % `simpleCL`: A Simple C Wrapper for OpenCL
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last modified: 2024-09-29
+% Last modified: 2024-09-30
 
 `simpleCL` is a C wrapper for OpenCL. Its goal is to make OpenCL
 programming less tedious by hiding most of the burden associated with
@@ -948,7 +948,7 @@ void sclSetKernelArg( sclKernel kernel, int argnum, size_t typeSize, void *argum
     sclCheckError(err, "clSetKernelArg error in sclSetKernelArg number %d for kernel %s: %s\n", argnum, kernel.kernel_name, sclGetErrorString(err));
 }
 
-static void _sclVSetKernelArgs( sclKernel kernel, const char *fmt, va_list argList )
+static void sclVSetKernelArgs( sclKernel kernel, const char *fmt, va_list argList )
 {
     int arg_count = 0;
     void* argument;
@@ -1009,7 +1009,7 @@ void sclSetKernelArgs( sclKernel kernel, const char *fmt, ... )
 {
     va_list argList;
     va_start( argList, fmt );
-    _sclVSetKernelArgs( kernel, fmt, argList );
+    sclVSetKernelArgs( kernel, fmt, argList );
     va_end( argList );
 }
 
@@ -1038,15 +1038,15 @@ void sclSetArgsLaunchKernel( sclKernel kernel,
 
 Format      Meaning
 ---------   ---------------------------------------------------
-`:b`        The corresponding parameter must be of type `cl_mem`
-            that represents a memory buffer to be passed to the kernel.
-            The corresponding kernel parameter must be of type
-            `T *` (pointer to some type `T`).
+`:b`        The corresponding parameter must be of type `cl_mem` and
+            represents a memory buffer on the device to be passed to
+            the kernel. The corresponding kernel parameter must be of
+            type `T *` (pointer to some type `T`).
 
-`:L`        The corresponding parameter must be of type `size_t`,
-            and represents the size of a local memory block that
-            is allocated and passed as a parameter of type `__local`
-            or `local` to the kernel call.
+`:L`        The corresponding parameter must be of type `size_t`, and
+            represents the size of a local memory block on device
+            memory that is allocated and passed as a parameter of type
+            `__local` or `local` to the kernel call.
 
 `:v`        The corresponding parameter must be a pair (`size_t`, `void *`),
             representing a memory block whose content is passed to the
@@ -1072,8 +1072,13 @@ corresponding number in `local_work_size`.
 
 For example, `global_work_size` set to `DIM3(128, 128, 3)` is
 compatible with `local_work_size` set to `DIM3(64, 32, 1)`, but is
-_not_ compatible with `local_work_size` set to `DIM3(112, 128, 3)`
-since 128 is not an integer multiple of 112.
+_not_ compatible with `DIM3(112, 32, 1)` since 128 is not an integer
+multiple of 112.
+
+> **NOTE**: `global_work_size` works differently than CUDA grid size;
+> in OpenCL, the `global_work_size` must be the _total_ number
+> of work items that are created, while CUDA grid size is the number
+> of CUDA blocks.
 
 ***/
 void sclSetArgsLaunchKernel( sclKernel kernel,
@@ -1083,7 +1088,7 @@ void sclSetArgsLaunchKernel( sclKernel kernel,
 {
     va_list argList;
     va_start( argList, fmt );
-    _sclVSetKernelArgs( kernel, fmt, argList );
+    sclVSetKernelArgs( kernel, fmt, argList );
     va_end( argList );
     sclLaunchKernel( kernel, global_work_size, local_work_size );
 }
@@ -1100,7 +1105,7 @@ void sclSetArgsEnqueueKernel( sclKernel kernel,
 Enqueue a kernel execution. Parameters are the same as
 `sclSetArgsLaunchKernel()`
 
-> **Note.** Enqueueing a large number of kernels in rapid succession
+> **NOTE** Enqueueing a large number of kernels in rapid succession
 > might fill up the command queue and cause an error. To prevent this,
 > `simpleCL` periodically inserts a `sclDeviceSynchronize()` command
 > after asynchronous kernel launches.
@@ -1113,7 +1118,7 @@ void sclSetArgsEnqueueKernel( sclKernel kernel,
 {
     va_list argList;
     va_start( argList, fmt );
-    _sclVSetKernelArgs( kernel, fmt, argList );
+    sclVSetKernelArgs( kernel, fmt, argList );
     va_end( argList );
     sclEnqueueKernel( kernel, global_work_size, local_work_size );
 }

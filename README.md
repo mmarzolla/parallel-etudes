@@ -263,15 +263,15 @@ Each source files is further processed to produce a skeleton that is
 provided to students during the lab sessions, and the complete
 solution that is made available afterwards. To define which portion of
 the source code goes to the skeleton or solution, it is possible to
-use the `HANDOUT` preprocessor symbol: this symbol is defined when
+use the `SERIAL` preprocessor symbol: this symbol is defined when
 compiling the skeleton, and is not defined when compiling the
-solution. 
+solution.
 
 ```C
 int foo(int x)
 {
-#ifdef HANDOUT
-   /* This block will be included in the skeleton provided
+#ifdef SERIAL
+   /* This block will be included in the serial skeleton provided
       to students. */
 #else
    /* This block will be included in the solution */
@@ -292,7 +292,7 @@ Makefile generates:
 - The source code that will be provided during the lab sessions as
   skeleton to be completed by the students, again placed into the
   `handouts/` subdirectory; all other source files (`.h` and `.cl`),
-  plus any additional data file is also copied there.
+  plus any additional data file, are also copied there.
 
 - The source code of the solution, placed into the `solutions/`
   subdirectory.
@@ -304,11 +304,11 @@ The following figure illustrates the process:
 |        | ----> | file.md | -------> | file.html  |
 |        |       +---------+          +------------+
 |        |
-|        | unifdef -DHANDOUT    +------------------+
+|        | unifdef -DSERIAL     +------------------+
 | file.c | -------------------> | handouts/file.c  |
 |        |                      +------------------+
 |        |
-|        | unifdef -UHANDOUT    +------------------+
+|        | unifdef -USERIAL     +------------------+
 |        | -------------------> | solutions/file.c |
 +--------+                      +------------------+
 ```
