@@ -57,17 +57,19 @@ typedef struct {
     int nclauses;
 } problem_t;
 
-#ifdef SERIAL
-int max(int a, int b)
+/* There appear to be clashes with built-in functions, so I am calling
+   these functions `my_max()` and `my_abs()`. */
+int my_max(int a, int b)
 {
     return (a>b ? a : b);
 }
 
-int abs(int x)
+int my_abs(int x)
 {
     return (x>=0 ? x : -x);
 }
 
+#ifdef SERIAL
 /**
  * Evaluate problem `p` in conjunctive normal form by setting the i-th
  * variable to the value of bit (i+1) of `v` (bit 0 is the leftmost
@@ -267,7 +269,7 @@ void load_dimacs( FILE *f, problem_t *p )
             } else {
                 p->nx[c] |= (1 << -(val+1));
             }
-            p->nlit = max(p->nlit, abs(val));
+            p->nlit = my_max(p->nlit, my_abs(val));
             l++;
         }
     }
