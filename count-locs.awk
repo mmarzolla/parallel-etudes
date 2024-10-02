@@ -7,7 +7,17 @@
 # cloc --by-file --csv *.c *.cl *.cu | gawk -f count-locs.awk
 #
 # Written by Moreno Marzolla
-# last updated on 2024-01-22
+# last updated on 2024-09-25
+
+# If v > 0 the returns a string where v is formatted according
+# to fmt; otherwise, returns the empty string.
+function pretty_print(fmt, v)
+{
+    if (v > 0)
+        return sprintf(fmt, v)
+    else
+        return "";
+}
 
 BEGIN {
     FS = ","
@@ -37,12 +47,18 @@ END {
     # programs by name
     PROCINFO["sorted_in"] = "@ind_str_asc";
     for (prog in progs) {
-        printf("%25s \t&\t %4d \t&\t %4d \t&\t %4d \t&\t %4d \t\\\\\n",
+        # printf("%25s \t&\t %4d \t&\t %4d \t&\t %4d \t&\t %4d \t\\\\\n",
+        #        prog,
+        #        loc[prog, "omp"],
+        #        loc[prog, "mpi"],
+        #        loc[prog, "cuda"],
+        #        loc[prog, "opencl"]);
+        printf("%25s \t&\t %4s \t&\t %4s \t&\t %4s \t&\t %4s \t\\\\\n",
                prog,
-               loc[prog, "omp"],
-               loc[prog, "mpi"],
-               loc[prog, "cuda"],
-               loc[prog, "opencl"]);
+               pretty_print("%4d", loc[prog, "omp"]),
+               pretty_print("%4d", loc[prog, "mpi"]),
+               pretty_print("%4d", loc[prog, "cuda"]),
+               pretty_print("%4d", loc[prog, "opencl"]));
     }
     printf("\\midrule\n");
     printf("%25s \t&\t %4d \t&\t %4d \t&\t %4d \t&\t %4d \t\\\\\n",

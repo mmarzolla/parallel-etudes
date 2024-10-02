@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * opencl-sat.c - Brute-force SAT solver
+ * cuda-sat.c - Brute-force SAT solver
  *
  * Copyright (C) 2018, 2023, 2024 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
@@ -21,23 +21,21 @@
 /***
 % HPC - Brute-force SAT solver
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last modified: 2024-09-29
+% Last modified: 2024-10-02
 
 To compile:
 
-        gcc -Wall -Wpedantic opencl-sat.c simpleCL.c -o opencl-sat -LOpenCL
+        cuda cuda-sat.cu -o cuda-sat
 
 To execute:
 
-        ./opencl-sat < sat.cnf
+        ./cuda-sat < sat.cnf
 
 ## Files
 
-- [opencl-sat.c](opencl-sat.c)
+- [cuda-sat.c](cuda-sat.c)
 - Some input files: <queens-05.cnf>, <uf20-01.cnf>, <uf20-077.cnf>
 ***/
-
-#define _XOPEN_SOURCE 600
 
 #include "hpc.h"
 
@@ -47,8 +45,6 @@ To execute:
 #include <string.h>
 #include <stdint.h>
 #include <assert.h>
-
-#include "simpleCL.h"
 
 /* MAXLITERALS must be at most (bit width of int) - 2 */
 #define MAXLITERALS 30
@@ -61,10 +57,7 @@ typedef struct {
     int nclauses;
 } problem_t;
 
-#ifndef SERIAL
-sclKernel eval_kernel;
-#endif
-
+#ifdef SERIAL
 int max(int a, int b)
 {
     return (a>b ? a : b);
@@ -75,7 +68,6 @@ int abs(int x)
     return (x>=0 ? x : -x);
 }
 
-#ifdef SERIAL
 /**
  * Evaluate problem `p` in conjunctive normal form by setting the i-th
  * variable to the value of bit (i+1) of `v` (bit 0 is the leftmost
@@ -107,57 +99,94 @@ int sat( const problem_t *p)
     return nsat;
 }
 #else
+__global__ void
+eval_kernel(const int *x,
+            const int *nx,
+            int nlit,
+            int nclauses,
+            int v,
+            int *nsat)
+{
+    __shared__ bool exp; // Value of the expression handled by this work-item
+    const int lindex = threadIdx.x;
+    const int gindex = blockIdx.x;
+    const int c = lindex;
+    const int MAX_VALUE = (1 << nlit) - 1;
+
+    v += gindex;
+
+    if (v > MAX_VALUE || c >= nclauses)
+        return;
+
+    if (c == 0)
+        exp = true;
+
+    __syncthreads();
+
+    const bool term = (v & x[c]) | (~v & nx[c]);
+
+    /* If one term is false, the whole expression is false. */
+    if (! term)
+        exp = false;
+
+    __syncthreads();
+
+    if (c == 0)
+        nsat[gindex] += exp;
+}
+
 /**
- * OpenCL implementation of a brute-force SAT solver. It uses 1D
- * workgroup of 1D work-items; each workgroup has `p->nclauses`
- * work-items and evaluates a clause. Different work-items evaluate
- * different clauses in parallel. We can not launch `MAX_VALUE`
- * work-items (one for each possible combination of assignments),
- * since that might exceed hardware limits. Therefore, multiple kernel
- * launches are required in the "for" loop below.
+ * CUDA implementation of a brute-force SAT solver. It uses 1D grid of
+ * 1D blocks; each block has `p->nclauses` threads and evaluates a
+ * clause. Different thrads evaluate different clauses in parallel. We
+ * can not launch `MAX_VALUE` blocks (one for each possible
+ * combination of assignments), since that might exceed hardware
+ * limits. Therefore, multiple kernel launches are required in the
+ * "for" loop below.
  */
 int sat( const problem_t *p)
 {
     const int NLIT = p->nlit;
     const int NCLAUSES = p->nclauses;
     const int MAX_VALUE = (1 << NLIT) - 1;
-    const sclDim BLOCK = DIM1(NCLAUSES);
+    const dim3 BLOCK(NCLAUSES);
     const int GRID_SIZE = 1 << 18; /* you might need to change this depending on your hardware */
-    const sclDim GRID = DIM1(GRID_SIZE * NCLAUSES);
+    const dim3 GRID(GRID_SIZE);
     const int NSAT_SIZE = sizeof(int) * GRID_SIZE;
 
     int *nsat = (int*)malloc(NSAT_SIZE); assert(nsat);
-    cl_mem d_nsat, d_x, d_nx;
+    int *d_nsat, *d_x, *d_nx;
 
     for (int i=0; i<GRID_SIZE; i++) {
         nsat[i] = 0;
     }
 
-    d_x = sclMallocCopy(MAXCLAUSES * sizeof(*(p->x)), (void*)(p->x), CL_MEM_READ_ONLY);
-    d_nx = sclMallocCopy(MAXCLAUSES * sizeof(*(p->nx)), (void*)(p->nx), CL_MEM_READ_ONLY);
-    d_nsat = sclMallocCopy(NSAT_SIZE, nsat, CL_MEM_READ_WRITE);
+    cudaSafeCall( cudaMalloc((void**)&d_x, MAXCLAUSES * sizeof(*d_x)) );
+    cudaSafeCall( cudaMemcpy(d_x, p->x, MAXCLAUSES * sizeof(*d_x), cudaMemcpyHostToDevice) );
+    cudaSafeCall( cudaMalloc((void**)&d_nx, MAXCLAUSES * sizeof(*d_nx)) );
+    cudaSafeCall( cudaMemcpy(d_nx, p->nx, MAXCLAUSES * sizeof(*d_nx), cudaMemcpyHostToDevice) );
+    cudaSafeCall( cudaMalloc((void**)&d_nsat, NSAT_SIZE) );
+    cudaSafeCall( cudaMemcpy(d_nsat, nsat, NSAT_SIZE, cudaMemcpyHostToDevice) );
 
     for (int cur_value=0; cur_value<=MAX_VALUE; cur_value += GRID_SIZE) {
-        sclSetArgsEnqueueKernel(eval_kernel,
-                                GRID, BLOCK,
-                                ":b :b :d :d :d :b",
-                                d_x,
-                                d_nx,
-                                p->nlit,
-                                p->nclauses,
-                                cur_value,
-                                d_nsat);
+        eval_kernel<<< GRID, BLOCK >>>(d_x,
+                                       d_nx,
+                                       p->nlit,
+                                       p->nclauses,
+                                       cur_value,
+                                       d_nsat);
+        cudaCheckError();
     }
-    sclMemcpyDeviceToHost(nsat, d_nsat, NSAT_SIZE);
+    cudaSafeCall( cudaMemcpy(nsat, d_nsat, NSAT_SIZE, cudaMemcpyDeviceToHost) );
 
     int result = 0;
     for (int i=0; i<GRID_SIZE; i++)
         result += nsat[i];
 
     free(nsat);
-    sclFree(d_nsat);
-    sclFree(d_x);
-    sclFree(d_nx);
+    cudaFree(d_nsat);
+    cudaFree(d_x);
+    cudaFree(d_nx);
     return result;
 }
 #endif
@@ -257,11 +286,6 @@ int main( int argc, char *argv[] )
         fprintf(stderr, "Usage: %s < input\n", argv[0]);
         return EXIT_FAILURE;
     }
-#ifndef SERIAL
-
-    sclInitFromFile("opencl-sat.cl");
-    eval_kernel = sclCreateKernel("eval_kernel");
-#endif
 
     load_dimacs(stdin, &p);
     pretty_print(&p);
@@ -269,8 +293,5 @@ int main( int argc, char *argv[] )
     int nsolutions = sat(&p);
     const double elapsed = hpc_gettime() - tstart;
     printf("%d solutions in %f seconds\n", nsolutions, elapsed);
-#ifndef SERIAL
-    sclFinalize();
-#endif
     return EXIT_SUCCESS;
 }
