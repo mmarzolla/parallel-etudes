@@ -123,7 +123,7 @@ title["rotate-right"] = "Circular rotation of an array";
 patterns["rotate-right"] = "SG, P2P";
 
 title["rule30"] = "\"Rule 30\" cellular automaton";
-patterns["rule20"] = "1D, P2P";
+patterns["rule30"] = "1D, P2P";
 
 title["sat"] = "Brute-force SAT solver";
 patterns["sat"] = "EP, RD";
