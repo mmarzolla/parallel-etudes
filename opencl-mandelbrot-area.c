@@ -89,26 +89,73 @@ policies, as well as with some different values for the chunk size.
    hpc_gettime(). It MUST be defined before including any other
    file. */
 #define _XOPEN_SOURCE 600
+#include "hpc.h"
 
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <stdint.h>
 #include "simpleCL.h"
-#include "hpc.h"
 
 /* We consider the region on the complex plane -2.25 <= Re <= 0.75
    -1.4 <= Im <= 1.5 */
 const double XMIN = -2.25, XMAX = 0.75;
-const double YMIN = -1.5, YMAX = 1.5;
+const double YMIN = -1.4, YMAX = 1.5;
+
+const int MAXIT = 10000;
+
+/**
+ * Performs the iteration z = z*z+c, until ||z|| > 2 when point is
+ * known to be outside the Mandelbrot set. Return the number of
+ * iterations until ||z|| > 2, or MAXIT.
+ */
+int iterate( float cx, float cy )
+{
+    float x = 0.0f, y = 0.0f, xnew, ynew;
+    int it;
+    for ( it = 0; (it < MAXIT) && (x*x + y*y <= 2.0f*2.0f); it++ ) {
+        xnew = x*x - y*y + cx;
+        ynew = 2.0f*x*y + cy;
+        x = xnew;
+        y = ynew;
+    }
+    return it;
+}
+
+uint32_t inside( int xsize, int ysize )
+{
+    uint32_t ninside = 0;
+#ifdef SERIAL
+    for (int i=0; i<ysize; i++) {
+        for (int j=0; j<xsize; j++) {
+            const float cx = XMIN + (XMAX-XMIN)*j/xsize;
+            const float cy = YMIN + (YMAX-YMIN)*i/ysize;
+            ninside += inside(cx, cy);
+        }
+    }
+#else
+    cl_mem d_ninside;
+    const sclDim BLOCK = DIM2(SCL_DEFAULT_WG_SIZE2D, SCL_DEFAULT_WG_SIZE2D);
+    const sclDim GRID = DIM2(sclRoundUp(xsize, SCL_DEFAULT_WG_SIZE2D),
+                             sclRoundUp(ysize, SCL_DEFAULT_WG_SIZE2D));
+    d_ninside = sclMallocCopy(sizeof(ninside), &ninside, CL_MEM_READ_WRITE);
+
+    sclKernel mandelbrot_area_kernel = sclCreateKernel("mandelbrot_area_kernel");
+    sclSetArgsEnqueueKernel(mandelbrot_area_kernel,
+                            GRID, BLOCK,
+                            ":d :d :b",
+                            xsize, ysize, d_ninside);
+    sclMemcpyDeviceToHost(&ninside, d_ninside, sizeof(ninside));
+    sclFree(d_ninside);
+#endif
+    return ninside;
+}
 
 int main( int argc, char *argv[] )
 {
-    uint32_t ninside = 0;
     int npoints = 1000;
-    cl_mem d_ninside;
-
+#ifndef SERIAL
     sclInitFromFile("opencl-mandelbrot-area.cl");
-
+#endif
     if (argc > 2) {
         fprintf(stderr, "Usage: %s [npoints]\n", argv[0]);
         return EXIT_FAILURE;
@@ -120,32 +167,19 @@ int main( int argc, char *argv[] )
 
     printf("Using a %d x %d grid\n", npoints, npoints);
 
-    sclKernel mandelbrot_area_kernel = sclCreateKernel("mandelbrot_area_kernel");
-
-    const sclDim BLOCK = DIM2(SCL_DEFAULT_WG_SIZE2D, SCL_DEFAULT_WG_SIZE2D);
-    const sclDim GRID = DIM2(sclRoundUp(npoints, SCL_DEFAULT_WG_SIZE2D),
-                             sclRoundUp(npoints, SCL_DEFAULT_WG_SIZE2D));
-    d_ninside = sclMallocCopy(sizeof(ninside), &ninside, CL_MEM_READ_WRITE);
-
     const double tstart = hpc_gettime();
-    sclSetArgsEnqueueKernel(mandelbrot_area_kernel,
-                            GRID, BLOCK,
-                            ":d :d :b",
-                            npoints, npoints, d_ninside);
-    sclDeviceSynchronize();
+    const uint32_t ninside = inside(npoints, npoints);
     const double elapsed = hpc_gettime() - tstart;
-    sclMemcpyDeviceToHost(&ninside, d_ninside, sizeof(ninside));
     printf("npoints = %d, ninside = %u\n", npoints*npoints, ninside);
 
     /* Compute area and error estimate and output the results */
-    const double area = (XMAX-XMIN)*(YMAX-YMIN)*ninside/(npoints*npoints);
-    const double error = area/npoints;
+    const float area = (XMAX-XMIN)*(YMAX-YMIN)*ninside/(npoints*npoints);
 
-    printf("Area of Mandlebrot set = %12.8f +/- %12.8f\n", area, error);
+    printf("Area of Mandlebrot set = %f\n", area);
     printf("Correct answer should be around 1.50659\n");
     printf("Elapsed time: %f\n", elapsed);
-
-    sclFree(d_ninside);
+#ifndef SERIAL
     sclFinalize();
+#endif
     return EXIT_SUCCESS;
 }

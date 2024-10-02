@@ -55,7 +55,7 @@ mandelbrot_area_kernel( int xsize,
     const int ly = get_local_id(1);
 
     const float XMIN = -2.25, XMAX = 0.75;
-    const float YMIN = -1.5, YMAX = 1.5;
+    const float YMIN = -1.4, YMAX = 1.5;
 
     __local uint32_t local_inside;
 

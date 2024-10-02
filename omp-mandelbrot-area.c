@@ -84,49 +84,67 @@ policies, as well as with some different values for the chunk size.
 
 ***/
 
+/* The following #define is required by the implementation of
+   hpc_gettime(). It MUST be defined before including any other
+   file. */
+#define _XOPEN_SOURCE 600
+#include "hpc.h"
+
 #include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 /* Higher value = slower to detect points that belong to the Mandelbrot set */
 const int MAXIT = 10000;
 
-/* Picture window size, in pixels */
-const int XSIZE = 1024, YSIZE = 768;
-
 /* We consider the region on the complex plane -2.25 <= Re <= 0.75
    -1.4 <= Im <= 1.5 */
-const double XMIN = -2.25, XMAX = 0.75;
-const double YMIN = -1.5, YMAX = 1.5;
-
-struct d_complex {
-    double re;
-    double im;
-};
+const float XMIN = -2.25, XMAX = 0.75;
+const float YMIN = -1.4, YMAX = 1.5;
 
 /**
  * Performs the iteration z = z*z+c, until ||z|| > 2 when point is
- * known to be outside the Mandelbrot set. If loop count reaches
- * MAXIT, point is considered to be inside the set. Returns 1 iff
- * inside the set.
+ * known to be outside the Mandelbrot set. Return the number of
+ * iterations until ||z|| > 2, or MAXIT.
  */
-int inside(struct d_complex c)
+int iterate(float cx, float cy)
 {
-    struct d_complex z = {0.0, 0.0}, znew;
+    float x = 0.0f, y = 0.0f, xnew, ynew;
     int it;
-
-    for ( it = 0; (it < MAXIT) && (z.re*z.re + z.im*z.im <= 4.0); it++ ) {
-        znew.re = z.re*z.re - z.im*z.im + c.re;
-        znew.im = 2.0*z.re*z.im + c.im;
-        z = znew;
+    for ( it = 0; (it < MAXIT) && (x*x + y*y <= 2.0f*2.0f); it++ ) {
+        xnew = x*x - y*y + cx;
+        ynew = 2.0f*x*y + cy;
+        x = xnew;
+        y = ynew;
     }
-    return (it >= MAXIT);
+    return it;
+}
+
+uint32_t inside( int xsize, int ysize )
+{
+    uint32_t ninside = 0;
+#ifdef SERIAL
+    /* [TODO] Parallelize the following loop(s) */
+#else
+    /* The "schedule(dynamic,64)" clause is here as an example only;
+       the chunk size (64) might not be the best. */
+#pragma omp parallel for collapse(2) default(none) shared(xsize,ysize,XMIN,XMAX,YMIN,YMAX,MAXIT) reduction(+:ninside) schedule(dynamic, 64)
+#endif
+    for (int i=0; i<ysize; i++) {
+        for (int j=0; j<xsize; j++) {
+            const float cx = XMIN + (XMAX-XMIN)*j/xsize;
+            const float cy = YMIN + (YMAX-YMIN)*i/ysize;
+            const int it = iterate(cx, cy);
+            ninside += (it >= MAXIT);
+        }
+    }
+    return ninside;
 }
 
 int main( int argc, char *argv[] )
 {
-    int i, j, ninside = 0, npoints = 1000;
-    double area, error;
+    int npoints = 1000;
 
     if (argc > 2) {
         fprintf(stderr, "Usage: %s [npoints]\n", argv[0]);
@@ -143,33 +161,16 @@ int main( int argc, char *argv[] )
        the Mandelbrot set, testing each point to see whether it is
        inside or outside the set. */
 
-    const double tstart = omp_get_wtime();
-
-#ifdef SERIAL
-    /* [TODO] Parallelize the following loop(s) */
-#else
-    /* The "schedule(dynamic,64)" clause is here as an example only;
-       the chunk size (64) might not be the best. */
-#pragma omp parallel for collapse(2) default(none) shared(npoints,XMIN,XMAX,YMIN,YMAX) reduction(+:ninside) schedule(dynamic, 64)
-#endif
-    for (i=0; i<npoints; i++) {
-        for (j=0; j<npoints; j++) {
-            struct d_complex c;
-            c.re = XMIN + (XMAX-XMIN)*j/npoints;
-            c.im = YMIN + (YMAX-YMIN)*i/npoints;
-            ninside += inside(c);
-        }
-    }
-
-    const double elapsed = omp_get_wtime() - tstart;
+    const double tstart = hpc_gettime();
+    const uint32_t ninside = inside(npoints, npoints);
+    const double elapsed = hpc_gettime() - tstart;
 
     printf("npoints = %d, ninside = %u\n", npoints*npoints, ninside);
 
-    /* Compute area and error estimate and output the results */
-    area = (XMAX-XMIN)*(YMAX-YMIN)*ninside/(npoints*npoints);
-    error = area/npoints;
+    /* Compute area and output the results */
+    const float area = (XMAX-XMIN)*(YMAX-YMIN)*ninside/(npoints*npoints);
 
-    printf("Area of Mandlebrot set = %12.8f +/- %12.8f\n", area, error);
+    printf("Area of Mandlebrot set = %f\n", area);
     printf("Correct answer should be around 1.50659\n");
     printf("Elapsed time: %f\n", elapsed);
     return EXIT_SUCCESS;
