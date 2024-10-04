@@ -3,7 +3,7 @@
  * omp-nbody.c -- N-body simulation (from https://github.com/harrism/mini-nbody)
  *
  * Copyright (C) Mark Harris
- * Copyright (C) 2021, 2022 Moreno Marzolla <moreno.marzolla@unibo.it>
+ * Copyright (C) 2021, 2022 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 
 /***
 % HPC - N-body simulation
-% Moreno Marzolla <moreno.marzolla@unibo.it>
+% [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last updated: 2022-09-06
 
 ![A frame of the Bolshoi simulation (source: <http://hipacc.ucsc.edu/Bolshoi/Images.html>)](bolshoi.png)

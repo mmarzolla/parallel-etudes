@@ -2,7 +2,7 @@
  *
  * mpi-my-bcast.c - Broadcast using point-to-point communications
  *
- * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla@unibo.it>
+ * Copyright (C) 2017--2022 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 /***
 % HPC - Broadcast using point-to-point communication
-% Moreno Marzolla <moreno.marzolla@unibo.it>
+% [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last updated: 2023-11-09
 
 The purpose of this exercise is to implement the function

@@ -2,7 +2,7 @@
  *
  * omp-floyd-warshall.c - All-pair shortest paths
  *
- * Copyright (C) 2024 Moreno Marzolla <moreno.marzolla@unibo.it>
+ * Copyright (C) 2024 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 /***
 % HPC - All-pair shortest paths
-% Moreno Marzolla <moreno.marzolla@unibo.it>
+% [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last updated: 2024-05-09
 
 Il programma legge da standard input una descrizione del grafo in

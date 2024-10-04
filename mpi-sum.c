@@ -2,7 +2,7 @@
  *
  * mpi-sum.c - Sum-reduction of an array
  *
- * Copyright (C) 2018--2022 by Moreno Marzolla <moreno.marzolla@unibo.it>
+ * Copyright (C) 2018--2022 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 /***
 % HPC - Sum-reduction of an array
-% Moreno Marzolla <moreno.marzolla@unibo.it>
+% [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last updated: 2022-10-27
 
 The file [mpi-sum.c](mpi-sum.c) contains a serial implementation of an

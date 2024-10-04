@@ -2,7 +2,7 @@
  *
  * mpi-dot.c - Dot product
  *
- * Copyright (C) 2016--2023 by Moreno Marzolla <moreno.marzolla@unibo.it>
+ * Copyright (C) 2016--2023 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 /***
 % HPC - Dot product
-% Moreno Marzolla <moreno.marzolla@unibo.it>
+% [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last updated: 2023-11-15
 
 The file [mpi-dot.c](mpi-dot.c) contains a MPI program that computes

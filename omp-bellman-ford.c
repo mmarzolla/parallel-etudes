@@ -2,7 +2,7 @@
  *
  * omp-bellman-ford.c - Single-source shortest paths
  *
- * Copyright (C) 2017, 2018, 2023, 2024 Moreno Marzolla <moreno.marzolla@unibo.it>
+ * Copyright (C) 2017, 2018, 2023, 2024 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 /***
 % HPC - Single-Source Shortest Path
-% Moreno Marzolla <moreno.marzolla@unibo.it>
+% [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last updated: 2024-05-30
 
 The purpose of this exercise is to implement a parallel version of

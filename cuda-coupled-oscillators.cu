@@ -2,7 +2,7 @@
  *
  * cuda-coupled-oscillators.c - One-dimensional coupled oscillators
  *
- * Copyright (C) 2017--2021, 2023 by Moreno Marzolla <moreno.marzolla@unibo.it>
+ * Copyright (C) 2017--2021, 2023 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 /***
 % HPC - One-dimensional coupled oscillators
-% Moreno Marzolla <moreno.marzolla@unibo.it>
+% [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last updated: 2023-03-27
 
 ![](coupled_metronomes.jpg)

@@ -2,7 +2,7 @@
  *
  * mpi-rotate-right.c - Circular rotation of an array
  *
- * Copyright (C) 2022 by Moreno Marzolla <moreno.marzolla@unibo.it>
+ * Copyright (C) 2022 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 /***
 % HPC - Rotazione circolare di un array
-% Moreno Marzolla <moreno.marzolla@unibo.it>
+% [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Ultimo aggiornamento: 2022-11-09
 
 [Domanda d'esame appello 2022-01-19]

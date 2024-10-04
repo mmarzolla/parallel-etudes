@@ -2,7 +2,7 @@
  *
  * levenshtein.c - Levenshtein edit distance
  *
- * Written in 2017--2022 by Moreno Marzolla <moreno.marzolla@unibo.it>
+ * Written in 2017--2022 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 /***
 % HPC - Levenshtein edit distance
-% Moreno Marzolla <moreno.marzolla@unibo.it>
+% [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last updated: 2024-08-26
 
 The file [omp-levenshtein.c](omp-levenhstein.c) contains a serial

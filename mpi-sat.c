@@ -2,7 +2,7 @@
  *
  * mpi-sat.c - Brute-force SAT solver
  *
- * Copyright (C) 2018, 2023, 2024 by Moreno Marzolla <moreno.marzolla@unibo.it>
+ * Copyright (C) 2018, 2023, 2024 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 /***
 % HPC - Brute-force SAT solver
-% Moreno Marzolla <moreno.marzolla@unibo.it>
+% [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last modified: 2024-09-29
 
 A SAT problem is represented as a pair of integer arrays `x[]` and

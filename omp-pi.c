@@ -2,7 +2,7 @@
  *
  * omp-pi.c - Monte Carlo approximation of PI
  *
- * Copyright (C) 2017--2023 by Moreno Marzolla <moreno.marzolla@unibo.it>
+ * Copyright (C) 2017--2023 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 /***
 % HPC - Monte Carlo approximation of $\pi$
-% Moreno Marzolla <moreno.marzolla@unibo.it>
+% [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last updated: 2023-10-19
 
 The file [omp-pi.c](omp-pi.c) implements a serial Monte Carlo

@@ -2,7 +2,7 @@
  *
  * cuda-odd-even.cu - Odd-even sort
  *
- * Copyright (C) 2017--2024 by Moreno Marzolla <moreno.marzolla@unibo.it>
+ * Copyright (C) 2017--2024 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 /***
 % HPC - Odd-even sort
-% Moreno Marzolla <moreno.marzolla@unibo.it>
+% [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last upated: 2024-01-04
 
 The _Odd-Even sort_ algorithm is a variant of BubbleSort, and sorts an

@@ -2,7 +2,7 @@
  * mpi-c-ray - A simple ray tracer
  *
  * Copyright (C) 2006 John Tsiombikas <nuclear@siggraph.org>
- * Copyright (C) 2016, 2017, 2018, 2020, 2021, 2022 Moreno Marzolla <moreno.marzolla@unibo.it>
+ * Copyright (C) 2016, 2017, 2018, 2020, 2021, 2022 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * You are free to use, modify and redistribute this program under the
  * terms of the GNU General Public License v2 or (at your option) later.
@@ -24,7 +24,7 @@
 
 /***
 % HPC - Ray Tracer
-% Moreno Marzolla <moreno.marzolla@unibo.it>
+% [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last updated: 2022-11-03
 
 The file [mpi-c-ray.c](mpi-c-ray.c) contains the implementation of a

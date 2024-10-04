@@ -2,7 +2,7 @@
  *
  * mpi-mandelbrot.c - Mandelbrot set
  *
- * Copyright (C) 2017--2023 by Moreno Marzolla <moreno.marzolla@unibo.it>
+ * Copyright (C) 2017--2023 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 /***
 % HPC - Mandelbrot set
-% Moreno Marzolla <moreno.marzolla@unibo.it>
+% [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last updated: 2023-11-13
 
 ![](mandelbrot-set.png)

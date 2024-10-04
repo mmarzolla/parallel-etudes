@@ -2,7 +2,7 @@
  *
  * omp-cat-map.c - Arnold's cat map
  *
- * Copyright (C) 2016--2023, 2024 Moreno Marzolla <moreno.marzolla@unibo.it>
+ * Copyright (C) 2016--2023, 2024 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 /***
 % HPC - Arnold's cat map
-% Moreno Marzolla <moreno.marzolla@unibo.it>
+% [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last updated: 2024-10-04
 
 ![](cat-map.png)

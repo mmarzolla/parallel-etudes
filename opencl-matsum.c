@@ -2,7 +2,7 @@
  *
  * opencl-matsum.c - Matrix-matrix addition
  *
- * Copyright (C) 2017--2024 by Moreno Marzolla <moreno.marzolla@unibo.it>
+ * Copyright (C) 2017--2024 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 /***
 % HPC - Matrix-matrix addition
-% Moreno Marzolla <moreno.marzolla@unibo.it>
+% [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last update: 2024-01-04
 
 The program [opencl-matsum.c](opencl-matsum.c) computes the sum of two

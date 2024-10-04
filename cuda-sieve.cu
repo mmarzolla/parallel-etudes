@@ -2,7 +2,7 @@
  *
  * cuda-sieve.c -- Sieve of Eratosthenes
  *
- * Copyright (C) 2024 by Moreno Marzolla <moreno.marzolla@unibo.it>
+ * Copyright (C) 2024 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 /***
 % HPC - Sieve of Eratosthenes
-% Moreno Marzolla <moreno.marzolla@unibo.it>
+% [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last updated: 2024-09-02
 
 ## Files

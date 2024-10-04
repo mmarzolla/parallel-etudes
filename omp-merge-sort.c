@@ -2,7 +2,7 @@
  *
  * omp-merge-sort.c - Merge Sort with OpenMP tasks
  *
- * Copyright (C) 2017--2023 by Moreno Marzolla <moreno.marzolla@unibo.it>
+ * Copyright (C) 2017--2023 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 /***
 % HPC - Merge Sort with OpenMP tasks
-% Moreno Marzolla <moreno.marzolla@unibo.it>
+% [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last updated: 2023-10-24
 
 The file [omp-merge-sort.c](omp-merge-sort.c) contains a recursive

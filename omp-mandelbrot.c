@@ -2,7 +2,7 @@
  *
  * omp-mandelbrot.c - Draw the Mandelbrot set
  *
- * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla@unibo.it>
+ * Copyright (C) 2017--2022 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 /***
 % HPC - Mandelbrot set
-% Moreno Marzolla <moreno.marzolla@unibo.it>
+% [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last updated: 2022-08-16
 
 ![Benoit Mandelbrot (1924--2010)](Benoit_Mandelbrot.jpg)

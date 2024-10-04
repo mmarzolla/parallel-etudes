@@ -5,7 +5,7 @@
  * N-body simulation with CUDA (from https://github.com/harrism/mini-nbody)
  *
  * Copyright (C) Mark Harris
- * Modified in 2020--2024 by Moreno Marzolla <moreno.marzolla@unibo.it>
+ * Modified in 2020--2024 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
 
 /***
 % HPC - N-Body simulation
-% Moreno Marzolla <moreno.marzolla@unibo.it>
+% [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last updated: 2024-01-04
 
 ![A frame of the Bolshoi simulation (source: <http://hipacc.ucsc.edu/Bolshoi/Images.html>)](bolshoi.png)

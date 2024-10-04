@@ -2,7 +2,7 @@
  *
  * mpi-pi.c - Monte Carlo approximatino of PI
  *
- * Copyright (C) 2017--2022 by Moreno Marzolla <moreno.marzolla@unibo.it>
+ * Copyright (C) 2017--2022 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 /***
 % HPC - Monte Carlo approximation of PI
-% Moreno Marzolla <moreno.marzolla@unibo.it>
+% [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last updated: 2022-10-24
 
 The file [mpi-pi.c](mpi-pi.c) contains a serial program for computing

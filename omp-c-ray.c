@@ -2,7 +2,7 @@
  * omp-c-ray - Ray tracing
  *
  * Copyright (C) 2006 John Tsiombikas <nuclear@siggraph.org>
- * Copyright (C) 2016, 2017, 2018, 2020-2023 Moreno Marzolla <moreno.marzolla@unibo.it>
+ * Copyright (C) 2016, 2017, 2018, 2020-2023 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * You are free to use, modify and redistribute this program under the
  * terms of the GNU General Public License v2 or (at your option) later.
@@ -24,7 +24,7 @@
 
 /***
 % HPC - Ray tracing
-% Moreno Marzolla <moreno.marzolla@unibo.it>
+% [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last updated: 2023-06-07
 
 The file [omp-c-ray.c](omp-c-ray.c) contains the implementation of a

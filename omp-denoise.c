@@ -2,7 +2,7 @@
  *
  * omp-denoise.c - Image denoising
  *
- * Copyright (C) 2018--2023 Moreno Marzolla <moreno.marzolla@unibo.it>
+ * Copyright (C) 2018--2023 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 /***
 % HPC - Image denoising
-% Moreno Marzolla <moreno.marzolla@unibo.it>
+% [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last updated: 2023-10-01
 
 ![Figure 1: Denoising example (original image by Simpsons, CC BY-SA 3.0, <https://commons.wikimedia.org/w/index.php?curid=8904364>)](denoise.png)
