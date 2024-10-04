@@ -106,8 +106,8 @@ int dot(const int *v1, const int *v2, size_t n)
 #else
 #if 0
     /* This version uses neither "parallel for" nor "reduction"
-       directives, and although it is useful to try this, it should be
-       avoided in practice. */
+       directives; although this solution should not be used in
+       practice, it is instructive to try it. */
     const int P = omp_get_max_threads();
     int partial_p[P];
 #pragma omp parallel default(none) shared(P, v1, v2, n, partial_p)
@@ -159,7 +159,7 @@ int main( int argc, char *argv[] )
     }
 
     if ( n > n_max ) {
-        fprintf(stderr, "FATAL: The array length must be at most %lu\n", (unsigned long)n_max);
+        fprintf(stderr, "FATAL: Array too long (requested length=%lu, maximum length=%lu\n", (unsigned long)n, (unsigned long)n_max);
         return EXIT_FAILURE;
     }
 

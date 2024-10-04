@@ -19,10 +19,12 @@
  * --------------------------------------------------------------------------
  *
  * Compile with:
- * gcc -ansi -Wall -Wpedantic circles-gen.c -o circles-gen
+ *
+ *      gcc -ansi -Wall -Wpedantic circles-gen.c -o circles-gen
  *
  * To generate 1000 random rectangles, run:
- * ./circles-gen 1000 > circles-1000.in
+ *
+ *      ./circles-gen 1000 > circles-1000.in
  *
  ****************************************************************************/
 #include <stdio.h>
