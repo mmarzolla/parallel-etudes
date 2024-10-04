@@ -2,7 +2,7 @@
  *
  * hpc.h - Miscellaneous utility functions for the HPC course
  *
- * Copyright (C) 2017 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017 by Moreno Marzolla <moreno.marzolla@unibo.it>
  * Last modified on 2024-01-04 by Moreno Marzolla
  *
  * Licensed under the Apache License, Version 2.0 (the "License");

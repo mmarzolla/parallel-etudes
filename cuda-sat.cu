@@ -2,7 +2,7 @@
  *
  * cuda-sat.c - Brute-force SAT solver
  *
- * Copyright (C) 2018, 2023, 2024 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2018, 2023, 2024 by Moreno Marzolla <moreno.marzolla@unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

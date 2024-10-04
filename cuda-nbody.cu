@@ -5,7 +5,7 @@
  * N-body simulation with CUDA (from https://github.com/harrism/mini-nbody)
  *
  * Copyright (C) Mark Harris
- * Modified in 2020--2024 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Modified in 2020--2024 by Moreno Marzolla <moreno.marzolla@unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

@@ -2,7 +2,7 @@
  *
  * knapsack-gen.c - generate instances for the knapsack solver
  *
- * Written in 2016, 2017 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Written in 2016, 2017 by Moreno Marzolla <moreno.marzolla@unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

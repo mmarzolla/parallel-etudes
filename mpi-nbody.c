@@ -3,7 +3,7 @@
  * mpi-nbody.c - N-body simulation
  *
  * Copyright (C) Mark Harris
- * Copyright (C) 2021, 2022, 2023 Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2021, 2022, 2023 Moreno Marzolla <moreno.marzolla@unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

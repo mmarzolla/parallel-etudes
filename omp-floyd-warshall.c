@@ -2,7 +2,7 @@
  *
  * omp-floyd-warshall.c - All-pair shortest paths
  *
- * Copyright (C) 2024 Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2024 Moreno Marzolla <moreno.marzolla@unibo.it>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

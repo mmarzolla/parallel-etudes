@@ -2,7 +2,7 @@
  *
  * mpi-rotate-right.c - Circular rotation of an array
  *
- * Copyright (C) 2022 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2022 by Moreno Marzolla <moreno.marzolla@unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
