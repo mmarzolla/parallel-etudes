@@ -1,9 +1,8 @@
 /****************************************************************************
  *
- * cat-map-rectime.c - Compute the minimum recurrence time of Arnold's
- * cat map for a given image size
+ * cat-map-rectime.c - Minimum recurrence time of Arnold's  cat map
  *
- * Copyright (C) 2017--2021 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2017--2021, 2024 by Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,24 +16,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * ---------------------------------------------------------------------------
- *
- * This program computes the recurrence time of Arnold's cat map for
- * an image of given size (n, n).
- *
- * Compile with:
- *
- *      gcc -std=c99 -Wall -Wpedantic -fopenmp omp-cat-map-rectime.c -o omp-cat-map-rectime
- *
- * Run with:
- *
- *      ./omp-cat-map-rectime [n]
- *
- * Example:
- *
- *      ./omp-cat-map-rectime 1024
- *
  ****************************************************************************/
+
+/***
+% HPC - Minimum Recurrence Time of Arnold's cat map
+% Moreno Marzolla <moreno.marzolla@unibo.it>
+% Last updated: 2024-10-04
+
+This program computes the _Minimum Recurrence Time_ of Arnold's cat
+map for an image of given size $N \times N$. The minimum recurrence
+time is the minimum number of iterations of Arnold's cat map that
+return back the original image.
+
+The minimum recurrence time depends on the image size $n$, but no
+simple relation is known. Table 1 shows the minimum recurrence time
+for some values of $N$.
+
+:Table 1: Minimum recurrence time for some image sizes $N$
+
+    $N$   Minimum recurrence time
+------- -------------------------
+     64                        48
+    128                        96
+    256                       192
+    512                       384
+   1368                        36
+------- -------------------------
+
+Compile with:
+
+        gcc -std=c99 -Wall -Wpedantic -fopenmp omp-cat-map-rectime.c -o omp-cat-map-rectime
+
+Run with:
+
+        ./omp-cat-map-rectime [N]
+
+Example:
+
+        ./omp-cat-map-rectime 1024
+
+## Files
+
+- [omp-cat-map-rectime.c](omp-cat-map-rectime.c)
+
+***/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>

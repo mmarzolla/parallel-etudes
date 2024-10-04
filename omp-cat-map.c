@@ -2,7 +2,7 @@
  *
  * omp-cat-map.c - Arnold's cat map
  *
- * Copyright (C) 2016--2023 Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2016--2023, 2024 Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Arnold's cat map
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2023-11-03
+% Last updated: 2024-10-04
 
 ![](cat-map.png)
 
@@ -199,9 +199,9 @@ the `cat_map()` function ("No loop interchange" refers to option (3);
 "Loop interchange" refers to option (c)). The program has been
 compiled with:
 
-        gcc -O0 -fopenmp omp-cat-map.c -o omp-cat-map
+        gcc -std=c99 -Wall -Wpedantic -O0 -fopenmp omp-cat-map.c -o omp-cat-map
 
-(`-O0` prevents the compiler fro making code transformations that
+(`-O0` prevents the compiler from applying code transformations that
 might alter the functions too much) and executed as:
 
         ./omp-cat-map 2048 < cat1368.pgm > /dev/null
@@ -214,8 +214,8 @@ Processor           Cores   GHz  GCC version  No loop interchange   Loop interch
 ------------------ ------ ----- ------------ -------------------- ------------------
 Intel Xeon E3-1220      4   3.5       11.4.0                 6.84              12.90
 Intel Xeon E5-2603     12   1.7        9.4.0                 6.11               7.74
-Intel i7-4790         4+4   3.6        9.4.0                 6.05               5.89
-Intel i7-9800X        8+8   3.8       11.4.0                 2.25               2.34
+Intel i7-4790         4+4   3.6        9.4.0                 6.25               6.02
+Intel i7-9800X        8+8   3.8       11.4.0                 2.27               2.34
 Intel i5-11320H       4+4   4.5        9.4.0                 3.94               4.01
 Intel Atom N570       2+2   1.6        7.5.0               128.69              92.47
 Raspberry Pi 4          4   1.5        8.3.0                27.10              27.24
@@ -268,8 +268,8 @@ Table 2 shows the minimum recurrence time for some $N$.
 ------- -------------------------
 
 Figure 3 shows the minimum recurrence time as a function of
-$N$. Despite the fact that the actual values jump, there is a clear
-tendency to align along straight lines.
+$N$. Despite the fact that the values jumps around, they tend to align
+along straight lines.
 
 ![Figure 3: Minimum recurrence time as a function of the image size $N$](cat-map-rectime.png)
 
@@ -316,7 +316,11 @@ void cat_map( PGM_image* img, int k )
 #ifndef SERIAL
         /* Note: the collapse(2) directive automatically makes the
            loop variables y and x private */
+#if __GNUC__ < 9
+#pragma omp parallel for collapse(2) default(none) shared(cur,next,tmp,img)
+#else
 #pragma omp parallel for collapse(2) default(none) shared(cur,next,tmp,img,N)
+#endiof
 #endif
         for (y=0; y<N; y++) {
             for (x=0; x<N; x++) {
