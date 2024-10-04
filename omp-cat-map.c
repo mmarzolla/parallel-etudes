@@ -127,14 +127,14 @@ Example:
 The provided function `cat_map()` is based on the following template:
 
 ```C
-for (i=0; i<k; i++) {
-        for (y=0; y<N; y++) {
-                for (x=0; x<N; x++) {
-                        (x', y') = C(x, y);
-                        P'(x', y') = P(x, y);
-                }
+for (int i=0; i<k; i++) {
+    for (int y=0; y<N; y++) {
+        for (int x=0; x<N; x++) {
+            (x', y') = C(x, y);
+            P'(x', y') = P(x, y);
         }
-        P = P';
+    }
+    P = P';
 }
 ```
 
@@ -158,16 +158,16 @@ We can apply the _loop interchange_ transformation to rewrite the
 code above as follows:
 
 ```C
-for (y=0; y<N; y++) {
-        for (x=0; x<N; x++) {
-                xcur = x; ycur = y;
-                for (i=0; i<k; i++) {
-                        (xnext, ynext) = C(xcur, ycur);
-                        xcur = xnext;
-                        ycur = ynext;
-                }
-                P'(xnext, ynext) = P(x, y)
+for (int y=0; y<N; y++) {
+    for (int x=0; x<N; x++) {
+        xcur = x; ycur = y;
+        for (int i=0; i<k; i++) {
+            (xnext, ynext) = C(xcur, ycur);
+            xcur = xnext;
+            ycur = ynext;
         }
+        P'(xnext, ynext) = P(x, y)
+    }
 }
 ```
 
@@ -218,7 +218,7 @@ Intel i7-4790         4+4   3.6        9.4.0                 6.25               
 Intel i7-9800X        8+8   3.8       11.4.0                 2.27               2.34
 Intel i5-11320H       4+4   4.5        9.4.0                 3.94               4.01
 Intel Atom N570       2+2   1.6        7.5.0               128.69              92.47
-Raspberry Pi 4          4   1.5        8.3.0                27.10              27.24
+Raspberry Pi 4          4   1.5        8.3.0                35.72              32.55
 
 On some platforms (Intel i5, i7 and Raspberry Pi 4) there is little or
 no difference between the two versions. Loop interchange provides a
@@ -302,7 +302,6 @@ along straight lines.
  */
 void cat_map( PGM_image* img, int k )
 {
-    int i, x, y;
     const int N = img->width;
     unsigned char *cur = img->bmap;
     unsigned char *next = (unsigned char*)malloc( N*N*sizeof(unsigned char) );
@@ -312,7 +311,7 @@ void cat_map( PGM_image* img, int k )
     assert(img->width == img->height);
 
     /* [TODO] Which of the following loop(s) can be parallelized? */
-    for (i=0; i<k; i++) {
+    for (int i=0; i<k; i++) {
 #ifndef SERIAL
         /* Note: the collapse(2) directive automatically makes the
            loop variables y and x private */
@@ -322,8 +321,8 @@ void cat_map( PGM_image* img, int k )
 #pragma omp parallel for collapse(2) default(none) shared(cur,next,tmp,img,N)
 #endif
 #endif
-        for (y=0; y<N; y++) {
-            for (x=0; x<N; x++) {
+        for (int y=0; y<N; y++) {
+            for (int x=0; x<N; x++) {
                 const int xnext = (2*x+y) % N;
                 const int ynext = (x + y) % N;
                 next[ynext*N + xnext] = cur[x+y*N];
@@ -340,7 +339,6 @@ void cat_map( PGM_image* img, int k )
 
 void cat_map_interchange( PGM_image* img, int k )
 {
-    int i, x, y;
     const int N = img->width;
     unsigned char *cur = img->bmap;
     unsigned char *next = (unsigned char*)malloc( N*N*sizeof(unsigned char) );
@@ -351,16 +349,16 @@ void cat_map_interchange( PGM_image* img, int k )
     /* [TODO] Which of the following loop(s) can be parallelized? */
 #ifndef SERIAL
 #if __GNUC__ < 9
-#pragma omp parallel for collapse(2) default(none) shared(cur,next,k) private(i)
+#pragma omp parallel for collapse(2) default(none) shared(cur,next,k)
 #else
-#pragma omp parallel for collapse(2) default(none) shared(N,cur,next,k) private(i)
+#pragma omp parallel for collapse(2) default(none) shared(N,cur,next,k)
 #endif
 #endif
-    for (y=0; y<N; y++) {
-        for (x=0; x<N; x++) {
+    for (int y=0; y<N; y++) {
+        for (int x=0; x<N; x++) {
             /* Compute the k-th iterate of pixel (x, y) */
             int xcur = x, ycur = y;
-            for (i=0; i<k; i++) {
+            for (int i=0; i<k; i++) {
                 const int xnext = (2*xcur+ycur) % N;
                 const int ynext = (xcur + ycur) % N;
                 xcur = xnext;

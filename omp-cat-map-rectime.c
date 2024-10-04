@@ -103,12 +103,12 @@ int cat_map_rectime( int n )
        version, then parallelize. */
     return 0;
 #else
-    int x, y, rectime = 1;
+    int rectime = 1;
     /* Since the inner body of the loops may require different time
        for different points, we apply a dynamic scheduling. */
 #pragma omp parallel for collapse(2) schedule(dynamic, 32) default(none) shared(rectime, n)
-    for (y=0; y<n; y++) {
-        for (x=0; x<n; x++) {
+    for (int y=0; y<n; y++) {
+        for (int x=0; x<n; x++) {
             int xold = x, xnew;
             int yold = y, ynew;
             int k = 0;

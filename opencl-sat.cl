@@ -22,13 +22,13 @@
 #define MAXLITERALS 30
 #define MAXCLAUSES 512
 
-__kernel void
-eval_kernel(__global const int *x,
-            __global const int *nx,
-            int nlit,
-            int nclauses,
-            int v,
-            __global int *nsat)
+__kernel
+void eval_kernel(__global const int *x,
+                 __global const int *nx,
+                 int nlit,
+                 int nclauses,
+                 int v,
+                 __global int *nsat)
 {
     __local bool exp; // Value of the expression handled by this work-item
     const int lindex = get_local_id(0);

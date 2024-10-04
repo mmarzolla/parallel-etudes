@@ -21,10 +21,10 @@
 /**
  * Compute one iteration of the cat map using the GPU
  */
-__kernel void
-cat_map_iter_kernel( __global const unsigned char *cur,
-                     __global unsigned char *next,
-                     int N )
+__kernel
+void cat_map_iter_kernel( __global const unsigned char *cur,
+                          __global unsigned char *next,
+                          int N )
 {
     const int x = get_global_id(0);
     const int y = get_global_id(1);
@@ -37,13 +37,13 @@ cat_map_iter_kernel( __global const unsigned char *cur,
 }
 
 /**
- * Compute |k| iterations of the cat map using the GPU
+ * Compute `k` iterations of the cat map using the GPU
  */
-__kernel void
-cat_map_iter_k_kernel( __global const unsigned char *cur,
-                       __global unsigned char *next,
-                       int N,
-                       int k )
+__kernel
+void cat_map_iter_k_kernel( __global const unsigned char *cur,
+                            __global unsigned char *next,
+                            int N,
+                            int k )
 {
     const int x = get_global_id(0);
     const int y = get_global_id(1);

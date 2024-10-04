@@ -20,10 +20,10 @@
 
 #define ALPHA_SIZE 26
 
-__kernel void
-hist_kernel( __global const char *text,
-             int len,
-             __global int *hist )
+__kernel
+void hist_kernel( __global const char *text,
+                  int len,
+                  __global int *hist )
 {
     const int i = get_global_id(0);
     const int li = get_local_id(0);

@@ -112,9 +112,10 @@ one pixel from the input image to the correct position of the output
 image.  The kernel has the following signature:
 
 ```C
-__kernel void cat_map_iter( __global unsigned char *cur,
-                            __global unsigned char *next,
-                            int N )
+__kernel
+void cat_map_iter( __global unsigned char *cur,
+                   __global unsigned char *next,
+                   int N )
 ```
 
 where $N$ is the height/width of the image. The program must work
@@ -133,10 +134,11 @@ execute the kernel $k$ times.
 A better approach is to define a kernel
 
 ```C
-__kernel void cat_map_iter_k( __global unsigned char *cur,
-                              __global unsigned char *next,
-                              int N,
-                              int k )
+__kernel
+void cat_map_iter_k( __global unsigned char *cur,
+                     __global unsigned char *next,
+                     int N,
+                     int k )
 ```
 
 that applies $k$ iterations of the cat map to the current image.  This
@@ -150,14 +152,14 @@ const int y = ...;
 int xcur = x, ycur = y, xnext, ynext;
 
 if ( x < N && y < N ) {
-	while (k--) {
-		xnext = (2*xcur + ycur) % N;
-		ynext = (xcur + ycur) % N;
-		xcur = xnext;
-		ycur = ynext;
-	}
-	\/\* copy the pixel (x, y) from the current image to
-	the position (xnext, ynext) of the new image \*\/
+    while (k--) {
+        next = (2*xcur + ycur) % N;
+	ynext = (xcur + ycur) % N;
+	xcur = xnext;
+	ycur = ynext;
+    }
+    \/\* copy the pixel (x, y) from the current image to
+       the position (xnext, ynext) of the new image \*\/
 }
 ```
 
@@ -167,7 +169,7 @@ once) and measure the execution times to see the difference.
 
 To compile:
 
-        cc -std=c99 -Wall -Wpedantic opencl-cat-map.c simpleCL.c -o opencl-cat-map -lOpenCL
+        gcc -std=c99 -Wall -Wpedantic opencl-cat-map.c simpleCL.c -o opencl-cat-map -lOpenCL
 
 To execute:
 
