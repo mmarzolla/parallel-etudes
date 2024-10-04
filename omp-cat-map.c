@@ -320,7 +320,7 @@ void cat_map( PGM_image* img, int k )
 #pragma omp parallel for collapse(2) default(none) shared(cur,next,tmp,img)
 #else
 #pragma omp parallel for collapse(2) default(none) shared(cur,next,tmp,img,N)
-#endiof
+#endif
 #endif
         for (y=0; y<N; y++) {
             for (x=0; x<N; x++) {
@@ -350,7 +350,11 @@ void cat_map_interchange( PGM_image* img, int k )
 
     /* [TODO] Which of the following loop(s) can be parallelized? */
 #ifndef SERIAL
+#if __GNUC__ < 9
+#pragma omp parallel for collapse(2) default(none) shared(cur,next,k) private(i)
+#else
 #pragma omp parallel for collapse(2) default(none) shared(N,cur,next,k) private(i)
+#endif
 #endif
     for (y=0; y<N; y++) {
         for (x=0; x<N; x++) {
