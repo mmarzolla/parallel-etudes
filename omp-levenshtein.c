@@ -1,8 +1,8 @@
 /******************************************************************************
  *
- * levenshtein.c - Levenshtein edit distance
+ * levenshtein.c - Levenshtein's edit distance
  *
- * Written in 2017--2022 by Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Written in 2017--2022, 2024 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
  ******************************************************************************/
 
 /***
-% HPC - Levenshtein edit distance
+% HPC - Levenshtein's edit distance
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last updated: 2024-08-26
 
@@ -144,7 +144,6 @@ int min( int a, int b )
 int levenshtein(const char* s, const char* t)
 {
     const int n = strlen(s), m = strlen(t);
-    int i, j;
     int (*L)[m+1] = malloc((n+1)*(m+1)*sizeof(int)); /* C99 idiom: L is of type int L[][m+1] */
     int result;
 
@@ -153,17 +152,17 @@ int levenshtein(const char* s, const char* t)
     if (m == 0) return n;
 
     /* Initialize the first column of L */
-    for (i = 0; i <= n; i++)
+    for (int i = 0; i <= n; i++)
         L[i][0] = i;
 
     /* Initialize the first row of L */
-    for (j = 0; j <= m; j++)
+    for (int j = 0; j <= m; j++)
         L[0][j] = j;
 
 #ifdef SERIAL
     /* [TODO] Parallelize this */
-    for (i = 1; i <= n; i++) {
-        for (j = 1; j <= m; j++) {
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= m; j++) {
             L[i][j] = min(min(L[i-1][j] + 1, L[i][j-1] + 1), L[i-1][j-1] + (s[i-1] != t[j-1]));
         }
     }
@@ -172,12 +171,11 @@ int levenshtein(const char* s, const char* t)
     for (int slice=0; slice < n + m - 1; slice++) {
         const int z1 = slice < m ? 0 : slice - m + 1;
         const int z2 = slice < n ? 0 : slice - n + 1;
-        int ii;
-#pragma omp parallel for default(none) shared(slice,L,s,t,z1,z2,m) private(i,j)
-	for (ii = slice - z2; ii >= z1; ii--) {
+#pragma omp parallel for default(none) shared(slice,L,s,t,z1,z2,m)
+	for (int ii = slice - z2; ii >= z1; ii--) {
             const int jj = slice - ii;
-            i = ii + 1;
-            j = jj + 1;
+            const int i = ii + 1;
+            const int j = jj + 1;
             L[i][j] = min(min(L[i-1][j] + 1, L[i][j-1] + 1), L[i-1][j-1] + (s[i-1] != t[j-1]));
         }
     }
