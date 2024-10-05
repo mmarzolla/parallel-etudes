@@ -88,7 +88,9 @@ policies, as well as with some different values for the chunk size.
 /* The following #define is required by the implementation of
    hpc_gettime(). It MUST be defined before including any other
    file. */
+#if _XOPEN_SOURCE < 600
 #define _XOPEN_SOURCE 600
+#endif
 #include "hpc.h"
 
 #include <stdio.h>

@@ -167,7 +167,10 @@ Example:
 /* The following #define is required by the implementation of
    hpc_gettime(). It MUST be defined before including any other
    file. */
+#if _XOPEN_SOURCE < 600
 #define _XOPEN_SOURCE 600
+#endif
+#include "hpc.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -175,7 +178,6 @@ Example:
 #include <assert.h>
 
 #include "simpleCL.h"
-#include "hpc.h"
 
 const float EPSILON = 1.0e-5f;
 /* const float G = 6.67e-11; */

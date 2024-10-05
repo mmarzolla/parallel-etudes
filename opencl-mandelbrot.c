@@ -83,7 +83,10 @@ Example:
 /* The following #define is required by the implementation of
    hpc_gettime(). It MUST be defined before including any other
    file. */
+#if _XOPEN_SOURCE < 600
 #define _XOPEN_SOURCE 600
+#endif
+#include "hpc.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -91,7 +94,6 @@ Example:
 #include <assert.h>
 
 #include "simpleCL.h"
-#include "hpc.h"
 
 typedef struct __attribute__((__packed__)) {
     uint8_t r;  /* red   */

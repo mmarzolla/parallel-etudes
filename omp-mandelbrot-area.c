@@ -84,12 +84,7 @@ policies, as well as with some different values for the chunk size.
 
 ***/
 
-/* The following #define is required by the implementation of
-   hpc_gettime(). It MUST be defined before including any other
-   file. */
-#define _XOPEN_SOURCE 600
 #include "hpc.h"
-
 #include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -161,9 +156,9 @@ int main( int argc, char *argv[] )
        the Mandelbrot set, testing each point to see whether it is
        inside or outside the set. */
 
-    const double tstart = hpc_gettime();
+    const double tstart = omp_get_wtime();
     const uint32_t ninside = inside(npoints, npoints);
-    const double elapsed = hpc_gettime() - tstart;
+    const double elapsed = omp_get_wtime() - tstart;
 
     printf("npoints = %d, ninside = %u\n", npoints*npoints, ninside);
 

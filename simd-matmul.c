@@ -90,13 +90,16 @@ Example:
 ***/
 
 /* The following #define is required by posix_memalign() */
+#if _XOPEN_SOURCE < 600
 #define _XOPEN_SOURCE 600
+#endif
 
-#include "hpc.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>  /* for assert() */
 #include <strings.h> /* for bzero() */
+
+#include "hpc.h"
 
 /* This program works on double-precision numbers; therefore, we
    define a v2d vector datatype that contains two doubles in a SIMD

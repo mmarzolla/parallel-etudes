@@ -63,7 +63,10 @@ Run with:
 /* The following #define is required by the implementation of
    hpc_gettime(). It MUST be defined before including any other
    file. */
+#if _XOPEN_SOURCE < 600
 #define _XOPEN_SOURCE 600
+#endif
+#include "hpc.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -71,7 +74,6 @@ Run with:
 #include <string.h>
 #include <assert.h>
 
-#include "hpc.h"
 #include "simpleCL.h"
 
 #define ALPHA_SIZE 26

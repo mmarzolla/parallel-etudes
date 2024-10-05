@@ -139,14 +139,17 @@ Example:
 
 /* The following #define is required by posix_memalign() and MUST
    appear before including any system header */
+#if _XOPEN_SOURCE < 600
 #define _XOPEN_SOURCE 600
+#endif
 
-#include "hpc.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <strings.h> /* for bzero() */
 #include <math.h> /* for fabs() */
+
+#include "hpc.h"
 
 typedef float v4f __attribute__((vector_size(16)));
 #define VLEN (sizeof(v4f)/sizeof(float))

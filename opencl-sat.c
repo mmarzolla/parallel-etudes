@@ -36,10 +36,9 @@ To execute:
 - [opencl-sat.c](opencl-sat.c)
 - Some input files: <queens-05.cnf>, <uf20-01.cnf>, <uf20-077.cnf>
 ***/
-
+#if _XOPEN_SOURCE < 600
 #define _XOPEN_SOURCE 600
-
-#include "hpc.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -49,6 +48,7 @@ To execute:
 #include <assert.h>
 
 #include "simpleCL.h"
+#include "hpc.h"
 
 /* MAXLITERALS must be at most (bit width of int) - 2 */
 #define MAXLITERALS 30

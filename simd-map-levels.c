@@ -156,7 +156,9 @@ You can generate input images of arbitrary size with the command:
 ***/
 
 /* The following #define is required to make posix_memalign() visible */
+#if _XOPEN_SOURCE < 600
 #define _XOPEN_SOURCE 600
+#endif
 
 #include "hpc.h"
 #include <stdio.h>

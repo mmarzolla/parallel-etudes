@@ -114,7 +114,9 @@ OpenMP threads and $N=20000$ points:
 ***/
 
 /* The rand_r() function is available only if _XOPEN_SOURCE=600 */
+#if _XOPEN_SOURCE < 600
 #define _XOPEN_SOURCE 600
+#endif
 #include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
