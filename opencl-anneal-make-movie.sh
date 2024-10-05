@@ -3,7 +3,7 @@
 ## Make a movie of the ANNEAL Callular Automaton
 
 ## Written by Moreno Marzolla on 2022-11-11
-## Last updated 2022-11-22
+## Last modified 2024-10-05
 
 DEFAULT_DEVICE=1 # simpleCL default device (0=usually the CPU)
 NSTEPS=300000    # number of time steps
@@ -25,12 +25,12 @@ for n in `seq 0 $NSTEPS`; do
     LABEL=`printf "%06d" $n`
     if [ -f "$INPUTF" ]; then
         echo "Annotating ${INPUTF}..."
-        convert $INPUTF \
+        convert "$INPUTF" \
                 -gravity southwest \
                 -font Courier \
-                -stroke black -strokewidth 15 -pointsize 100 -annotate 0 $LABEL \
-                -stroke yellow -strokewidth 4 -fill yellow -annotate 0 $LABEL \
-                $OUTPUTF
+                -stroke black -strokewidth 15 -pointsize 100 -annotate 0 "$LABEL" \
+                -stroke yellow -strokewidth 4 -fill yellow -annotate 0 "$LABEL" \
+                "$OUTPUTF"
     fi
 done
 
