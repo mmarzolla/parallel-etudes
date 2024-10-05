@@ -239,11 +239,10 @@ int randab(int a, int b)
  */
 void fill( int *x, int n )
 {
-    int i;
-    for (i=0; i<n; i++) {
+    for (int i=0; i<n; i++) {
         x[i] = i;
     }
-    for(i=0; i<n-1; i++) {
+    for(int i=0; i<n-1; i++) {
         const int j = randab(i, n-1);
         const int tmp = x[i];
         x[i] = x[j];
@@ -256,8 +255,7 @@ void fill( int *x, int n )
  */
 int check( const int *x, int n )
 {
-    int i;
-    for (i=0; i<n; i++) {
+    for (int i=0; i<n; i++) {
         if (x[i] != i) {
             fprintf(stderr, "Check FAILED: x[%d]=%d, expected %d\n", i, x[i], i);
             return 0;

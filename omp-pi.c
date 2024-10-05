@@ -53,36 +53,35 @@ follows:
    command-line parameter, and the number $P$ of OpenMP threads using
    the `OMP_NUM_THREADS` environment variable.
 
-2. Thread $p$ generates $N/P$ points using function
-   `generate_points()` (already provided), and stores the result in
-   `inside[p]`. `inside[]` is an integer array of length $P$ that must
-   be declared outside of the parallel region, since it must be shared
-   across all OpenMP threads.
+2. Thread $p$ generates $N/P$ points using `generate_points()` and
+   stores the result in `inside[p]`. `inside[]` is an integer array of
+   length $P$ that must be declared outside the parallel region, since
+   it must be shared across all OpenMP threads.
 
 3. At the end of the parallel region, the master (thread 0) computes
    $x$ as the sum of the content of `inside[]`; from this the estimate
    of $\pi$ can be computed as above.
 
-You may initially assume that the number of points $N$ is an integer
-multiple of $P$; when you get a working program, relax this assumption
-to make the computation correct for any value of $N$.
+You may initially assume that the number of points $N$ is a multiple
+of $P$; when you get a working program, relax this assumption to make
+the computation correct for any value of $N$.
 
 ## The better way
 
 A better approach is to let the compiler parallelize the "for" loop in
 `generate_points()` using `omp parallel` and `omp for`.  There is a
-small issue with this exercise: the `rand()` function is
-non-reentrant, therefore it can not be used concurrently by multiple
-threads. Instead, we use `rand_r()` which _is_ reentrant but requires
-that each thread keeps a local state `seed` and pass it to the
-function. To achieve this we can split the `omp parallel` and `omp
-for` directives, so that a different local seed can be given to each
-thread:
+problem, though: function `int rand(void)` is not thread-safe since it
+modifies a global state variable, so it can not be called concurrently
+by multiple threads. Instead, we use `int rand_r(unsigned int *seed)`
+which is thread-safe but requires that each thread keeps a local
+`seed`. We split the `omp parallel` and `omp for` directives, so that
+a different local seed can be given to each thread like so:
 
 ```C
 #pragma omp parallel default(none) shared(n, n_inside)
 {
         const int my_id = omp_get_thread_num();
+        \/\* Initialization of my_seed is arbitrary \*\/
         unsigned int my_seed = 17 + 19*my_id;
         ...
 #pragma omp for reduction(+:n_inside)
@@ -107,7 +106,7 @@ OpenMP threads and $N=20000$ points:
 
         OMP_NUM_THREADS=4 ./omp-pi 20000
 
-## File2
+## Files
 
 - [omp-pi.c](omp-pi.c)
 
@@ -130,12 +129,11 @@ unsigned int generate_points( unsigned int n )
 #ifdef SERIAL
     /* [TODO] parallelize the body of this function */
     unsigned int n_inside = 0;
-    /* The C function rand() is _NOT_ thread-safe, since it uses a
-       global (shared) seed. Therefore, it can not be used inside an
-       parallel region. We use rand_r() with an explicit per-thread
+    /* The C function `rand()` is not thread-safe, since it modifies a
+       global seed; therefore, it can not be used inside a parallel
+       region. We use `rand_r()` with an explicit per-thread
        seed. However, this means that in general the result computed
-       by this program will depend on the number of threads used, and
-       not only on the number of points that are generated. */
+       by this program depends on the number of threads. */
     unsigned int my_seed = 17 + 19*omp_get_thread_num();
     for (int i=0; i<n; i++) {
         /* Generate two random values in the range [-1, 1] */
@@ -182,15 +180,13 @@ unsigned int generate_points( unsigned int n )
     return n_inside;
 #else
     unsigned int n_inside = 0;
-    /* This is one case where it is necessary to split the "omp
-       parallel" and "omp for" directives. In fact, each thread uses a
-       local `my_seed` variable to keep track of the seed of the
-       pseudo-random number generator.  This variable must be
-       initialized before executing the loop, but should also be
-       private to each thread.  The simplest way to achieve this is to
-       first create a parallel region, then define a local (private)
-       variable `my_seed` and then use the `omp for` construct to
-       execute the loop in parallel. */
+    /* This is a case where it is necessary to split the "omp
+       parallel" and "omp for" directives. Indeed, each thread uses a
+       private `my_seed` variable to keep track of the seed of the
+       pseudo-random number generator. The simplest way to create such
+       variable is to first create a parallel region, and define a
+       local (private) variable `my_seed` before using the `omp for`
+       construct to execute the loop in parallel. */
 #pragma omp parallel default(none) shared(n, n_inside)
     {
         const int my_id = omp_get_thread_num();

@@ -47,14 +47,14 @@ void compare_and_swap( float *x, float *y )
 
 int main( int argc, char* argv[] )
 {
-    int i, n;
+    int n;
     if ( argc != 2 ) {
         printf("Usage: %s n\n", argv[0]);
         return EXIT_FAILURE;
     }
     n = atoi( argv[1] );
     printf("%d\n", n);
-    for (i=0; i<n; i++) {
+    for (int i=0; i<n; i++) {
         float x1 = randab(0, 1000), x2 = randab(0, 1000);
         float y1 = randab(0, 1000), y2 = randab(0, 1000);
         compare_and_swap(&x1, &x2);

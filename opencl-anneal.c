@@ -275,13 +275,12 @@ int IDX(int ext_width, int i, int j)
 /* [TODO] Transform this function into a kernel */
 void copy_top_bottom(cell_t *grid, int ext_width, int ext_height)
 {
-    int j;
     const int TOP = 1;
     const int BOTTOM = ext_height - 2;
     const int TOP_GHOST = TOP - 1;
     const int BOTTOM_GHOST = BOTTOM + 1;
 
-    for (j=0; j<ext_width; j++) {
+    for (int j=0; j<ext_width; j++) {
         grid[IDX(ext_width, BOTTOM_GHOST, j)] = grid[IDX(ext_width, TOP, j)]; /* top to bottom halo */
         grid[IDX(ext_width, TOP_GHOST, j)] = grid[IDX(ext_widthn, BOTTOM, j)]; /* bottom to top halo */
     }
@@ -313,13 +312,12 @@ void copy_top_bottom(cell_t *grid, int ext_width, int ext_height)
 /* [TODO] This function should be transformed into a kernel */
 void copy_left_right(cell_t *grid, int ext_width, int ext_height)
 {
-    int i;
     const int LEFT = 1;
     const int RIGHT = ext_width - 2;
     const int LEFT_GHOST = LEFT - 1;
     const int RIGHT_GHOST = RIGHT + 1;
 
-    for (i=0; i<ext_height; i++) {
+    for (int i=0; i<ext_height; i++) {
         grid[IDX(ext_width, i, RIGHT_GHOST)] = grid[IDX(ext_width, i, LEFT)]; /* left column to right halo */
         grid[IDX(ext_width, i, LEFT_GHOST)] = grid[IDX(ext_width, i, RIGHT)]; /* right column to left halo */
     }
@@ -330,13 +328,12 @@ void copy_left_right(cell_t *grid, int ext_width, int ext_height)
    [TODO] This function should be transformed into a kernel. */
 void step(cell_t *cur, cell_t *next, int ext_width, int ext_height)
 {
-    int i, j;
     const int LEFT = 1;
     const int RIGHT = ext_width - 2;
     const int TOP = 1;
     const int BOTTOM = ext_height - 2;
-    for (i=TOP; i <= BOTTOM; i++) {
-        for (j=LEFT; j <= RIGHT; j++) {
+    for (int i=TOP; i <= BOTTOM; i++) {
+        for (int j=LEFT; j <= RIGHT; j++) {
             const int nblack =
                 cur[IDX(ext_width, i-1, j-1)] + cur[IDX(ext_width, i-1, j)] + cur[IDX(ext_width, i-1, j+1)] +
                 cur[IDX(ext_width, i  , j-1)] + cur[IDX(ext_width, i  , j)] + cur[IDX(ext_width, i  , j+1)] +
@@ -351,15 +348,14 @@ void step(cell_t *cur, cell_t *next, int ext_width, int ext_height)
    `p`. */
 void init( cell_t *cur, int ext_width, int ext_height, float p )
 {
-    int i, j;
     const int LEFT = 1;
     const int RIGHT = ext_width - 2;
     const int TOP = 1;
     const int BOTTOM = ext_height - 2;
 
     srand(1234);
-    for (i=TOP; i <= BOTTOM; i++) {
-        for (j=LEFT; j <= RIGHT; j++) {
+    for (int i=TOP; i <= BOTTOM; i++) {
+        for (int j=LEFT; j <= RIGHT; j++) {
             /* the cast do `double` is required since `float` may have
                not enough precision for `float` (clang raises a
                warning) */
@@ -372,7 +368,6 @@ void init( cell_t *cur, int ext_width, int ext_height, float p )
    from the step number `stepno`. */
 void write_pbm( cell_t *cur, int ext_width, int ext_height, int stepno )
 {
-    int i, j;
     char fname[128];
     FILE *f;
 
@@ -389,8 +384,8 @@ void write_pbm( cell_t *cur, int ext_width, int ext_height, int stepno )
     fprintf(f, "P1\n");
     fprintf(f, "# produced by opencl-anneal.c\n");
     fprintf(f, "%d %d\n", ext_width-2, ext_height-2);
-    for (i=1; i<ext_height-1; i++) {
-        for (j=1; j<ext_width-1; j++) {
+    for (int i=1; i<ext_height-1; i++) {
+        for (int j=1; j<ext_width-1; j++) {
             fprintf(f, "%d ", cur[IDX(ext_width, i, j)]);
         }
         fprintf(f, "\n");

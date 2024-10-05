@@ -103,8 +103,7 @@ Example:
 
 void fill(int *v, int n)
 {
-    int i;
-    for (i=0; i<n; i++) {
+    for (int i=0; i<n; i++) {
         v[i] = (rand() % 100);
     }
 }
@@ -117,7 +116,6 @@ int main( int argc, char *argv[] )
     int *result = NULL; /* array degli indici delle occorrenze */
     int nf = 0;         /* numero di occorrenze trovate */
     const int KEY = 42; /* valore da cercare */
-    int i, r;
 
     MPI_Init( &argc, &argv );
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
@@ -142,7 +140,7 @@ int main( int argc, char *argv[] )
 
         /* Count the number of occurrences of `KEY` in `v[]` */
         nf = 0;
-        for (i=0; i<n; i++) {
+        for (int i=0; i<n; i++) {
             if (v[i] == KEY)
                 nf++;
         }
@@ -151,7 +149,7 @@ int main( int argc, char *argv[] )
         result = (int*)malloc(nf * sizeof(*result)); assert(result != NULL);
 
         /* fill the result array  */
-        for (r=0, i=0; i<n; i++) {
+        for (int r=0, i=0; i<n; i++) {
             if (v[i] == KEY) {
                 result[r] = i;
                 r++;
@@ -199,13 +197,13 @@ int main( int argc, char *argv[] )
 #endif
 
     /**
-     ** Step 2: each process computes the number of occurrences of
-     ** `KEY` in `local_v[]`
+     ** Step 2: each process computes the number of occurrences
+     ** `local_nf` of `KEY` in `local_v[]`
      **/
 #ifdef SERIAL
     /* [TODO] */
 #else
-    for (i=0; i<local_size; i++) {
+    for (int i=0; i<local_size; i++) {
         if (local_v[i] == KEY)
             local_nf++;
     }
@@ -230,7 +228,7 @@ int main( int argc, char *argv[] )
     local_result = (int*)malloc( local_nf * sizeof(*local_result) );
     assert(local_result != NULL);
 
-    for (r=0, i=0; i<local_size; i++) {
+    for (int r=0, i=0; i<local_size; i++) {
         if (local_v[i] == KEY) {
             local_result[r] = my_rank * local_size + i; /* the indexes refer to `v[]` */
             r++;
@@ -287,7 +285,7 @@ int main( int argc, char *argv[] )
 #else
         displs[0] = 0;
         nf = recvcounts[0];
-        for (i=1; i<comm_sz; i++) {
+        for (int i=1; i<comm_sz; i++) {
             displs[i] = displs[i-1] + recvcounts[i-1];
             nf += recvcounts[i];
         }

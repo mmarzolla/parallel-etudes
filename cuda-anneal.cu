@@ -282,13 +282,12 @@ int d_min(int a, int b)
 /* [TODO] Transform this function into a kernel */
 void copy_top_bottom(cell_t *grid, int ext_width, int ext_height)
 {
-    int j;
     const int TOP = 1;
     const int BOTTOM = ext_height - 2;
     const int TOP_GHOST = TOP - 1;
     const int BOTTOM_GHOST = BOTTOM + 1;
 
-    for (j=0; j<ext_width; j++) {
+    for (int j=0; j<ext_width; j++) {
         *IDX(grid, ext_width, BOTTOM_GHOST, j) = *IDX(grid, ext_width, TOP, j); /* top to bottom halo */
         *IDX(grid, ext_width, TOP_GHOST, j) = *IDX(grid, ext_width, BOTTOM, j); /* bottom to top halo */
     }
@@ -336,13 +335,12 @@ __global__ void copy_top_bottom(cell_t *grid, int ext_width, int ext_height)
 /* [TODO] This function should be transformed into a kernel */
 void copy_left_right(cell_t *grid, int ext_width, int ext_height)
 {
-    int i;
     const int LEFT = 1;
     const int RIGHT = ext_width - 2;
     const int LEFT_GHOST = LEFT - 1;
     const int RIGHT_GHOST = RIGHT + 1;
 
-    for (i=0; i<ext_height; i++) {
+    for (int i=0; i<ext_height; i++) {
         *IDX(grid, ext_width, i, RIGHT_GHOST) = *IDX(grid, ext_width, i, LEFT); /* left column to right halo */
         *IDX(grid, ext_width, i, LEFT_GHOST) = *IDX(grid, ext_width, i, RIGHT); /* right column to left halo */
     }
@@ -506,15 +504,14 @@ __global__ void step_shared(cell_t *cur, cell_t *next, int ext_width, int ext_he
    `p`. */
 void init( cell_t *cur, int ext_width, int ext_height, float p )
 {
-    int i, j;
     const int LEFT = 1;
     const int RIGHT = ext_width - 2;
     const int TOP = 1;
     const int BOTTOM = ext_height - 2;
 
     srand(1234); /* initialize PRND */
-    for (i=TOP; i <= BOTTOM; i++) {
-        for (j=LEFT; j <= RIGHT; j++) {
+    for (int i=TOP; i <= BOTTOM; i++) {
+        for (int j=LEFT; j <= RIGHT; j++) {
             *IDX(cur, ext_width, i, j) = (((float)rand())/RAND_MAX < p);
         }
     }
@@ -524,7 +521,6 @@ void init( cell_t *cur, int ext_width, int ext_height, float p )
    from the step number `stepno`. */
 void write_pbm( cell_t *cur, int ext_width, int ext_height, int stepno )
 {
-    int i, j;
     char fname[128];
     FILE *f;
     const int LEFT = 1;
@@ -541,8 +537,8 @@ void write_pbm( cell_t *cur, int ext_width, int ext_height, int stepno )
     fprintf(f, "P1\n");
     fprintf(f, "# produced by cuda-anneal.cu\n");
     fprintf(f, "%d %d\n", ext_width-2, ext_height-2);
-    for (i=LEFT; i<=RIGHT; i++) {
-        for (j=TOP; j<=BOTTOM; j++) {
+    for (int i=LEFT; i<=RIGHT; i++) {
+        for (int j=TOP; j<=BOTTOM; j++) {
             fprintf(f, "%d ", *IDX(cur, ext_width, i, j));
         }
         fprintf(f, "\n");
@@ -558,7 +554,7 @@ int main( int argc, char* argv[] )
     cell_t *cur;
     cell_t *d_cur, *d_next;
 #endif
-    int s, nsteps = 64, width = 512, height = 512;
+    int nsteps = 64, width = 512, height = 512;
     const int MAXN = 2048;
 
     if ( argc > 4 ) {
@@ -601,7 +597,7 @@ int main( int argc, char* argv[] )
     next = (cell_t*)malloc(ext_size); assert(next != NULL);
     init(cur, ext_width, ext_height, 0.5);
     const double tstart = hpc_gettime();
-    for (s=0; s<nsteps; s++) {
+    for (int s=0; s<nsteps; s++) {
         copy_top_bottom(cur, ext_width, ext_height);
         copy_left_right(cur, ext_width, ext_height);
 #ifdef DUMPALL
@@ -635,7 +631,7 @@ int main( int argc, char* argv[] )
 
     /* evolve the CA */
     const double tstart = hpc_gettime();
-    for (s=0; s<nsteps; s++) {
+    for (int s=0; s<nsteps; s++) {
         copy_top_bottom<<<copyTBGrid, copyTBBlock>>>(d_cur, ext_width, ext_height); cudaCheckError();
         copy_left_right<<<copyLRGrid, copyLRBlock>>>(d_cur, ext_width, ext_height); cudaCheckError();
 #ifdef USE_SHARED

@@ -2,7 +2,7 @@
  *
  * mpi-rule30.c - Rule30 Cellular Automaton
  *
- * Copyright (C) 2017--2023 by Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2017--2024 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Rule 30 Cellular Automaton
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2023-11-22
+% Last updated: 2024-10-05
 
 We introduced Cellular Automata (CAs) as an example of _stencil
 computations_. In this exercise we implement the [Rule 30 Cellular
@@ -202,10 +202,9 @@ const int HALO = 1;
  */
 void step( const cell_t *cur, cell_t *next, int ext_n )
 {
-    int i;
     const int LEFT = HALO;
     const int RIGHT = ext_n - HALO - 1;
-    for (i = LEFT; i <= RIGHT; i++) {
+    for (int i = LEFT; i <= RIGHT; i++) {
         const cell_t east = cur[i-1];
         const cell_t center = cur[i];
         const cell_t west = cur[i+1];
@@ -223,8 +222,7 @@ void step( const cell_t *cur, cell_t *next, int ext_n )
  */
 void init_domain( cell_t *cur, int ext_n )
 {
-    int i;
-    for (i=0; i<ext_n; i++) {
+    for (int i=0; i<ext_n; i++) {
         cur[i] = 0;
     }
     cur[ext_n/2] = 1;
@@ -236,11 +234,10 @@ void init_domain( cell_t *cur, int ext_n )
  */
 void dump_state( FILE *out, const cell_t *cur, int ext_n )
 {
-    int i;
     const int LEFT = HALO;
     const int RIGHT = ext_n - HALO - 1;
 
-    for (i=LEFT; i<=RIGHT; i++) {
+    for (int i=LEFT; i<=RIGHT; i++) {
         fprintf(out, "%d ", cur[i]);
     }
     fprintf(out, "\n");
@@ -250,7 +247,7 @@ int main( int argc, char* argv[] )
 {
     const char *outname = "rule30.pbm";
     FILE *out = NULL;
-    int width = 1024, nsteps = 1024, s;
+    int width = 1024, nsteps = 1024;
     /* `cur` is the memory buffer containint `width` elements; this is
        the full state of the CA. */
     cell_t *cur = NULL, *tmp;
@@ -397,7 +394,7 @@ int main( int argc, char* argv[] )
     */
 #endif
 
-    for (s=0; s<nsteps; s++) {
+    for (int s=0; s<nsteps; s++) {
 
         /* This is OK; the master dumps the current state of the automaton */
         if ( 0 == my_rank ) {

@@ -2,7 +2,7 @@
  *
  * mpi-bbox.c - Bounding box of a set of rectangles
  *
- * Copyright (C) 2017--2022 by Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2017--2024 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Bounding box of a set of rectangles
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2022-11-09
+% Last updated: 2024-10-05
 
 Write a parallel program that computes the _bounding box_ of a set of
 rectangles. The bounding box is the rectangle of minimal area that
@@ -93,21 +93,20 @@ Example:
 #include <assert.h>
 #include <mpi.h>
 
-/* Compute the bounding box of |n| rectangles whose opposite vertices
-   have coordinates (|x1[i]|, |y1[i]|), (|x2[i]|, |y2[i]|). The
-   opposite corners of the bounding box will be stored in (|xb1|,
-   |yb1|), (|xb2|, |yb2|) */
+/* Compute the bounding box of `n` rectangles whose opposite vertices
+   have coordinates (x1[i], y1[i]), (x2[i], y2[i]). The opposite
+   corners of the bounding box will be stored in (xb1, yb1), (xb2,
+   yb2) */
 void bbox( const float *x1, const float *y1, const float* x2, const float *y2,
            int n,
            float *xb1, float *yb1, float *xb2, float *yb2 )
 {
-    int i;
     assert(n > 0);
     *xb1 = x1[0];
     *yb1 = y1[0];
     *xb2 = x2[0];
     *yb2 = y2[0];
-    for (i=1; i<n; i++) {
+    for (int i=1; i<n; i++) {
         *xb1 = fminf( *xb1, x1[i] );
         *yb1 = fmaxf( *yb1, y1[i] );
         *xb2 = fmaxf( *xb2, x2[i] );
@@ -143,7 +142,6 @@ int main( int argc, char* argv[] )
        does everything */
     if ( 0 == my_rank ) {
         FILE *in = fopen(argv[1], "r");
-        int i;
         if ( in == NULL ) {
             fprintf(stderr, "Cannot open %s for reading\n", argv[1]);
             MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
@@ -164,7 +162,7 @@ int main( int argc, char* argv[] )
         y1 = (float*)malloc(N * sizeof(*y1)); assert(y1 != NULL);
         x2 = (float*)malloc(N * sizeof(*x2)); assert(x2 != NULL);
         y2 = (float*)malloc(N * sizeof(*y2)); assert(y2 != NULL);
-        for (i=0; i<N; i++) {
+        for (int i=0; i<N; i++) {
             if (4 != fscanf(in, "%f %f %f %f", &x1[i], &y1[i], &x2[i], &y2[i])) {
                 fprintf(stderr, "FATAL: cannot read box %d\n", i);
                 MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
@@ -184,7 +182,6 @@ int main( int argc, char* argv[] )
     /* Initialization done by the master */
     if ( 0 == my_rank ) {
         FILE *in = fopen(argv[1], "r");
-        int i;
         if ( in == NULL ) {
             fprintf(stderr, "Cannot open %s for reading\n", argv[1]);
             MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
@@ -197,7 +194,7 @@ int main( int argc, char* argv[] )
         y1 = (float*)malloc(N * sizeof(*y1)); assert(y1 != NULL);
         x2 = (float*)malloc(N * sizeof(*x2)); assert(x2 != NULL);
         y2 = (float*)malloc(N * sizeof(*y2)); assert(y2 != NULL);
-        for (i=0; i<N; i++) {
+        for (int i=0; i<N; i++) {
             if (4 != fscanf(in, "%f %f %f %f", &x1[i], &y1[i], &x2[i], &y2[i])) {
                 fprintf(stderr, "FATAL: cannot read box %d\n", i);
                 MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);

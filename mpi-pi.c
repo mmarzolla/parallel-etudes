@@ -2,7 +2,7 @@
  *
  * mpi-pi.c - Monte Carlo approximatino of PI
  *
- * Copyright (C) 2017--2022 by Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2017--2022, 2024 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - Monte Carlo approximation of PI
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2022-10-24
+% Last updated: 2024-10-05
 
 The file [mpi-pi.c](mpi-pi.c) contains a serial program for computing
 the approximate value of $\pi$ using a Monte Carlo algorithm. Monte
@@ -30,9 +30,9 @@ of some quantity of interest.
 
 ![Figure 1: Monte Carlo computation of the value of $\pi$](pi_Monte_Carlo.svg)
 
-The idea is quite simple (see Figure 1). We generate $N$ random points
+The idea is simple (see Figure 1). We generate $N$ random points
 uniformly distributed inside the square with corners at $(-1, -1)$ and
-$(1, 1)$. Let $x$ be the number of points that lie inside the circle
+$(1, 1)$. Let $x$ be the number of points that fall inside the circle
 inscribed in the square; then, the ratio $x / N$ is an approximation
 of the ratio between the area of the circle and the area of the
 square. Since the area of the circle is $\pi$ and the area of the
@@ -97,8 +97,8 @@ Example, using 4 MPI processes:
    centered ad the origin with radius 1 */
 int generate_points( int n )
 {
-    int i, n_inside = 0;
-    for (i=0; i<n; i++) {
+    int n_inside = 0;
+    for (int i=0; i<n; i++) {
         const double x = (rand()/(double)RAND_MAX * 2.0) - 1.0;
         const double y = (rand()/(double)RAND_MAX * 2.0) - 1.0;
         if ( x*x + y*y < 1.0 ) {
@@ -150,8 +150,9 @@ int main( int argc, char *argv[] )
     printf("Proc %d generates %d points...\n", my_rank, local_n);
     local_inside = generate_points(local_n);
 
-    /* This is what we can do using send/receive only. The correct
-       solution would be to use MPI_Reduce() */
+    /* The solution below is NOT efficient since it relies on
+       send/receive operations to accumulate the values at the
+       master. The correct solution is to use MPI_Reduce() */
     if (my_rank > 0) {
         /* All processes, except the master, send the local count to
            proc 0 */

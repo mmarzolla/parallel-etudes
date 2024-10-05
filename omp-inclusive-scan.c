@@ -81,17 +81,15 @@ Run with:
 /* Fill v[] with the constant 1 */
 void fill(int* v, int n)
 {
-    int i;
     printf("Initializing %d elements...\n", n);
-    for (i=0; i<n; i++) {
+    for (int i=0; i<n; i++) {
         v[i] = 1;
     }
 }
 
 void check(int *s, int n)
 {
-    int i;
-    for (i=0; i<n; i++) {
+    for (int i=0; i<n; i++) {
         if ( s[i] != i+1 ) {
             printf("Check failed: expected s[%d]==%d, got %d\n", i, i+1, s[i]);
             abort();
@@ -105,7 +103,6 @@ void check(int *s, int n)
    n elements */
 void inclusive_scan(int *v, int n, int *s)
 {
-    int i;
     printf("Scanning %d elements...\n", n);
 #ifdef SERIAL
     /* degenerate case of empty array: do nothing */
@@ -114,7 +111,7 @@ void inclusive_scan(int *v, int n, int *s)
 
     /* [TODO] parallelize this */
     s[0] = v[0];
-    for (i=1; i<n; i++) {
+    for (int i=1; i<n; i++) {
         s[i] = s[i-1] + v[i];
     }
 #else
@@ -122,7 +119,7 @@ void inclusive_scan(int *v, int n, int *s)
     int blksum[n_threads];
     int blksum_s[n_threads];
 
-#pragma omp parallel num_threads(n_threads) default(none) shared(v,s,n,blksum,n_threads) private(i)
+#pragma omp parallel num_threads(n_threads) default(none) shared(v,s,n,blksum,n_threads)
     {
         const int thread_id = omp_get_thread_num();
         const int local_start = n * thread_id / n_threads;
@@ -130,7 +127,7 @@ void inclusive_scan(int *v, int n, int *s)
 
         /* Each process performs an inclusive scan of its portion of array */
         s[local_start] = v[local_start];
-        for (i=local_start+1; i<local_end; i++) {
+        for (int i=local_start+1; i<local_end; i++) {
             s[i] = s[i-1] + v[i];
         }
         blksum[thread_id] = s[local_end-1];
@@ -138,18 +135,18 @@ void inclusive_scan(int *v, int n, int *s)
 
     /* The master performs an exclusive scan on blksum_s[] */
     blksum_s[0] = 0;
-    for (i=1; i<n_threads; i++) {
+    for (int i=1; i<n_threads; i++) {
         blksum_s[i] = blksum_s[i-1] + blksum[i-1];
     }
 
     /* Each process increments all values of its portion of array */
-#pragma omp parallel num_threads(n_threads) default(none) shared(s,n,blksum_s,n_threads) private(i)
+#pragma omp parallel num_threads(n_threads) default(none) shared(s,n,blksum_s,n_threads)
     {
         const int thread_id = omp_get_thread_num();
         const int local_start = n * thread_id / n_threads;
         const int local_end = n * (thread_id + 1) / n_threads;
 
-        for (i=local_start; i<local_end; i++) {
+        for (int i=local_start; i<local_end; i++) {
             s[i] += blksum_s[thread_id];
         }
     }

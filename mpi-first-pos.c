@@ -2,7 +2,7 @@
  *
  * mpi-first-pos.c - First occurrence of a value in a vector
  *
- * Copyright (C) 2022, 2023 by Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2022--2024 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 /***
 % HPC - First occurrence of a value in a vector
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2023-09-18
+% Last updated: 2024-10-05
 
 Write a MPI program that solves the following problem. Given a
 non-empty integer array `v[0..N-1]` of length $N$, and an integer
@@ -74,7 +74,7 @@ int randab(int a, int b)
 
 int main( int argc, char *argv[] )
 {
-    int my_rank, comm_sz, N, k, i, pos, minpos;
+    int my_rank, comm_sz, N, k, pos, minpos;
     int *v = NULL;
 
     MPI_Init( &argc, &argv );
@@ -103,7 +103,7 @@ int main( int argc, char *argv[] )
         v = (int*)malloc(N * sizeof(*v));
         assert(v != NULL);
         printf("Before: [");
-        for (i=0; i<N; i++) {
+        for (int i=0; i<N; i++) {
             v[i] = i;
             printf("%d ", v[i]);
         }
@@ -149,7 +149,7 @@ int main( int argc, char *argv[] )
        the result is computed as the min-reduction of the partial
        results, if a process does not find the key on the local array,
        it must send `N` to process 0. */
-    i = 0;
+    int i = 0;
     while (i<local_N && local_v[i] != k) {
         i++;
     }
