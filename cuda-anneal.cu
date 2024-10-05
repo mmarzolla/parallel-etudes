@@ -554,7 +554,7 @@ int main( int argc, char* argv[] )
     cell_t *cur;
     cell_t *d_cur, *d_next;
 #endif
-    int nsteps = 64, width = 512, height = 512;
+    int s, nsteps = 64, width = 512, height = 512;
     const int MAXN = 2048;
 
     if ( argc > 4 ) {
@@ -597,7 +597,7 @@ int main( int argc, char* argv[] )
     next = (cell_t*)malloc(ext_size); assert(next != NULL);
     init(cur, ext_width, ext_height, 0.5);
     const double tstart = hpc_gettime();
-    for (int s=0; s<nsteps; s++) {
+    for (s=0; s<nsteps; s++) {
         copy_top_bottom(cur, ext_width, ext_height);
         copy_left_right(cur, ext_width, ext_height);
 #ifdef DUMPALL
@@ -631,7 +631,7 @@ int main( int argc, char* argv[] )
 
     /* evolve the CA */
     const double tstart = hpc_gettime();
-    for (int s=0; s<nsteps; s++) {
+    for (s=0; s<nsteps; s++) {
         copy_top_bottom<<<copyTBGrid, copyTBBlock>>>(d_cur, ext_width, ext_height); cudaCheckError();
         copy_left_right<<<copyLRGrid, copyLRBlock>>>(d_cur, ext_width, ext_height); cudaCheckError();
 #ifdef USE_SHARED
