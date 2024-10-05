@@ -2,7 +2,7 @@
  *
  * omp-gaussian-elimination.c - Solve systems of linear equations in upper triangular form
  *
- * Copyright (C) 2023 by Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2023, 2024 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@
  ****************************************************************************/
 
 /***
-% HPC - Solution of a system of linear equations in upper triangular form
+% HPC - Solve systems of linear equations in upper triangular form
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2023-01-13
+% Last updated: 2024-10-05
 
 The solution of a linear system $Ax = b$, where $A$ is a square matrix
 of size $n \times n$ in upper triangular form and $b$ is a vector of
@@ -39,9 +39,9 @@ following code fragment:
 
 ```
 
-The idea is to start from the last equation to find $x_{n-1}$, and the
-proceed backwards by substituting the known values $x_{i+1}, x_{i+2},
-\ldots, x_{n-1}$ to compute $x_i$ as:
+The idea is to start from the last equation to find $x_{n-1}$, and
+then proceed backwards by substituting the known values $x_{i+1},
+x_{i+2}, \ldots, x_{n-1}$ to compute $x_i$ as:
 
 $$
 x_i = b_i - \sum_{j = i+1}^{n-1} A_{ij} x_j \qquad i = n-1, n-2, \ldots, 0
@@ -107,9 +107,8 @@ void solve( const float *A, const float *b, float *x, int n )
            }
            x[i] = xi / A[i*n + i];
 
-           Although this version ios more verbose and definitely less
-           clear, it shows that a known parallel pattern applies to
-           the inner loop...
+           Although this is more difficult to understand, it shows
+           that a known parallel pattern applies to the inner loop...
         */
     }
 #else
@@ -134,13 +133,6 @@ void init( float *A, float *b, int n )
     for (int i=0; i<n; i++) {
         float bi = 0.0;
         for (int j=0; j<n; j++) {
-            /*
-            if (i > j) {
-                A[i*n + j] = 0;
-            } else {
-                A[i*n + j] = i+j + 1;
-            }
-            */
             if (j < i) {
                 A[i*n + j] = 0;
             } else {

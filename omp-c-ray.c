@@ -2,7 +2,7 @@
  * omp-c-ray - Ray tracing
  *
  * Copyright (C) 2006 John Tsiombikas <nuclear@siggraph.org>
- * Copyright (C) 2016, 2017, 2018, 2020-2023 Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2016, 2017, 2018, 2020-2024 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * You are free to use, modify and redistribute this program under the
  * terms of the GNU General Public License v2 or (at your option) later.
@@ -25,7 +25,7 @@
 /***
 % HPC - Ray tracing
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2023-06-07
+% Last updated: 2024-10-05
 
 The file [omp-c-ray.c](omp-c-ray.c) contains the implementation of a
 [simple ray tracer](https://github.com/jtsiomb/c-ray) written
@@ -386,11 +386,10 @@ ray_t get_primary_ray(int x, int y, int sample)
  */
 vec3_t shade(sphere_t *obj, spoint_t *sp, int depth)
 {
-    int i;
     vec3_t col = {0, 0, 0};
 
     /* for all lights ... */
-    for (i=0; i<lnum; i++) {
+    for (int i=0; i<lnum; i++) {
         double ispec, idiff;
         vec3_t ldir;
         ray_t shadow_ray;
@@ -458,7 +457,6 @@ vec3_t trace(ray_t ray, int depth)
     vec3_t col;
     spoint_t sp, nearest_sp;
     sphere_t *nearest_obj = NULL;
-    sphere_t *iter;
 
     nearest_sp.dist = INFINITY;
 
@@ -469,7 +467,7 @@ vec3_t trace(ray_t ray, int depth)
     }
 
     /* find the nearest intersection ... */
-    for (iter = obj_list; iter != NULL; iter = iter->next ) {
+    for (sphere_t *iter = obj_list; iter != NULL; iter = iter->next ) {
         if ( ray_sphere(iter, ray, &sp) &&
              (!nearest_obj || sp.dist < nearest_sp.dist) ) {
             nearest_obj = iter;
@@ -491,8 +489,6 @@ vec3_t trace(ray_t ray, int depth)
 /* render a frame of xsz/ysz dimensions into the provided framebuffer */
 void render(int xsz, int ysz, pixel_t *fb, int samples)
 {
-    int i, j;
-
     /*
      * for each subpixel, trace a ray through the scene, accumulate
      * the colors of the subpixels of each pixel, then put the colors
@@ -503,13 +499,12 @@ void render(int xsz, int ysz, pixel_t *fb, int samples)
 
 #pragma omp parallel for default(none) collapse(2) shared(samples, fb, xsz, ysz) schedule(dynamic, 32)
 #endif
-    for (j=0; j<ysz; j++) {
-        for (i=0; i<xsz; i++) {
+    for (int j=0; j<ysz; j++) {
+        for (int i=0; i<xsz; i++) {
             double r, g, b;
-            int s;
             r = g = b = 0.0;
 
-            for (s=0; s<samples; s++) {
+            for (int s=0; s<samples; s++) {
                 vec3_t col = trace(get_primary_ray(i, j, s), 0);
                 r += col.x;
                 g += col.y;
@@ -606,7 +601,6 @@ void free_scene( void )
 
 int main(int argc, char *argv[])
 {
-    int i;
     double tstart, elapsed;
     pixel_t *pixels; /* framebuffer (where the image is drawn) */
     int rays_per_pixel = 1;
@@ -666,9 +660,9 @@ int main(int argc, char *argv[])
     load_scene(infile);
 
     /* initialize the random number tables for the jitter */
-    for (i=0; i<NRAN; i++) urand[i].x = (double)rand() / RAND_MAX - 0.5;
-    for (i=0; i<NRAN; i++) urand[i].y = (double)rand() / RAND_MAX - 0.5;
-    for (i=0; i<NRAN; i++) irand[i] = (int)(NRAN * ((double)rand() / RAND_MAX));
+    for (int i=0; i<NRAN; i++) urand[i].x = (double)rand() / RAND_MAX - 0.5;
+    for (int i=0; i<NRAN; i++) urand[i].y = (double)rand() / RAND_MAX - 0.5;
+    for (int i=0; i<NRAN; i++) irand[i] = (int)(NRAN * ((double)rand() / RAND_MAX));
 
     tstart = omp_get_wtime();
     render(xres, yres, pixels, rays_per_pixel);

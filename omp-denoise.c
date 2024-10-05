@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * omp-denoise.c - Image denoising
+ * omp-denoise.c - Image denoising using the median filter
  *
- * Copyright (C) 2018--2023 Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2018--2024 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,26 +19,23 @@
  ****************************************************************************/
 
 /***
-% HPC - Image denoising
+% HPC - Image denoising using the median filter
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2023-10-01
+% Last updated: 2024-10-05
 
 ![Figure 1: Denoising example (original image by Simpsons, CC BY-SA 3.0, <https://commons.wikimedia.org/w/index.php?curid=8904364>)](denoise.png)
 
 The file [omp-denoise.c](omp-denoise.c) contains a serial
-implementation of an _image denoising_ algorithm that (to some extent)
-can be used to "cleanup" color images. The algorithm replaces the
-color of each pixel with the _median_ of the four adjacent pixels plus
-itself (_median-of-five_).  The median-of-five algorithm is applied
-separately for each color channel (red, green, and blue).
+implementation of an image denoising algorithm. The algorithm replaces
+the color of each pixel with the _median_ of the four adjacent pixels
+plus itself (_median-of-five_). The median-of-five algorithm is
+applied separately for each color channel (red, green, and blue). This
+is particularly useful for removing "hot pixels", i.e., pixels whose
+color is off its intended value, for example due to sensor
+noise. However, depending on the amount of noise, a single pass could
+be insufficient to remove every hot pixel; see Figure 1.
 
-This is particularly useful for removing "hot pixels", i.e., pixels
-whose color is way off its intended value, for example due to problems
-in the sensor used to acquire the image. However, depending on the
-amount of noise, a single pass could be insufficient to remove every
-hot pixel; see Figure 1.
-
-The input image is read from standard input in
+The input image is read from standard input, and must be in
 [PPM](http://netpbm.sourceforge.net/doc/ppm.html) (Portable Pixmap)
 format; the result is written to standard output in the same format.
 
@@ -59,7 +56,8 @@ Example:
 - [omp-denoise.c](omp-denoise.c)
 - [valve-noise.ppm](valve-noise.ppm) (sample input)
 
- ***/
+***/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

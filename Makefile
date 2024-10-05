@@ -131,9 +131,9 @@ dna.in: gendna
 	./gendna > $@
 
 omp-c-ray-images.jpg: omp-c-ray sphfract.small.in spheres.in dna.in
-	./omp-c-ray < sphfract.small.in > c-ray1.tmp.ppm
-	./omp-c-ray < spheres.in > c-ray2.tmp.ppm
-	./omp-c-ray < dna.in > c-ray3.tmp.ppm
+	./omp-c-ray -r 10 < sphfract.small.in > c-ray1.tmp.ppm
+	./omp-c-ray -r 10 < spheres.in > c-ray2.tmp.ppm
+	./omp-c-ray -r 10 < dna.in > c-ray3.tmp.ppm
 	montage c-ray?.tmp.ppm -tile 3x1 -geometry +2+4 $@
 	\rm -f c-ray?.tmp.ppm
 

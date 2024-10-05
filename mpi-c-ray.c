@@ -1,8 +1,8 @@
 /******************************************************************************
- * mpi-c-ray - A simple ray tracer
+ * mpi-c-ray - Ray tracing
  *
  * Copyright (C) 2006 John Tsiombikas <nuclear@siggraph.org>
- * Copyright (C) 2016, 2017, 2018, 2020, 2021, 2022 Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2016, 2017, 2018, 2020, 2021, 2022, 2024 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * You are free to use, modify and redistribute this program under the
  * terms of the GNU General Public License v2 or (at your option) later.
@@ -23,9 +23,9 @@
  ******************************************************************************/
 
 /***
-% HPC - Ray Tracer
+% HPC - Ray Tracing
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2022-11-03
+% Last updated: 2024-10-05
 
 The file [mpi-c-ray.c](mpi-c-ray.c) contains the implementation of a
 [simple ray tracing program](https://github.com/jtsiomb/c-ray) written
@@ -418,15 +418,14 @@ ray_t get_primary_ray(int x, int y, int sample)
  */
 vec3_t shade(sphere_t *obj, spoint_t *sp, int depth)
 {
-    int i;
     vec3_t col = {0, 0, 0};
 
     /* for all lights ... */
-    for (i=0; i<lnum; i++) {
+    for (int i=0; i<lnum; i++) {
         double ispec, idiff;
         vec3_t ldir;
         ray_t shadow_ray;
-        sphere_t *iter = obj_list;
+        sphere_t *iter;
         int in_shadow = 0;
 
         ldir.x = lights[i].x - sp->pos.x;
@@ -490,7 +489,6 @@ vec3_t trace(ray_t ray, int depth)
     vec3_t col;
     spoint_t sp, nearest_sp;
     sphere_t *nearest_obj = NULL;
-    sphere_t *iter;
 
     nearest_sp.dist = INFINITY;
 
@@ -501,7 +499,7 @@ vec3_t trace(ray_t ray, int depth)
     }
 
     /* find the nearest intersection ... */
-    for (iter = obj_list; iter != NULL; iter = iter->next ) {
+    for (sphere_t *iter = obj_list; iter != NULL; iter = iter->next ) {
         if ( ray_sphere(iter, ray, &sp) &&
              (!nearest_obj || sp.dist < nearest_sp.dist) ) {
             nearest_obj = iter;
@@ -523,21 +521,17 @@ vec3_t trace(ray_t ray, int depth)
 /* render a frame of xsz/ysz dimensions into the provided framebuffer */
 void render(int xsz, int ysz, int from, int to, pixel_t *fb, int samples)
 {
-    int i, j;
-    int fb_row = 0;
-
     /*
      * for each subpixel, trace a ray through the scene, accumulate
      * the colors of the subpixels of each pixel, then put the colors
      * into the framebuffer.
      */
-    for (j=from, fb_row=0; j<to; j++, fb_row++) {
-        for (i=0; i<xsz; i++) {
+    for (int j=from, fb_row=0; j<to; j++, fb_row++) {
+        for (int i=0; i<xsz; i++) {
             double r, g, b;
-            int s;
             r = g = b = 0.0;
 
-            for (s=0; s<samples; s++) {
+            for (int s=0; s<samples; s++) {
                 vec3_t col = trace(get_primary_ray(i, j, s), 0);
                 r += col.x;
                 g += col.y;
@@ -636,7 +630,6 @@ void free_scene( void )
 
 int main(int argc, char *argv[])
 {
-    int i;
     pixel_t *pixels = NULL; /* where the global image is drawn (at rank 0) */
     pixel_t *local_pixels = NULL; /* where the local images are drawn */
     int rays_per_pixel = 1;
@@ -648,7 +641,7 @@ int main(int argc, char *argv[])
     MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
 
     /* Every process parses the command line */
-    for (i=1; i<argc; i++) {
+    for (int i=1; i<argc; i++) {
         if (argv[i][0] == '-' && argv[i][2] == 0) {
             char *sep;
             switch(argv[i][1]) {
@@ -712,9 +705,9 @@ int main(int argc, char *argv[])
     load_scene(infile);
 
     /* initialize the random number tables for the jitter */
-    for (i=0; i<NRAN; i++) urand[i].x = (double)rand() / RAND_MAX - 0.5;
-    for (i=0; i<NRAN; i++) urand[i].y = (double)rand() / RAND_MAX - 0.5;
-    for (i=0; i<NRAN; i++) irand[i] = (int)(NRAN * ((double)rand() / RAND_MAX));
+    for (int i=0; i<NRAN; i++) urand[i].x = (double)rand() / RAND_MAX - 0.5;
+    for (int i=0; i<NRAN; i++) urand[i].y = (double)rand() / RAND_MAX - 0.5;
+    for (int i=0; i<NRAN; i++) irand[i] = (int)(NRAN * ((double)rand() / RAND_MAX));
 
     const double tstart = MPI_Wtime();
     render(xres, yres, from, to, local_pixels, rays_per_pixel);

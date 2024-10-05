@@ -21,17 +21,17 @@
 /***
 % HPC - Sieve of Eratosthenes
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2024-09-02
+% Last updated: 2024-10-05
 
 ![Eratosthenes (276 BC--194 BC)](Eratosthenes.png "Etching of an ancient seal identified as Eartosthenes")
 
 The _sieve of Erathostenes_ is an algorithm for identifying the prime
-numbers within the set $\{2, \ldots, n\}$. A natural number $p \geq 2$
-is prime if and only if its only divisors are 1 and $p$ itself (2 is
+numbers within the set $\{2, \ldots, n\}$. An integer $p \geq 2$ is
+prime if and only if its only divisors are 1 and $p$ itself (2 is
 prime).
 
-To illustrate how the sieve of Eratosthenes works, let us consider the
-case $n=20$. We start by listing all integers $2, \ldots n$:
+To illustrate how the sieve of Eratosthenes works, let us consider
+$n=20$. We start by listing all integers $2, \ldots n$:
 
 ![](omp-sieve1.svg)
 
@@ -42,14 +42,14 @@ and get:
 
 The next unmarked value (3) is prime. We mark all its multiples
 starting from $3 \times 3$, since $3 \times 2$ has already been marked
-the previous step because it is a multiple of 2. We get:
+as a multiple of two. We get:
 
 ![](omp-sieve3.svg)
 
 The next unmarked value (5) is prime. The smaller unmarked multiple of
 5 is $5 \times 5$, because $5 \times 2$, $5 \times 3$ and $5 \times 4$
-have been marked since they are multiples of 2 and 3. However, since
-$5 \times 5$ is outside the upper bound of the interval, the algorithm
+have already been marked as multiples of 2 and 3. However, since $5
+\times 5$ is outside the upper bound of the interval, the algorithm
 terminates and all unmarked numbers are prime:
 
 ![](omp-sieve4.svg)
@@ -66,7 +66,7 @@ the `isprime[]` array of length $n+1$; during execution, `isprime[k]`
 is 0 if and only if $k$ has been marked, i.e., has been determined to
 be composite; `isprime[0]` and `isprime[1]` are not used.
 
-[^1]: $\pi(n)$ is also called [prime-counting
+[^1]: $\pi(n)$ is the [prime-counting
       function](https://en.wikipedia.org/wiki/Prime-counting_function)
 
 The goal of this exercise is to write a parallel version of the sieve
@@ -143,34 +143,34 @@ implementation.
 
 :Table 1: Some values of the prime-counting function $\pi(n)$
 
-          $n$                             $\pi(n)$
--------------  -----------------------------------
-            1                                    0
-           10                                    4
-          100                                   25
-         1000                                  168
-        10000                                 1229
-       100000                                 9592
-      1000000                                78498
-     10000000                               664579
-    100000000                              5761455
-   1000000000                             50847534
--------------  -----------------------------------
+          $n$        $\pi(n)$
+-------------  --------------
+            1               0
+           10               4
+          100              25
+         1000             168
+        10000            1229
+       100000            9592
+      1000000           78498
+     10000000          664579
+    100000000         5761455
+   1000000000        50847534
+-------------  --------------
 
 ## Files
 
 - [omp-sieve.c](omp-sieve.c)
 
 ***/
+
 #include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 
-/* Mark all mutliples of `k` in the set {`from`, ..., `to`-1}; return
-   how many numbers have been marked for the first time. `from` does
-   not need to be a multiple of `k`, although in this program it
-   always is. */
+/* Mark all mutliples of `k` in {`from`, ..., `to`-1}; return how many
+   numbers have been marked for the first time. `from` does not need
+   to be a multiple of `k`, although in this program it always is. */
 int mark( char *isprime, int k, int from, int to )
 {
     int nmarked = 0;
