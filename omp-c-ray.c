@@ -2,7 +2,7 @@
  * omp-c-ray - Ray tracing
  *
  * Copyright (C) 2006 John Tsiombikas <nuclear@siggraph.org>
- * Copyright (C) 2016, 2017, 2018, 2020-2024 Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2016, 2017, 2018, 2020--2024 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * You are free to use, modify and redistribute this program under the
  * terms of the GNU General Public License v2 or (at your option) later.
@@ -25,7 +25,7 @@
 /***
 % HPC - Ray tracing
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2024-10-05
+% Last updated: 2024-10-06
 
 The file [omp-c-ray.c](omp-c-ray.c) contains the implementation of a
 [simple ray tracer](https://github.com/jtsiomb/c-ray) written
@@ -66,48 +66,43 @@ algorithm](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.156.1534)
 
 ![Figure 2: Recursive ray tracer](omp-c-ray.svg)
 
-The scene is represented by a set of geometric primitives (spheres, in
-our case). We generate a _primary ray_ (_V_) from the observer towards
-each pixel. For each ray, we determine the intersections with the
-spheres in the scene, if any. The intersection point _p_ that is
-closest to the observer is selected, and one or more _secondary rays_
-are cast, depending on the material of the object _p_ belongs to:
+The scene is represented by a list of spheres. The program generates a
+_primary ray_ (_V_) from the observer towards each pixel. For each
+ray, the program determines the ray-sphere intersection point _p_ that
+is closest to the observer, and one or more _secondary rays_ are cast,
+depending on the material of the object _p_ belongs to:
 
 - A _light ray_ (_L_) towards each light source, to see whether _p_ is
   directly illuminated.
 
-- If the surface is reflective, we generate a _reflected ray_ (_R_)
-  and repeat the procedure recursively.
+- If the surface is reflective, a _reflected ray_ (_R_) and repeat the
+  procedure recursively.
 
-- If the surface is translucent, we generate a _transmitted ray_ (_T_)
-  and repeat the procedure recursively (`omp-c-ray` does not support
-  translucent objects, so this never happens).
+- If the surface is translucent, a _transmitted ray_ (_T_) and the
+  procedure is repeated recursively (`omp-c-ray` does not support
+  translucent objects, so this step never happens).
 
 The time required to compute the color of a pixel depends on the
 number of spheres and lights in the scene, and on the material of the
-spheres; reflective or translucent surfaces produce additional rays
-that must be handled. This suggests that the time required to compute
-the color of each pixel is highly variable, which leads to load
-imbalance.
+spheres; reflective/translucent surfaces generate additional rays that
+must be handled. This suggests that the time required to compute a
+pixel color is highly variable, leading to load imbalance.
 
 To compile:
 
         gcc -std=c99 -Wall -Wpedantic -fopenmp omp-c-ray.c -o omp-c-ray -lm
 
-To render the scene [sphfract.small.in](sphfract.small.in):
+To render a scene, e.g., [sphfract.small.in](sphfract.small.in):
 
         ./omp-c-ray -s 800x600 < sphfract.small.in > img.ppm
 
 The command above produces an image `img.ppm` with a resolution $800
-\times 600$. To view the image on Windows it is useful to convert it
-to JPEG format using the command:
+\times 600$. To convert the image to a more common format such as JPEG:
 
         convert img.ppm img.jpeg
 
-and then transferring `img.jpeg` to your PC for viewing.
-
-The `omp-c-ray` program accepts a number of optional command-line
-parameters; to see the complete list, use
+`omp-c-ray` accepts a number of optional command-line parameters; to
+see the complete list:
 
         ./omp-c-ray -h
 
