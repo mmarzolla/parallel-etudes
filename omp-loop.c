@@ -2,7 +2,7 @@
  *
  * omp-loop.c - Loop-carried dependences
  *
- * Copyright (C) 2018--2022 by Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2018--2022, 2024 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % HPC - Loop-carried dependences
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2022-10-17
+% Last updated: 2024-10-08
 
 The file [omp-loop.c](omp-loop.c) contains a set of serial functions
 with loops that iterate over arrays or matrices. The goal of this
@@ -81,13 +81,13 @@ void vec_shift_right_par1(int *a, int n)
 {
 #ifdef SERIAL
     /* [TODO] This function should be a parallel version of
-       vec_shift_right_seq(). It is not possible to remove the
-       loop-carried dependency by aligning loop iterations. However,
-       one solution is to use a temporary array b[] and split the loop
-       into two loops: the first copies all elements of a[] in the
-       shifted position of b[] (i.e., a[i] goes to b[i+1]; the
-       rightmost element of a[] goes into b[0]). The second loop
-       copies b[] into a[]. Both loops can be trivially
+       `vec_shift_right_seq()`. It is not possible to remove the
+       loop-carried dependency by aligning loop iterations.  One
+       solution is to use a temporary array `b[]` and split the loop
+       into two loops: the first copies all elements of `a[]` in the
+       shifted position of `b[]` (i.e., `a[i]` goes to `b[i+1]`; the
+       rightmost element of `a[]` goes into `b[0]`). The second loop
+       copies `b[]` into `a[]`. Both loops can be trivially
        parallelized. */
 #else
     int i;
@@ -114,7 +114,7 @@ void vec_shift_right_par1(int *a, int n)
 void vec_shift_right_par2(int *a, int n)
 {
     /* A different solution to shift a vector without using a
-       temporary array: partition a[] into P blocks (P=size of the
+       temporary array: partition `a[]` into P blocks (P=size of the
        pool of threads). Each process saves the rightmost element of
        its block, then shifts the block on position right. When all
        threads are done (barrier synchronization), each thread fills
@@ -136,7 +136,9 @@ void vec_shift_right_par2(int *a, int n)
        |f|l|r|x|   rightmost[]
        +-+-+-+-+
 
-       Each thread shifts right its portion
+       Each thread shifts right its portion; the leftmost element of
+       each partition may have any value (?) and will be overwritten
+       in the next step
 
        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
        |?|a|c|b|d|e|?|g|h|i|j|k|?|m|n|o|p|q|?|s|t|u|v|w|
@@ -145,7 +147,7 @@ void vec_shift_right_par2(int *a, int n)
             P0          P1          P2          P3
 
        Each thread fills the leftmost element with the correct value
-       from rightmost[]
+       from `rightmost[]`
 
        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
        |x|a|c|b|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|
@@ -177,13 +179,13 @@ void vec_shift_right_par2(int *a, int n)
 /****************************************************************************/
 
 /* This function converts 2D indexes into a linear index; n is the
-   number of columns of the matrix being indexed. The proper solution
+   number of columns of the matrix being indexed. A better solution
    would be to use C99-style casts:
 
-   int (*AA)[n] = (int (*)[n])A;
+        int (*AA)[n] = (int (*)[n])A;
 
-   and then write AA[i][j]. Unfortunately, this triggers a bug in gcc
-   5.4.0+OpenMP (works with gcc 8.2.0+OpenMP)
+   and then write `AA[i][j]`. Unfortunately, this triggers a bug in
+   gcc 5.4.0+OpenMP (works with gcc 8.2.0+OpenMP)
 */
 int IDX(int i, int j, int n)
 {
@@ -243,8 +245,8 @@ void test2_par(int *A, int n)
 {
 #ifdef SERIAL
     /* [TODO] This function should be a parallel version of
-       test2_seq(). Suggestion: start by drawing the dependences
-       among the elements of matrix A[][] as they are
+       `test2_seq()`. Suggestion: start by drawing the dependences
+       among the elements of matrix `A[][]` as they are
        computed. Observe that it is not possible to put a "parallel
        for" directive on either loop.
 
@@ -290,7 +292,7 @@ void test3_par(int *A, int n)
 {
 #ifdef SERIAL
     /* [TODO] This function should be a parallel version of
-       test3_seq(). Neither loops can be trivially parallelized;
+       `test3_seq()`. Neither loops can be trivially parallelized;
        exchanging loops (moving the inner loop outside) does not work
        either.
 
@@ -299,7 +301,7 @@ void test3_par(int *A, int n)
 
        There is a caveat: the code on the slides sweeps the _whole_
        matrix; in other words, variables i and j will assume all
-       values starting from 0. The code of test3_seq() only process
+       values starting from 0. The code of `test3_seq()` only process
        indexes where i>0 and j>0, so you need to add an "if" statement
        to skip the case where i==0 or j==0. */
 #else
