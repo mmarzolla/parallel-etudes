@@ -36,15 +36,15 @@ of dot products between rows of $p$ and rows of $q^T$. Indeed, the
 body of function `scalar_matmul_tr()`
 
 ```C
-	for (i=0; i<n; i++) {
-		for (j=0; j<n; j++) {
-			double s = 0.0;
-			for (k=0; k<n; k++) {
-				s += p[i*n + k] * qT[j*n + k];
-			}
-			r[i*n + j] = s;
+for (int i=0; i<n; i++) {
+	for (int j=0; j<n; j++) {
+		double s = 0.0;
+		for (int k=0; k<n; k++) {
+			s += p[i*n + k] * qT[j*n + k];
 		}
+		r[i*n + j] = s;
 	}
+}
 ```
 
 computes the dot product of two arrays of length $n$ that are stored
@@ -111,9 +111,8 @@ typedef double v2d __attribute__((vector_size(16)));
 /* Fills n x n square matrix m */
 void fill( double* m, int n )
 {
-    int i, j;
-    for (i=0; i<n; i++) {
-        for (j=0; j<n; j++) {
+    for (int i=0; i<n; i++) {
+        for (int j=0; j<n; j++) {
             m[i*n + j] = (i%10+j) / 10.0;
         }
     }
@@ -122,12 +121,10 @@ void fill( double* m, int n )
 /* compute r = p * q, where p, q, r are n x n matrices. */
 void scalar_matmul( const double *p, const double* q, double *r, int n)
 {
-    int i, j, k;
-
-    for (i=0; i<n; i++) {
-        for (j=0; j<n; j++) {
+    for (int i=0; i<n; i++) {
+        for (int j=0; j<n; j++) {
             double s = 0.0;
-            for (k=0; k<n; k++) {
+            for (int k=0; k<n; k++) {
                 s += p[i*n + k] * q[k*n + j];
             }
             r[i*n + j] = s;
@@ -140,23 +137,22 @@ void scalar_matmul( const double *p, const double* q, double *r, int n)
    temporary matrix. */
 void scalar_matmul_tr( const double *p, const double* q, double *r, int n)
 {
-    int i, j, k;
     double *qT = (double*)malloc( n * n * sizeof(*qT) );
 
     assert(qT != NULL);
 
     /* transpose q, storing the result in qT */
-    for (i=0; i<n; i++) {
-        for (j=0; j<n; j++) {
+    for (int i=0; i<n; i++) {
+        for (int j=0; j<n; j++) {
             qT[j*n + i] = q[i*n + j];
         }
     }
 
     /* multiply p and qT row-wise */
-    for (i=0; i<n; i++) {
-        for (j=0; j<n; j++) {
+    for (int i=0; i<n; i++) {
+        for (int j=0; j<n; j++) {
             double s = 0.0;
-            for (k=0; k<n; k++) {
+            for (int k=0; k<n; k++) {
                 s += p[i*n + k] * qT[j*n + k];
             }
             r[i*n + j] = s;
@@ -174,28 +170,24 @@ void simd_matmul_tr( const double *p, const double* q, double *r, int n)
 #ifdef SERIAL
     /* [TODO] Implement this function */
 #else
-    int i, j, k;
     double *qT;
-    const v2d *vp, *vqT;
-    int ret;
-
-    ret = posix_memalign((void**)&qT, __BIGGEST_ALIGNMENT__, n*n*sizeof(*qT));
+    int ret = posix_memalign((void**)&qT, __BIGGEST_ALIGNMENT__, n*n*sizeof(*qT));
     assert( 0 == ret );
 
     /* transpose q, storing the result in qT */
-    for (i=0; i<n; i++) {
-        for (j=0; j<n; j++) {
+    for (int i=0; i<n; i++) {
+        for (int j=0; j<n; j++) {
             qT[j*n + i] = q[i*n + j];
         }
     }
 
     /* multiply p and qT row-wise using vector datatypes */
-    for (i=0; i<n; i++) {
-        for (j=0; j<n; j++) {
+    for (int i=0; i<n; i++) {
+        for (int j=0; j<n; j++) {
             v2d vs = {0.0, 0.0};
-            vp  = (v2d*)(p + i*n);
-            vqT = (v2d*)(qT + j*n);
-            for (k=0; k<n-VLEN+1; k += VLEN) {
+            const v2d *vp  = (v2d*)(p + i*n);
+            const v2d *vqT = (v2d*)(qT + j*n);
+            for (int k=0; k<n-VLEN+1; k += VLEN) {
                 vs += (*vp) * (*vqT);
                 vp++;
                 vqT++;

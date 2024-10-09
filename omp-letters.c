@@ -2,7 +2,7 @@
  *
  * omp-letters.c - Character counts
  *
- * Copyright (C) 2018--2023 by Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2018--2024 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,52 +22,50 @@
 /***
 % HPC - Character counts
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2023-10-19
+% Last updated: 2024-10-09
 
 ![By Willi Heidelbach, CC BY 2.5, <https://commons.wikimedia.org/w/index.php?curid=1181525>](letters.jpg)
 
 The file [omp-letters.c](omp-letters.c) contains a serial program that
-computes the number of occurrences of each lowercase letter in an
+computes the number of occurrences of each letter 'a'...'z' in an
 ASCII file read from standard input. The program is case-insensitive,
-meaning that uppercase characters are treated as if they were
-lowercase; non-letter characters are ignored. We provide some
-substantial ASCII documents to experiment with, that have been made
-available by the [Project Gutenberg](https://www.gutenberg.org/);
-despite the fact that these documents have been written by different
-authors, the frequencies of characters are quite similar. Indeed, it
-is well known that the relative frequencies of characters are
-language-dependent and more or less author-independent. You may
-experiment with other free books in other languages that are available
-on [Project Gutenberg Web site](https://www.gutenberg.org/).
+meaning that no distinction is made between uppercase and lowercase
+characters; non-letter characters are ignored. Some text documents are
+provided to experiment with; they have been made available by the
+[Project Gutenberg](https://www.gutenberg.org/). You should observe
+that the character frequencies are about the same across the
+documents, despite the fact that they have been written by different
+authors. Indeed, it is well known that the relative frequencies of
+characters are language-dependent and more or less
+author-independent. You may experiment with books in other languages
+that are available on [Project Gutenberg Web
+site](https://www.gutenberg.org/).
 
 The goal of this exercise is to modify the function `make_hist(text,
 hist)` to make use of OpenMP parallelism. The function takes as
-parameter a pointer `text` to the whole text, represented as a
-zero-terminated C string, and an array `hist[26]` of counts. The array
-`hist` is not initialized. At the end, `hist[0]` contains the
-occurrences of the letter `a` in the text, `hist[1]` the occurrences
-of the letter `b`, up to `hist[25]` that represents the occurrences of
-the letter `z`.
+parameter a pointer `text` to a zero-terminates string representing
+the document, and an array `hist[26]` of character counts which is not
+initialized. At the end, `hist[0]` contains the occurrences of the
+letter `a` in `text`, `hist[1]` the occurrences of the letter `b`, up
+to `hist[25]` that represents the occurrences of the letter `z`.
 
-A reasonable approach is to partition the text among the OpenMP
-threads, so that each thread computes the histogram for part of the
-text. Then, all partial histograms needs to be combined to get the
-final result.
+A reasonable approach is to partition the text among the threads, so
+that each thread computes the frequencies of a block of text; the
+final result is the vector sum of all local histograms. More details
+below.
 
-You might want to start by doing the partitioning manually, i.e.,
-without using the `omp for` directive. This is not the most efficient
-solution, but is nevertheless instructive; a better approach is
-discussed below.
-
-Since the text is a character array of some length $n$, thread $p$ can
-compute the extremes of its chunk as:
+You might want to start by partitioning the text manually, i.e.,
+without using the `omp for` directive. This is instructive, although
+in practice it is more appropriate to use `omp for`. Since the text is
+a character array of some length `TEXT_LEN`, thread $p$ can compute
+the extremes of its chunk as:
 
 ```C
-const int from = (n * p) / num_threads;
-const int to = (n * (p+1)) / num_threads;
+const int from = (TEXT_LEN * p) / num_threads;
+const int to = (TEXT_LEN * (p+1)) / num_threads;
 ```
 
-where `num_threads` is the size of OpenMP thread pool. Thread $p$ will
+where `num_threads` is the size of OpenMP team. Thread $p$ will
 compute the frequencies of the characters in `text[from .. (to-1)]`.
 
 You need to create a shared, two-dimensional array
@@ -77,21 +75,21 @@ thread $p$ sees character $x$, $x \in \{\texttt{'a'}, \ldots,
 \texttt{'z'}\}$, it will increase the value `local_hist[p][x - 'a']`.
 When all threads are done, the master computes the result as the
 column-wise sum of `local_hist`. In other words, the number of
-occurrences of character `a` is
+occurrences of character (`a` + _c_)  is
 
 $$
-\sum_{p=0}^{\texttt{num_threads}-1} \texttt{local_hist}[p][0]
+\texttt{hist}[c] = \sum_{p=0}^{\texttt{num_threads}-1} \texttt{local_hist}[p][c]
 $$
 
-and so on. Also, don't forget that there is a reduction on the counter
-`nlet` that reports the number of letters; this might be done using
-the `reduction()` clause of the `omp for` directive.
+Also, don't forget that there is a reduction on the counter `nlet`
+that reports the number of letters; this might be done using the
+`reduction()` clause of the `omp for` directive.
 
 A better and simpler solution can be realized using the `omp parallel
-for` directive, and employing array reductions that are available with
-OpenMP 4.5 and later (and that we did not discuss during the
-class). To perform the sum-reduction on each element of the array
-`hist[]` we can use the following syntax:
+for` directive, and employing array reduction that are available with
+OpenMP 4.5 and later (not discussed during the class). To perform the
+sum-reduction on each element of the array `hist[]` we can use the
+following syntax:
 
         #pragma omp parallel for ... reduction(+:hist[:ALPHA_SIZE])
 
@@ -137,17 +135,16 @@ int make_hist( const char *text, int hist[ALPHA_SIZE] )
 {
     int nlet = 0; /* total number of alphabetic characters processed */
     const size_t TEXT_LEN = strlen(text);
-    int i, j;
 #ifdef SERIAL
     /* [TODO] Parallelize this function */
 
     /* Reset the histogram */
-    for (j=0; j<ALPHA_SIZE; j++) {
+    for (int j=0; j<ALPHA_SIZE; j++) {
         hist[j] = 0;
     }
 
     /* Count occurrences */
-    for (i=0; i<TEXT_LEN; i++) {
+    for (int i=0; i<TEXT_LEN; i++) {
         const char c = text[i];
         if (isalpha(c)) {
             nlet++;
@@ -155,26 +152,22 @@ int make_hist( const char *text, int hist[ALPHA_SIZE] )
         }
     }
 #else
-#if 0
-    /* This version does not use array reductions */
+#if 1
+    /* This version does not use OpenMP build-in array reduction. */
     const int num_threads = omp_get_max_threads();
     int local_hist[num_threads][ALPHA_SIZE]; /* one histogram per OpenMP thread */
 
-    /* The following loop(s) could be parallelized, but they are quite
-       short and it is unlikely that this would lead to significant
-       performance improvements. */
-    for (i=0; i<num_threads; i++) {
-        for (j=0; j<ALPHA_SIZE; j++) {
-            local_hist[i][j] = 0;
-        }
-    }
-
-#pragma omp parallel default(none) reduction(+:nlet) private(i) shared(local_hist, text, TEXT_LEN, num_threads)
+#pragma omp parallel default(none) reduction(+:nlet) shared(local_hist, text, TEXT_LEN, num_threads)
     {
         const int my_id = omp_get_thread_num();
         const int my_start = (TEXT_LEN * my_id) / num_threads;
         const int my_end = (TEXT_LEN * (my_id + 1)) / num_threads;
-        for (i=my_start; i < my_end; i++) {
+
+        for (int j=0; j<ALPHA_SIZE; j++) {
+            local_hist[my_id][j] = 0;
+        }
+
+        for (int i=my_start; i < my_end; i++) {
             const char c = text[i];
             if (isalpha(c)) {
                 nlet++;
@@ -183,27 +176,29 @@ int make_hist( const char *text, int hist[ALPHA_SIZE] )
         }
     }
 
-    /* compute the frequencies by summing the local histograms */
-    for (j=0; j<ALPHA_SIZE; j++) {
+    /* compute the frequencies by summing the local histograms element
+       by element. */
+    for (int j=0; j<ALPHA_SIZE; j++) {
         int s = 0;
-        for (i=0; i<num_threads; i++) {
+        for (int i=0; i<num_threads; i++) {
             s += local_hist[i][j];
         }
         hist[j] = s;
     }
 #else
-    /* This version uses array reductions, that is available since
-       OpenMP 4.5 */
-    /* Reset the histogram */
-    for (j=0; j<ALPHA_SIZE; j++) {
+    /* This version uses OpenMP built-in array reduction, that is
+       available since OpenMP 4.5. */
+
+    /* Reset the global histogram. */
+    for (int j=0; j<ALPHA_SIZE; j++) {
         hist[j] = 0;
     }
 
-    /* Count occurrences */
+    /* Count occurrences. */
 #pragma omp parallel for default(none) shared(text, TEXT_LEN) \
     reduction(+:nlet) \
     reduction(+:hist[:ALPHA_SIZE])
-    for (i=0; i<TEXT_LEN; i++) {
+    for (int i=0; i<TEXT_LEN; i++) {
         const char c = text[i];
         if (isalpha(c)) {
             nlet++;
@@ -221,12 +216,11 @@ int make_hist( const char *text, int hist[ALPHA_SIZE] )
  */
 void print_hist( int hist[ALPHA_SIZE] )
 {
-    int i;
     int nlet = 0;
-    for (i=0; i<ALPHA_SIZE; i++) {
+    for (int i=0; i<ALPHA_SIZE; i++) {
         nlet += hist[i];
     }
-    for (i=0; i<ALPHA_SIZE; i++) {
+    for (int i=0; i<ALPHA_SIZE; i++) {
         printf("%c : %8d (%6.2f%%)\n", 'a'+i, hist[i], 100.0*hist[i]/nlet);
     }
     printf("    %8d total\n", nlet);

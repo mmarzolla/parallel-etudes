@@ -80,9 +80,9 @@ int partition(data_t *v, int start, int end)
 
     */
     const data_t pivot = v[end];
-    int i = (start - 1), j;
+    int i = (start - 1);
 
-    for (j = start; j < end; j++) {
+    for (int j = start; j < end; j++) {
         if (v[j] <= pivot) {
             i++;
             swap(v, i, j);

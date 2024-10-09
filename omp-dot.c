@@ -39,7 +39,7 @@ The goal of this exercise is to parallelize the serial program using
 the `omp parallel` construct with the appropriate clauses. It is
 instructive to begin without using the `omp parallel for` directive
 and computing the endpoints of the iterations explicitly.  To this
-aim, let $P$ be the size of the OpenMP thread pool; partition the
+aim, let $P$ be the size of the OpenMP team; partition the
 arrays into $P$ blocks of approximately uniform size. Thread $p$ ($0
 \leq p < P$) computes the dot product `my_p` of the subvectors with
 indices $\texttt{my_start}, \ldots, \texttt {my_end}-1$:

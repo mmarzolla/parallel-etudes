@@ -115,11 +115,11 @@ void vec_shift_right_par2(int *a, int n)
 {
     /* A different solution to shift a vector without using a
        temporary array: partition `a[]` into P blocks (P=size of the
-       pool of threads). Each process saves the rightmost element of
-       its block, then shifts the block on position right. When all
-       threads are done (barrier synchronization), each thread fills
-       the _leftmost_ element of its block with the _rightmost_
-       element saved by its left neighbor.
+       team). Each process saves the rightmost element of its block,
+       then shifts the block on position right. When all threads are
+       done (barrier synchronization), each thread fills the
+       _leftmost_ element of its block with the _rightmost_ element
+       saved by its left neighbor.
 
        Example, with P=4 threads:
 
