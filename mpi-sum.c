@@ -122,12 +122,11 @@ float fill(float *v, int n)
 {
     const float vals[] = {1, -1, 2, -2, 0};
     const int NVALS = sizeof(vals)/sizeof(vals[0]);
-    int i;
 
-    for (i=0; i<n; i++) {
+    for (int i=0; i<n; i++) {
         v[i] = vals[i % NVALS];
     }
-    switch(i % NVALS) {
+    switch(n % NVALS) {
     case 1: return 1; break;
     case 3: return 2; break;
     default: return 0;
@@ -203,9 +202,8 @@ int main( int argc, char *argv[] )
 
         /* Get the sums from other processes (should be better done with MPI_Reduce */
         float remote_sum;
-        int p;
         s += local_sum;
-        for (p=1; p<comm_sz; p++) {
+        for (int p=1; p<comm_sz; p++) {
             MPI_Recv( &remote_sum,      /* buf          */
                       1,                /* size         */
                       MPI_FLOAT,        /* datatype     */

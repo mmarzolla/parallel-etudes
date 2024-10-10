@@ -99,8 +99,7 @@ void my_Scatter(const double *sendbuf,
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
     if ( my_rank == root ) {
-        int p;
-        for (p=0; p<comm_sz; p++) {
+        for (int p=0; p<comm_sz; p++) {
             const int start = sendcount * p;
             const int dest = (p != root ? p : MPI_PROC_NULL);
             MPI_Send(sendbuf + start,   /* sendbuf      */
@@ -130,7 +129,6 @@ int main( int argc, char *argv[] )
     const int n = 50; /* dimensione del buffer di invio */
     double *buf = NULL, *local_buf;
     int my_rank, comm_sz;
-    int i;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
@@ -141,7 +139,7 @@ int main( int argc, char *argv[] )
     if (0 == my_rank) {
         buf = (double*)malloc(n * sizeof(*buf));
         assert(buf != NULL);
-        for (i=0; i<n; i++)
+        for (int i=0; i<n; i++)
             buf[i] = 2*i;
     }
 
@@ -151,7 +149,7 @@ int main( int argc, char *argv[] )
     my_Scatter(buf, local_n, local_buf, local_n, 0);
 
     printf("Process %d received: ", my_rank);
-    for (i=0; i<local_n; i++) {
+    for (int i=0; i<local_n; i++) {
         printf("%f ", local_buf[i]);
     }
     printf("\n");

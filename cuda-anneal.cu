@@ -555,7 +555,7 @@ int main( int argc, char* argv[] )
     cell_t *cur;
     cell_t *d_cur, *d_next;
 #endif
-    int s, nsteps = 64, width = 512, height = 512;
+    int nsteps = 64, width = 512, height = 512, s;
     const int MAXN = 2048;
 
     if ( argc > 4 ) {

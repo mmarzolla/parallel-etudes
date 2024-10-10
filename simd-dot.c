@@ -159,8 +159,7 @@ typedef float v4f __attribute__((vector_size(16)));
 float serial_dot(const float *x, const float *y, int n)
 {
     double r = 0.0; /* use double here to avoid some nasty rounding errors */
-    int i;
-    for (i=0; i<n; i++) {
+    for (int i=0; i<n; i++) {
         r += x[i] * y[i];
     }
     return r;
@@ -196,12 +195,11 @@ float simd_dot(const float *x, const float *y, int n)
 /* Initialize vectors x and y */
 void fill(float* x, float* y, int n)
 {
-    int i;
     const float xx[] = {-2.0f, 0.0f, 4.0f, 2.0f};
     const float yy[] = { 1.0f/2.0, 0.0f, 1.0/16.0, 1.0f/2.0f};
     const size_t N = sizeof(xx)/sizeof(xx[0]);
 
-    for (i=0; i<n; i++) {
+    for (int i=0; i<n; i++) {
         x[i] = xx[i % N];
         y[i] = yy[i % N];
     }

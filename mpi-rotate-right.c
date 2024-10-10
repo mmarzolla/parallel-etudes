@@ -65,7 +65,7 @@ Per eseguire:
 
 int main( int argc, char *argv[] )
 {
-    int my_rank, comm_sz, N, i;
+    int my_rank, comm_sz, N;
     int *v = NULL;
 
     MPI_Init( &argc, &argv );
@@ -91,7 +91,7 @@ int main( int argc, char *argv[] )
         v = (int*)malloc(N * sizeof(*v));
         assert(v != NULL);
         printf("Before: [");
-        for (i=0; i<N; i++) {
+        for (int i=0; i<N; i++) {
             v[i] = i+1;
             printf("%d ", v[i]);
         }
@@ -118,7 +118,7 @@ int main( int argc, char *argv[] )
        occorre salvare l'ultimo elemento di local_v[], dato che andrà
        inviato al processo successivo. */
     const int last = local_v[local_N - 1];
-    for (i = local_N-1; i > 0; i--) {
+    for (int i = local_N-1; i > 0; i--) {
         local_v[i] = local_v[i-1];
     }
 
@@ -164,7 +164,7 @@ int main( int argc, char *argv[] )
 
     if ( 0 == my_rank ) {
         printf("After: [");
-        for (i=0; i<N; i++) {
+        for (int i=0; i<N; i++) {
             printf("%d ", v[i]);
         }
         printf("]\n");
