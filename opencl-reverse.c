@@ -86,8 +86,7 @@ Example:
 void reverse( int *in, int *out, int n )
 {
 #ifdef SERIAL
-    int i;
-    for (i=0; i<n; i++) {
+    for (int i=0; i<n; i++) {
         const int opp = n - 1 - i;
         out[opp] = in[i];
     }
@@ -157,16 +156,14 @@ void inplace_reverse( int *in, int n )
 
 void fill( int *x, int n )
 {
-    int i;
-    for (i=0; i<n; i++) {
+    for (int i=0; i<n; i++) {
         x[i] = i;
     }
 }
 
 int check( const int *x, int n )
 {
-    int i;
-    for (i=0; i<n; i++) {
+    for (int i=0; i<n; i++) {
         if (x[i] != n - 1 - i) {
             fprintf(stderr, "Test FAILED: x[%d]=%d, expected %d\n", i, x[i], n-1-i);
             return 0;

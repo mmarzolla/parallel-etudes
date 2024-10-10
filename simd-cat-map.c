@@ -102,8 +102,8 @@ The structure of the function that calculates the $k$-th iterate of
 the cat map is very simple:
 
 ```C
-for (y=0; y<N; y++) {
-	for (x=0; x<N; x++) {
+for (int y=0; y<N; y++) {
+	for (int x=0; x<N; x++) {
 		\/\* compute the coordinates (xnew, ynew) of point (x, y)
                      after k iterations of the cat map \*\/
 		next[xnew + ynew*N] = cur[x+y*N];
@@ -278,7 +278,7 @@ void cat_map( PGM_image* img, int k )
     const int N = img->width;
     unsigned char *cur = img->bmap;
     unsigned char *next;
-    int x, y, i, ret;
+    int ret;
 
     assert( img->width == img->height );
     assert( img->width % VLEN == 0);
@@ -287,15 +287,15 @@ void cat_map( PGM_image* img, int k )
     assert( 0 == ret );
 
 #ifdef SERIAL
-    for (y=0; y<N; y++) {
+    for (int y=0; y<N; y++) {
         /* [TODO] The SIMD version should compute the new position of
            four adjacent pixels (x,y), (x+1,y), (x+2,y), (x+3,y) using
            SIMD instructions. Assume that w (the image width) is
            always a multiple of VLEN. */
-        for (x=0; x<N; x++) {
+        for (int x=0; x<N; x++) {
             int xold = x, xnew = xold;
             int yold = y, ynew = yold;
-            for (i=0; i<k; i++) {
+            for (int i=0; i<k; i++) {
                 xnew = (2*xold+yold) % N;
                 ynew = (xold + yold) % N;
                 xold = xnew;
@@ -315,13 +315,13 @@ void cat_map( PGM_image* img, int k )
        the inner loop, all elements of vx are incremented by
        VLEN. Therefore, assuming VLEN == 4, at the second iteration we
        have vx = {4, 5, 6, 7}, then {8, 9, 10, 11} and so on. */
-    for (y=0; y<N; y++) {
+    for (int y=0; y<N; y++) {
         v4i vx = {0, 1, 2, 3};
         const v4i vy = {y, y, y, y};
-        for (x=0; x<N-VLEN+1; x += VLEN) {
+        for (int x=0; x<N-VLEN+1; x += VLEN) {
             v4i xold = vx, xnew = xold;
             v4i yold = vy, ynew = yold;
-            for (i=0; i<k; i++) {
+            for (int i=0; i<k; i++) {
 #if 0
                 xnew = (2*xold+yold) % N;
                 ynew = (xold + yold) % N;
