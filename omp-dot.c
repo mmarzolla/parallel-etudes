@@ -89,8 +89,7 @@ void fill( int *v1, int *v2, size_t n )
 {
     const int seq1[3] = { 3, 7, 18};
     const int seq2[3] = {12, 0, -2};
-    size_t i;
-    for (i=0; i<n; i++) {
+    for (size_t i=0; i<n; i++) {
         v1[i] = seq1[i%3];
         v2[i] = seq2[i%3];
     }
@@ -101,7 +100,7 @@ int dot(const int *v1, const int *v2, size_t n)
 #ifdef SERIAL
     /* [TODO] Parallelize the following loop */
     int result = 0;
-    for (int i=0; i<n; i++) {
+    for (size_t i=0; i<n; i++) {
         result += v1[i] * v2[i];
     }
 #else
@@ -136,7 +135,7 @@ int dot(const int *v1, const int *v2, size_t n)
        for" and "reduction" directives */
     int result = 0;
 #pragma omp parallel for default(none) shared(v1, v2, n) reduction(+:result)
-    for (int i=0; i<n; i++) {
+    for (size_t i=0; i<n; i++) {
         result += v1[i] * v2[i];
     }
 #endif
