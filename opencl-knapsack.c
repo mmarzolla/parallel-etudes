@@ -236,7 +236,6 @@ float knapsack(knapsack_t *k)
     const int NCOLS = C+1;
     float *Vcur, *Vnext, *tmp;
     float result;
-    int i, j;
 
     /* [TODO] allocate `Vcur` and `Vnext` on device memory */
     Vcur = (float*)malloc(NCOLS*sizeof(*Vcur));
@@ -247,14 +246,14 @@ float knapsack(knapsack_t *k)
 
     /* Initialization (this could be transformed into an OpenCL
        kernel, but is probably not worth the effort) */
-    for (j=0; j<NCOLS; j++) {
+    for (int j=0; j<NCOLS; j++) {
 	Vcur[j] = (j < w[0] ? 0.0 : v[0]);
     }
     /* Compute the DP matrix row-wise */
-    for (i=1; i<NROWS; i++) {
+    for (int i=1; i<NROWS; i++) {
         /* [TODO] Rewrite the loop below as a kernel launch using
            NCOLS work-items */
-        for (j=0; j<NCOLS; j++) {
+        for (int j=0; j<NCOLS; j++) {
             if ( j >= w[i] ) {
                 Vnext[j] = fmaxf(Vcur[j], Vcur[j - w[i]] + v[i]);
             } else {
@@ -281,14 +280,13 @@ float knapsack(knapsack_t *k)
    can be deallocated with `knapsack_free()` */
 void knapsack_load(FILE *fin, knapsack_t* k)
 {
-    int i;
     assert(fin != NULL);
     assert(k != NULL);
     fscanf(fin, "%d", &(k->C)); assert( k->C > 0 );
     fscanf(fin, "%d", &(k->n)); assert( k->n > 0 );
     k->w = (int*)malloc((k->n)*sizeof(int)); assert(k->w != NULL);
     k->v = (float*)malloc((k->n)*sizeof(float)); assert(k->v != NULL);
-    for (i=0; i<(k->n); i++) {
+    for (int i=0; i<(k->n); i++) {
         const int nread = fscanf(fin, "%d %f", k->w + i, k->v + i);
         assert(2 == nread);
 	assert( k->w[i] >= 0 );

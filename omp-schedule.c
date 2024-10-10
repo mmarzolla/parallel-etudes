@@ -109,9 +109,7 @@ int fib_iter(int n)
    input values; `vout` is initialized with -1 */
 void fill(int *vin, int *vout, int n)
 {
-    int i;
-    /* fill input array */
-    for (i=0; i<n; i++) {
+    for (int i=0; i<n; i++) {
         vin[i] = 25 + (i%10);
         vout[i] = -1;
     }
@@ -120,9 +118,7 @@ void fill(int *vin, int *vout, int n)
 /* Check correctness of `vout[]`. Return 1 if correct, 0 if not */
 int is_correct(const int *vin, const int *vout, int n)
 {
-    int i;
-    /* check result */
-    for (i=0; i<n; i++) {
+    for (int i=0; i<n; i++) {
         if ( vout[i] != fib_iter(vin[i]) ) {
             fprintf(stderr,
                     "Test FAILED: vin[%d]=%d, vout[%d]=%d (expected %d)\n",
@@ -137,7 +133,6 @@ int is_correct(const int *vin, const int *vout, int n)
 
 void do_static(const int *vin, int *vout, int n)
 {
-    int i;
 #ifdef SERIAL
     /* [TODO] parallelize the following loop, simulating a
        "schedule(static,1)" clause, i.e., static scheduling with block
@@ -175,13 +170,13 @@ void do_static(const int *vin, int *vout, int n)
        number of threads, and therefore we must use addtional checks
        to ensure that we never exceed `n`.
     */
-    for (i=0; i<n; i++) {
+    for (int i=0; i<n; i++) {
         vout[i] = fib_rec(vin[i]);
         /* printf("vin[%d]=%d vout[%d]=%d\n", i, vin[i], i, vout[i]); */
     }
 #else
     const int chunk_size = 1; /* can be set to any value >= 1 */
-#pragma omp parallel default(none) shared(vin,vout,n,chunk_size) private(i)
+#pragma omp parallel default(none) shared(vin,vout,n,chunk_size)
     {
         /* Simulate the behavior of a schedule(static,chunk_size)
            clause for any chunk_size>=1. */
@@ -189,10 +184,9 @@ void do_static(const int *vin, int *vout, int n)
         const int num_threads = omp_get_num_threads();
         const int START = my_id * chunk_size;
         const int STRIDE = num_threads * chunk_size;
-        int j;
 
-        for (i=START; i<n; i += STRIDE) {
-            for (j=i; j<i+chunk_size && j<n; j++) {
+        for (int i=START; i<n; i += STRIDE) {
+            for (int j=i; j<i+chunk_size && j<n; j++) {
                 vout[j] = fib_rec(vin[j]);
                 /* printf("Thread %d vin[%d]=%d vout[%d]=%d\n", tid, j, vin[j], j, vout[j]); */
             }
@@ -203,7 +197,6 @@ void do_static(const int *vin, int *vout, int n)
 
 void do_dynamic(const int *vin, int *vout, int n)
 {
-    int i;
 #ifdef SERIAL
     /* [TODO] parallelize the following loop, simulating a
        "schedule(dynamic,1)" clause, i.e., dynamic scheduling with
@@ -227,14 +220,14 @@ void do_dynamic(const int *vin, int *vout, int n)
          }
        } while (my_idx < n);
     */
-    for (i=0; i<n; i++) {
+    for (int i=0; i<n; i++) {
         vout[i] = fib_rec(vin[i]);
         /* printf("vin[%d]=%d vout[%d]=%d\n", i, vin[i], i, vout[i]); */
     }
 #else
     int idx = 0; /* shared index */
     const int chunk_size = 1; /* can be set to any value >= 1 */
-#pragma omp parallel default(none) shared(idx,vin,vout,n,chunk_size) private(i)
+#pragma omp parallel default(none) shared(idx,vin,vout,n,chunk_size)
     {
         /* This implementation simulates the behavior of a
            schedule(dynamic,chunk_size) clause for any chunk_size>=1. */
@@ -246,7 +239,7 @@ void do_dynamic(const int *vin, int *vout, int n)
                 my_idx = idx;
                 idx += chunk_size;
             }
-            for (i=my_idx; i<my_idx+chunk_size && i<n; i++) {
+            for (int i=my_idx; i<my_idx+chunk_size && i<n; i++) {
                 vout[i] = fib_rec(vin[i]);;
                 /* printf("Thread %d vin[%d]=%d vout[%d]=%d\n", tid, i, vin[j], j, vout[j]); */
             }

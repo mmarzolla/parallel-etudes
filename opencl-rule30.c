@@ -204,8 +204,7 @@ void step( cell_t *cur, cell_t *next, int ext_n )
 {
     const int LEFT = 1;
     const int RIGHT = ext_n - 2;
-    int i;
-    for (i=LEFT; i<=RIGHT; i++) {
+    for (int i=LEFT; i<=RIGHT; i++) {
         const cell_t left   = cur[i-1];
         const cell_t center = cur[i  ];
         const cell_t right  = cur[i+1];
@@ -225,8 +224,7 @@ void step( cell_t *cur, cell_t *next, int ext_n )
  */
 void init_domain( cell_t *cur, int ext_n )
 {
-    int i;
-    for (i=0; i<ext_n; i++) {
+    for (int i=0; i<ext_n; i++) {
         cur[i] = 0;
     }
     cur[ext_n/2] = 1;
@@ -238,10 +236,9 @@ void init_domain( cell_t *cur, int ext_n )
  */
 void dump_state( FILE *out, const cell_t *cur, int ext_n )
 {
-    int i;
     const int LEFT = 1;
     const int RIGHT = ext_n - 2;
-    for (i=LEFT; i<=RIGHT; i++) {
+    for (int i=LEFT; i<=RIGHT; i++) {
         fprintf(out, "%d ", cur[i]);
     }
     fprintf(out, "\n");
@@ -251,7 +248,7 @@ int main( int argc, char* argv[] )
 {
     const char *outname = "opencl-rule30.pbm";
     FILE *out;
-    int width = 1024, steps = 1024, s;
+    int width = 1024, steps = 1024;
 #ifdef SERIAL
     cell_t *cur, *next;
 #else
@@ -302,7 +299,7 @@ int main( int argc, char* argv[] )
     init_domain(cur, ext_width);
 
     /* Evolve the CA */
-    for (s=0; s<steps; s++) {
+    for (int s=0; s<steps; s++) {
 
         /* Dump the current state */
         dump_state(out, cur, ext_width);
@@ -340,7 +337,7 @@ int main( int argc, char* argv[] )
     const sclDim GRID = DIM2(sclRoundUp(width, SCL_DEFAULT_WG_SIZE2D),
                              sclRoundUp(width, SCL_DEFAULT_WG_SIZE2D));
     /* Evolve the CA */
-    for (s=0; s<steps; s++) {
+    for (int s=0; s<steps; s++) {
 
         /* Dump the current state to the output image */
         dump_state(out, cur, ext_width);

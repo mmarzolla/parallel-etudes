@@ -25,7 +25,7 @@
 
 int main( int argc, char* argv[] )
 {
-    int i, C, n;
+    int C, n;
     if ( argc != 3 ) {
         fprintf(stderr, "Usage: %s knapsack_capacity num_items\n", argv[0]);
         return EXIT_FAILURE;
@@ -34,7 +34,7 @@ int main( int argc, char* argv[] )
     C = atoi(argv[1]);
     n = atoi(argv[2]);
     printf("%d\n%d\n", C, n);
-    for ( i=0; i<n; i++ ) {
+    for ( int i=0; i<n; i++ ) {
         printf("%d %f\n", 1 + rand() % (C/2), ((double)rand())/RAND_MAX * 10.0);
     }
     return EXIT_SUCCESS;

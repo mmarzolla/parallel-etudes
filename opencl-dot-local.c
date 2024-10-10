@@ -36,12 +36,11 @@
 
 void vec_init( float *x, float *y, int n )
 {
-    int i;
     const float tx[] = {1.0/64.0, 1.0/128.0, 1.0/256.0};
     const float ty[] = {1.0, 2.0, 4.0};
     const size_t arrlen = sizeof(tx)/sizeof(tx[0]);
 
-    for (i=0; i<n; i++) {
+    for (int i=0; i<n; i++) {
         x[i] = tx[i % arrlen];
         y[i] = ty[i % arrlen];
     }
