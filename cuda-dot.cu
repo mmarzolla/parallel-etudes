@@ -113,9 +113,8 @@ Example:
 __global__ void dot_kernel( const float *x, const float *y, int n, float *tmp )
 {
     const int tid = threadIdx.x;
-    int i;
     float s = 0.0;
-    for (i = tid; i < n; i += blockDim.x) {
+    for (int i = tid; i < n; i += blockDim.x) {
         s += x[i] * y[i];
     }
     tmp[tid] = s;

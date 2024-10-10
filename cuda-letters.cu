@@ -159,12 +159,11 @@ int make_hist( const char *text, int hist[ALPHA_SIZE] )
  */
 void print_hist( int hist[ALPHA_SIZE] )
 {
-    int i;
     int nlet = 0;
-    for (i=0; i<ALPHA_SIZE; i++) {
+    for (int i=0; i<ALPHA_SIZE; i++) {
         nlet += hist[i];
     }
-    for (i=0; i<ALPHA_SIZE; i++) {
+    for (int i=0; i<ALPHA_SIZE; i++) {
         printf("%c : %8d (%6.2f%%)\n", 'a'+i, hist[i], 100.0*hist[i]/nlet);
     }
     printf("    %8d total\n", nlet);
