@@ -103,9 +103,8 @@ void matsum( float *p, float *q, float *r, int n )
        - copy the result back from the device to the host
        - free memory on the device
     */
-    int i, j;
-    for (i=0; i<n; i++) {
-        for (j=0; j<n; j++) {
+    for (int i=0; i<n; i++) {
+        for (int j=0; j<n; j++) {
             r[i*n + j] = p[i*n + j] + q[i*n + j];
         }
     }
@@ -136,9 +135,9 @@ void matsum( float *p, float *q, float *r, int n )
 /* Initialize square matrix p of size nxn */
 void fill( float *p, int n )
 {
-    int i, j, k=0;
-    for (i=0; i<n; i++) {
-        for (j=0; j<n; j++) {
+    int k=0;
+    for (int i=0; i<n; i++) {
+        for (int j=0; j<n; j++) {
             p[i*n+j] = k;
             k = (k+1) % 1000;
         }
@@ -149,9 +148,9 @@ void fill( float *p, int n )
 int check( float *r, int n )
 {
     const float TOL = 1e-5;
-    int i, j, k = 0;
-    for (i=0; i<n; i++) {
-        for (j=0; j<n; j++) {
+    int k = 0;
+    for (int i=0; i<n; i++) {
+        for (int j=0; j<n; j++) {
             if (fabsf(r[i*n+j] - 2.0f*k) > TOL) {
                 fprintf(stderr, "Check FAILED: r[%d][%d] = %f, expeted %f\n", i, j, r[i*n+j], 2.0*k);
                 return 0;
