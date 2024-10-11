@@ -22,7 +22,7 @@
 /***
 % HPC - Loop-carried dependences
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2024-10-08
+% Last updated: 2024-10-11
 
 The file [omp-loop.c](omp-loop.c) contains a set of serial functions
 with loops that iterate over arrays or matrices. The goal of this
@@ -79,16 +79,16 @@ void vec_shift_right_seq(int *a, int n)
 
 void vec_shift_right_par1(int *a, int n)
 {
+    /* Parallel version of `vec_shift_right_seq()`. It is not possible
+       to remove the loop-carried dependence by aligning loop
+       iterations. I suggest to use a temporary array `b[]`, and split
+       the loop into two loops: the first copies all elements of `a[]`
+       in the shifted position of `b[]` (i.e., `a[i]` goes to
+       `b[i+1]`; the rightmost element of `a[]` goes into `b[0]`). The
+       second loop copies `b[]` into `a[]`. Both loops can be
+       trivially parallelized. */
 #ifdef SERIAL
-    /* [TODO] This function should be a parallel version of
-       `vec_shift_right_seq()`. It is not possible to remove the
-       loop-carried dependency by aligning loop iterations.  One
-       solution is to use a temporary array `b[]` and split the loop
-       into two loops: the first copies all elements of `a[]` in the
-       shifted position of `b[]` (i.e., `a[i]` goes to `b[i+1]`; the
-       rightmost element of `a[]` goes into `b[0]`). The second loop
-       copies `b[]` into `a[]`. Both loops can be trivially
-       parallelized. */
+    /* TODO */
 #else
     int i;
     int *b = (int*)malloc(n*sizeof(b[0]));
@@ -115,11 +115,12 @@ void vec_shift_right_par2(int *a, int n)
 {
     /* A different solution to shift a vector without using a
        temporary array: partition `a[]` into P blocks (P=size of the
-       team). Each process saves the rightmost element of its block,
-       then shifts the block on position right. When all threads are
-       done (barrier synchronization), each thread fills the
-       _leftmost_ element of its block with the _rightmost_ element
-       saved by its left neighbor.
+       team). Each process saves the rightmost element of its block
+       into a shared array of length P, and then shifts the block on
+       position right. When all threads are done (barrier
+       synchronization), each thread fills the _leftmost_ element of
+       its block with the _rightmost_ element saved by its left
+       neighbor.
 
        Example, with P=4 threads:
 
@@ -213,13 +214,12 @@ void test1_par(int *A, int n)
        test1_seq(). Suggestion: start by drawing the dependences among
        the elements of matrix A[][] as they are computed.  Then,
        observe that one of the loops (which one?) can be parallelized
-       as is with a #pragma opm parallel for directive. There is no
-       need to modify the code, nor to exchange loops. */
+       with a "#pragma omp parallel for" directive. There is no need
+       to modify the code, nor to exchange loops. */
 #else
-    int i, j;
-    for (i=1; i<n; i++) {
+    for (int i=1; i<n; i++) {
 #pragma omp parallel for default(none) shared(A,i,n)
-        for (j=1; j<n-1; j++) {
+        for (int j=1; j<n-1; j++) {
             A[IDX(i,j,n)] = f(A[IDX(i-1,j-1,n)], A[IDX(i-1,j,n)], A[IDX(i-1,j+1,n)]);
         }
     }
@@ -230,9 +230,8 @@ void test1_par(int *A, int n)
 
 void test2_seq(int *A, int n)
 {
-    int i, j;
-    for (i=1; i<n; i++) {
-        for (j=1; j<n; j++) {
+    for (int i=1; i<n; i++) {
+        for (int j=1; j<n; j++) {
             /*
               A[i][j] = g(A[i,j-1], A[i-1,j-1])
              */
@@ -253,8 +252,8 @@ void test2_par(int *A, int n)
        However, you can exchange the loops (why?), i.e., the loops
        can be rewritten as
 
-       for (j=1; j<n; j++) {
-         for (i=1; i<n; i+) {
+       for (int j=1; j<n; j++) {
+         for (int i=1; i<n; i+) {
            ....
          }
        }
@@ -262,11 +261,10 @@ void test2_par(int *A, int n)
        preserving the correctness of the computation. Now, one of the
        loops can be parallelized (which one?) */
 #else
-    int i, j;
     /* Loop interchange */
-    for (j=1; j<n; j++) {
+    for (int j=1; j<n; j++) {
 #pragma omp parallel for default(none) shared(A,j,n)
-        for (i=1; i<n; i++) {
+        for (int i=1; i<n; i++) {
             A[IDX(i,j,n)] = g(A[IDX(i,j-1,n)], A[IDX(i-1,j-1,n)]);
         }
     }
@@ -277,9 +275,8 @@ void test2_par(int *A, int n)
 
 void test3_seq(int *A, int n)
 {
-    int i, j;
-    for (i=1; i<n; i++) {
-        for (j=1; j<n; j++) {
+    for (int i=1; i<n; i++) {
+        for (int j=1; j<n; j++) {
             /*
               A[i][j] = f(A[i][j-1], A[i-1][j-1], A[i-1][j])
              */

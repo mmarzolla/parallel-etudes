@@ -160,8 +160,8 @@ void do_static(const int *vin, int *vout, int n)
 
        START = my_id * chunk_size;
        STRIDE = num_threads * chunk_size;
-       for (i=START; i<n; i+=STRIDE) {
-         for (j=i; j<i+chunk_size && j<n; j++) {
+       for (int i=START; i<n; i+=STRIDE) {
+         for (int j=i; j<i+chunk_size && j<n; j++) {
            loop body
          }
        }

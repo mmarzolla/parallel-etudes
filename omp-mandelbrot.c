@@ -79,6 +79,7 @@ Example:
 - [omp-mandelbrot.c](omp-mandelbrot.c)
 
 ***/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>

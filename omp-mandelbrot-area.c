@@ -1,24 +1,28 @@
-/******************************************************************************
+/****************************************************************************
  *
- *  PROGRAM: Mandelbrot area
+ * omp-mandelbrot-area.c - Area of the Mandelbrot set
  *
- *  PURPOSE: Program to compute the area of a  Mandelbrot set.
- *           Correct answer should be around 1.510659.
- *           WARNING: this program may contain errors
+ * Copyright (C) 2017--2024 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
- *  USAGE:   Program runs without input ... just run the executable
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *  HISTORY: Written:  (Mark Bull, August 2011).
- *           Changed "complex" to "d_complex" to avoid collsion with
- *           math.h complex type (Tim Mattson, September 2011)
- *           Code cleanup (Moreno Marzolla, Feb 2017, Oct 2018, Oct 2020)
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- ******************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ ****************************************************************************/
 
 /***
 % HPC - Area of the Mandelbrot set
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2022-08-17
+% Last updated: 2024-10-11
 
 The Mandelbrot set is the set of black points in Figure 1.
 
@@ -84,11 +88,10 @@ policies, as well as with some different values for the chunk size.
 
 ***/
 
-#include "hpc.h"
-#include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <omp.h>
 
 /* Higher value = slower to detect points that belong to the Mandelbrot set */
 const int MAXIT = 10000;
