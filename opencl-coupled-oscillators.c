@@ -130,8 +130,7 @@ Example:
    movement. */
 void init( float *x, float *v, int n )
 {
-    int i;
-    for (i=0; i<n; i++) {
+    for (int i=0; i<n; i++) {
         x[i] = i*L;
         v[i] = 0.0;
     }
@@ -149,8 +148,7 @@ void init( float *x, float *v, int n )
 #ifdef SERIAL
 void step( float *x, float *v, float *xnext, float *vnext, int n )
 {
-    int i;
-    for (i=0; i<n; i++) {
+    for (int i=0; i<n; i++) {
         if ( i > 0 && i < n - 1 ) {
             /* Compute the net force acting on mass i */
             const float F = k*(x[i-1] - 2*x[i] + x[i+1]);
@@ -179,9 +177,8 @@ float squared(float x)
  */
 float maxenergy(const float *x, int n)
 {
-    int i;
     float maxenergy = -INFINITY;
-    for (i=1; i<n; i++) {
+    for (int i=1; i<n; i++) {
         maxenergy = fmaxf(0.5*k*squared(x[i]-x[i-1]-L), maxenergy);
     }
     return maxenergy;
@@ -189,10 +186,9 @@ float maxenergy(const float *x, int n)
 
 void dumpenergy(FILE *fout, const float *x, int n, float maxen)
 {
-    int i;
     /* Dump spring energies (light color = high energy) */
     maxen = maxenergy(x, n);
-    for (i=1; i<n; i++) {
+    for (int i=1; i<n; i++) {
         const float displ = x[i] - x[i-1] - L;
         const float energy = 0.5*k*squared(displ);
         const float v = fminf(energy/maxen, 1.0);
@@ -202,7 +198,7 @@ void dumpenergy(FILE *fout, const float *x, int n, float maxen)
 
 int main( int argc, char *argv[] )
 {
-    int s, cur = 0, next;
+    int cur = 0, next;
     float maxen;
     int N = 1024;
     const char* fname = "coupled-oscillators.ppm";
@@ -260,7 +256,7 @@ int main( int argc, char *argv[] )
 #endif
 
     /* Write NSTEPS rows in the output image */
-    for (s=0; s<TRANSIENT + NSTEPS; s++) {
+    for (int s=0; s<TRANSIENT + NSTEPS; s++) {
         next = 1 - cur;
 #ifdef SERIAL
         step(x[cur], v[cur], x[next], v[next], N);
