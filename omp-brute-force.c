@@ -181,7 +181,7 @@ int main( int argc, char *argv[] )
         snprintf(key, KEY_LEN+1, "%08d", k);
         xorcrypt(enc, out, msglen, key, KEY_LEN);
         /* `out` contains the decrypted text; if the key is not
-           corret, `out` will contain garbage */
+           correct, `out` will contain garbage */
         if ( 0 == memcmp(out, check, CHECK_LEN) ) {
             printf("Key found: %s\n", key);
             printf("Decrypted message: \"%s\"\n", out);
