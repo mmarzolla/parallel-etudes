@@ -22,7 +22,7 @@
 /***
 % HPC - Brute-force password cracking
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2024-09-20
+% Last updated: 2024-10-17
 
 ![[DES cracker board](https://en.wikipedia.org/wiki/EFF_DES_cracker) developed in 1998 by the Electronic Frontier Foundation (EFF); this device can be used to brute-force a DES key. The original uploader was Matt Crypto at English Wikipedia. Later versions were uploaded by Ed g2s at en.wikipedia - CC BY 3.0 us, <https://commons.wikimedia.org/w/index.php?curid=2437815>](des-cracker.jpg)
 
@@ -32,20 +32,20 @@ message has been encrypted using the _XOR_ algorithm, which applies
 the "exclusive or" (xor) operator between the plaintext and the
 encryption key. The _XOR_ algorithm is not secure, unless the key is
 truly random and has the same length of the plaintext; however, it is
-certainly "good enough" for this exercise.
+"good enough" for this exercise.
 
 _XOR_ is a _symmetric_ encryption algorithm, meaning that the same key
-must be used for encryption and decryption. The function `xorcrypt(in,
-out, n, key, keylen)` is used to encrypt or decrypt a message with a
-given key. To encrypt, `in` must point to the plaintext and `out` to a
-memory buffer where the ciphertext will be stored. To decrypt, `in`
-points to the ciphertext and `out` to a memory buffer where the
-plaintext will be stored.
+is used for encryption and decryption. The function `xorcrypt(in, out,
+n, key, keylen)` encrypts or decrypts a message with a given key. To
+encrypt, `in` pointw to the plaintext and `out` to a memory buffer
+where the ciphertext will be stored. To decrypt, `in` points to the
+ciphertext and `out` to a memory buffer where the plaintext will be
+stored.
 
 The parameters are as follows:
 
 - `in` points to the source message. This buffer does not need to be
-  zero-terminated since it may contain arbitrary bytes.
+  zero-terminated since it may contain an encrypted message.
 
 - `out` points to a memory buffer of at least $n$ Bytes (the same
   length of the source message), that must be allocated by the caller.
@@ -75,13 +75,13 @@ plaintext, which is a famous quote from [an old
 film](https://en.wikipedia.org/wiki/WarGames).
 
 The main loop can not be parallelized with the `omp for` construct
-(why?). Therefore, you must use `omp parallel` and manually partition
-the key space among threads. Remember that `omp parallel` can be
-applied to a _structured block_, i.e., a block with a single entry and
-a single exit point. Therefore, the thread who finds the correct key
-can not exit the parallel region using `return`, `break` or `goto`
-(the compiler should raise a compile-time error). However, we
-certainly want to terminate the program as soon as the key is found.
+(why?). Therefore, we use `omp parallel` and manually partition the
+key space among threads. Remember that `omp parallel` can be applied
+to a _structured block_, i.e., a block with a single entry and a
+single exit point. Therefore, the thread who finds the correct key can
+not exit the block using `return`, `break` or `goto` (the compiler
+should give a compile-time error). Howver, we need to terminate the
+program at most shortly after the correct key is found. How?
 
 Compile with:
 
