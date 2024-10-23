@@ -2,7 +2,7 @@
  *
  * omp-merge-sort.c - Merge Sort with OpenMP tasks
  *
- * Copyright (C) 2017--2023 by Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2017--2024 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,35 +22,34 @@
 /***
 % HPC - Merge Sort with OpenMP tasks
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2023-10-24
+% Last updated: 2024-10-23
 
 The file [omp-merge-sort.c](omp-merge-sort.c) contains a recursive
-implementation of the _Merge Sort_ algorithm. The implementation uses
+implementation of the _Merge Sort_ algorithm. The program uses
 _Selection Sort_ when the size of the subvector is less than a
 user-defined cutoff value; this is a standard optimization that avoids
 the overhead of recursive calls on small vectors.
 
 The program generates and sorts a random permutation of $0, 1, \ldots,
 n-1$; it if therefore easy to check the correctness of the result,
-since it must be the sequente $0, 1, \ldots, n-1$.
+since it must be the sequence $0, 1, \ldots, n-1$.
 
 The goal is to parallelize the Merge Sort algorithm using OpenMP
-tasks. You might want to proceed as follows:
+tasks as follows:
 
-- The recursion must start inside a parallel region;
-
-- Only one process should start the recursion;
+- The recursion starts inside a parallel region; only one process
+  starts the recursion.
 
 - Create two tasks for the two recursive calls; pay attention to the
-  visibility of variables;
+  visibility (scope) of variables.
 
-- Wait for the two sub-tasks to complete before starting the "merge"
+- Wait for the two sub-tasks to complete before starting the _merge_
   step.
 
-Measure the execution time of the parallel version and compare
-it with the serial implementation. To get meaningful results, choose
-an input that requires at least a few seconds to be sorted using all
-available processor cores.
+Measure the execution time of the parallel program and compare it with
+the serial implementation. To get meaningful results, choose an input
+size that requires at least a few seconds to be sorted using all
+available cores.
 
 To compile:
 
