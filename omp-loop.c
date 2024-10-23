@@ -69,9 +69,8 @@ int h(int a) { return (a > 10 ? 2*a : a-1); }
  */
 void vec_shift_right_seq(int *a, int n)
 {
-    int i;
-    int tmp = a[n-1];
-    for (i=n-1; i>0; i--) {
+    const int tmp = a[n-1];
+    for (int i=n-1; i>0; i--) {
         a[i] = a[i-1];
     }
     a[0] = tmp;
@@ -90,20 +89,19 @@ void vec_shift_right_par1(int *a, int n)
 #ifdef SERIAL
     /* TODO */
 #else
-    int i;
     int *b = (int*)malloc(n*sizeof(b[0]));
     assert(b != NULL);
 #pragma omp parallel default(none) shared(a,b,n)
     {
 #pragma omp for
-        for (i=1; i<n; i++) {
+        for (int i=1; i<n; i++) {
             b[i] = a[i-1];
         } /* Implicit synchronization here */
 #pragma omp single
         b[0] = a[n-1];
         /* Implicit synchronization here, after "omp single" */
 #pragma omp for
-        for (i=0; i<n; i++) {
+        for (int i=0; i<n; i++) {
             a[i] = b[i];
         } /* Implicit synchronization here */
     }
@@ -196,9 +194,8 @@ int IDX(int i, int j, int n)
 /* A is a nxn matrix */
 void test1_seq(int *A, int n)
 {
-    int i, j;
-    for (i=1; i<n; i++) {
-        for (j=1; j<n-1; j++) {
+    for (int i=1; i<n; i++) {
+        for (int j=1; j<n-1; j++) {
             /*
               A[i][j] = f(A[i-1][j-1], A[i-1][j], A[i-1][j+1])
             */

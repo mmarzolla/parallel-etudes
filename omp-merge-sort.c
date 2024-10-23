@@ -89,9 +89,8 @@ void swap(int* a, int* b)
  */
 void selectionsort(int* v, int low, int high)
 {
-    int i, j;
-    for (i=low; i<high; i++) {
-        for (j=i+1; j<=high; j++) {
+    for (int i=low; i<high; i++) {
+        for (int j=i+1; j<=high; j++) {
             if (v[i] > v[j]) {
                 swap(&v[i], &v[j]);
             }
@@ -212,12 +211,11 @@ int randab(int a, int b)
  */
 void fill(int* a, int n)
 {
-    int i;
-    for (i=0; i<n; i++) {
+    for (int i=0; i<n; i++) {
         a[i] = (int)i;
     }
-    for (i=0; i<n-1; i++) {
-        int j = randab(i, n-1);
+    for (int i=0; i<n-1; i++) {
+        const int j = randab(i, n-1);
         swap(a+i, a+j);
     }
 }
@@ -225,8 +223,7 @@ void fill(int* a, int n)
 /* Return 1 iff a[] contains the values 0, 1, ... n-1, in that order */
 int is_correct(const int* a, int n)
 {
-    int i;
-    for (i=0; i<n; i++) {
+    for (int i=0; i<n; i++) {
         if ( a[i] != i ) {
             fprintf(stderr, "Expected a[%d]=%d, got %d\n", i, i, a[i]);
             return 0;

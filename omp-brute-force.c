@@ -181,7 +181,7 @@ int main( int argc, char *argv[] )
         snprintf(key, KEY_LEN+1, "%08d", k);
         xorcrypt(enc, out, msglen, key, KEY_LEN);
         /* `out` contains the decrypted text; if the key is not
-           corret, `out` will contain garbage */
+           correct, `out` will contain garbage */
         if ( 0 == memcmp(out, check, CHECK_LEN) ) {
             printf("Key found: %s\n", key);
             printf("Decrypted message: \"%s\"\n", out);
@@ -207,7 +207,7 @@ int main( int argc, char *argv[] )
     const double tstart = omp_get_wtime();
 #pragma omp parallel default(none) shared(found,check,enc,msglen,n,CHECK_LEN,KEY_LEN)
     {
-        char* buf = (char*)malloc(msglen);
+        char* out = (char*)malloc(msglen);
         char key[KEY_LEN+1];
         const int my_id = omp_get_thread_num();
         const int num_threads = omp_get_num_threads();
@@ -217,16 +217,16 @@ int main( int argc, char *argv[] )
            variable `found`; however, the race condition is benign
            because in the worst case it forces the other threads to
            execute one more iteration than necessary. */
-        for ( int i=my_start; i<my_end && !found; i++) {
-            sprintf(key, "%08d", i);
-            xorcrypt(enc, buf, msglen, key, 8);
-            if ( 0 == memcmp(buf, check, CHECK_LEN) ) {
+        for ( int k=my_start; k<my_end && !found; k++) {
+            sprintf(key, "%08d", k);
+            xorcrypt(enc, out, msglen, key, 8);
+            if ( 0 == memcmp(out, check, CHECK_LEN) ) {
                 printf("Key found: %s\n", key);
-                printf("Decrypted message: %s\n", buf);
+                printf("Decrypted message: \"%s\"\n", out);
                 found = 1;
             }
         }
-        free(buf);
+        free(out);
     }
     const double elapsed = omp_get_wtime() - tstart;
     printf("Elapsed time: %f\n", elapsed);
