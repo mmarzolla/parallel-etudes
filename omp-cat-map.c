@@ -65,28 +65,26 @@ Therefore, $C^2(x,y) = C(C(x,y))$, $C^3(x,y) = C(C(C(x,y)))$, and so
 on.
 
 If we apply $C$ once, we get a severely distorted version of the
-input. If we apply $C$ on the result, we get an even more distorted
-image. As we keep applying $C$, the original image is no longer
-discernible. However, after a certain number of iterations, that
-depends on the image size $N$ and has been proved to never exceed
+input. If we apply $C$ again on the result, we get an even more
+distorted image. As we keep applying $C$, the original image is no
+longer discernible. However, after a certain number of iterations,
+that depends on the image size $N$ and has been proved to never exceed
 $3N$, we get back the original image! (Figure 2).
 
 ![Figure 2: Some iterations of the cat map](cat-map-demo.png)
 
-The _minimum recurrence time_ for an image is the minimum positive
-integer $k \geq 1$ such that $C^k(x, y) = (x, y)$ for all $(x, y)$.
-The minimum recurrence time is the minimum number of iterations of the
-cat map that produce the starting image. For example, the minimum
-recurrence time for [cat1368.pgm](cat1368.pgm) of size $1368 \times
-1368$ is $36$.
+The _minimum recurrence time_ is the minimum number of iterations $k
+\geq 1$ such that produce the original image, i.e., $C^k(x, y) = (x,
+y)$ for all $(x, y)$. For example, the minimum recurrence time for
+[cat1368.pgm](cat1368.pgm) of size $1368 \times 1368$ is $36$.
 
-The minimum recurrence time depends on the image size $N$. No closed
-formula is known to compute the minimum recurrence time given the
-image size $N$, although there are results and bounds that apply to
-specific cases.
+The minimum recurrence time depends on the image size $N$ only. No
+closed formula is known to compute the minimum recurrence time given
+$N$, although there are results and bounds that apply to specific
+cases.
 
 You are given a serial program that computes the $k$-th iterate of
-Arnold's cat map on a square image. The program reads the input from
+Arnold's cat map on a square image. The program reads the image from
 standard input in [PGM](https://en.wikipedia.org/wiki/Netpbm)
 (_Portable GrayMap_) format. The results is printed to standard output
 in PGM format. For example:
@@ -104,12 +102,11 @@ format, e.g., JPEG. Under Linux you can use `convert` from the
 
 Modify the function `cat_map()` to make use of shared-memory
 parallelism using OpenMP. You might want to take advantage from the
-fact that Arnold's cat map is _invertible_, and this implies that any
-two different points $(x_1, y_1)$ and $(x_2, y_2)$ are always mapped
-to different points $(x'_1, y'_1) = C(x_1, y_1)$ and $(x'_2, y'_2) =
+fact that Arnold's cat map is _invertible_, meaning that any two
+different points $(x_1, y_1)$ and $(x_2, y_2)$ are always mapped to
+different points $(x'_1, y'_1) = C(x_1, y_1)$ and $(x'_2, y'_2) =
 C(x_2, y_2)$. Therefore, the output image $P'$ can be filled up in
-parallel without race conditions (however, see below for some
-caveats).
+parallel without race conditions.
 
 To compile:
 
@@ -229,33 +226,21 @@ processor, but provides worse performance on the Xeon processors.
 ## To probe further
 
 What is the minimum recurrence time of image
-[cat1024.pgm](cat1024.pgm) of size $1024 \times 1024$?  To answer this
-question we need to iterate the cat map and stop as soon as we get
-back the initial image.
-
-It turns out that there is a smarter way, that does not even require
-an input image but only its size $N$. To understand how it works, let
-us suppose that we know that one particular pixel of the image, say
-$(x_1, y_1)$, has minimum recurrence time 15. This means that after 15
-iterations, the pixel at coordinates $(x_1, y_1)$ will return to its
-starting position. Suppose that another pixel of coordinates $(x_2,
-y_2)$ has minimum recurrence time 21. How many iterations of the cat
-map are required to have _both_ pixels back to their original
-positions?
+[cat1024.pgm](cat1024.pgm) of size $1024 \times 1024$? We can answer
+this question without the need for an input image. To understand how,
+let us suppose that one particular pixel, say $(x_1, y_1)$, has
+minimum recurrence time 15. This means that after 15 iterations, the
+pixel at coordinates $(x_1, y_1)$ will return to its starting
+position. Suppose that another pixel of coordinates $(x_2, y_2)$ has
+minimum recurrence time 21. How many iterations of the cat map are
+required to have _both_ pixels back to their original positions?
 
 The answer is $105$, which is the least common multiple (LCM) of 15
-and 21. From this observation we can devise the following algorithmn
-for computing the minimum recurrence time of an image of size $N
-\times N$. Let $T(x,y)$ be the minimum recurrence time of the pixel of
-coordinates $(x, y)$, $0 \leq x, y < N$. Then, the minimum recurrence
-time of the whole image is the least common multiple of all $T(x, y)$.
-
-[omp-cat-map-rectime.c](omp-cat-map-rectime.c) contains an incomplete
-skeleton of a program that computes the minimum recurrence time of a
-square image of size $N \times N$. Complete the program and then
-produce a parallel version using the appropriate OpenMP directives.
-
-Table 2 shows the minimum recurrence time for some $N$.
+and 21. From this observation we can devise the following
+algorithmn. Let $k(x,y)$ be the minimum recurrence times of the pixels
+of coordinates $(x, y)$, $0 \leq x, y < N$. Then, the minimum
+recurrence time of the whole image is the least common multiple of all
+$k(x, y)$.  Table 2 shows the minimum recurrence time for some $N$.
 
 :Table 2: Minimum recurrence time for some image sizes $N$
 
@@ -273,6 +258,11 @@ $N$. Despite the fact that the values jumps around, they tend to align
 along straight lines.
 
 ![Figure 3: Minimum recurrence time as a function of the image size $N$](cat-map-rectime.png)
+
+[omp-cat-map-rectime.c](omp-cat-map-rectime.c) contains an incomplete
+skeleton of a program that computes the minimum recurrence time of a
+$N \times N$ image. Complete the serial program, and then implement a
+parallel version using OpenMP.
 
 ## Files
 
