@@ -156,7 +156,7 @@ void do_static(const int *vin, int *vout, int n)
 
        The first chunk assigned to `p` starts at `(p * chunk_size)`.
        Therefore, each thread should execute the following nested
-       loops (in pseudocode):
+       loops:
 
        START = my_id * chunk_size;
        STRIDE = num_threads * chunk_size;
@@ -167,8 +167,8 @@ void do_static(const int *vin, int *vout, int n)
        }
 
        Note that `n` is not necessarily an integer multiple of the
-       number of threads, and therefore we must use addtional checks
-       to ensure that we never exceed `n`.
+       number of threads, therefore addtional checks are necessary to
+       ensure that we never exceed the upper bound `n-1`.
     */
     for (int i=0; i<n; i++) {
         vout[i] = fib_rec(vin[i]);
@@ -200,18 +200,18 @@ void do_dynamic(const int *vin, int *vout, int n)
 #ifdef SERIAL
     /* [TODO] parallelize the following loop, simulating a
        "schedule(dynamic,1)" clause, i.e., dynamic scheduling with
-       block size 1. Optionally, allow the user to specify the chunk
+       chunk size 1. Optionally, allow the user to specify the chunk
        size.
 
        Hint: keep a shared variable `idx` representing the index of
        the beginning of the first unprocessed chunk, i.e., the first
        chunk that will be assigned to a thread.
 
-       Each OpenMP thread atomically fetches the current value of
+       Each OpenMP thread _atomically_ fetches the current value of
        `idx` into a local (private) variable `my_idx`, and then
        increments `idx` by `chunk_size`.
 
-       Therefore, each thread executes the following code:
+       Therefore, each thread executes the following pseudocode:
 
        do {
          atomically copy idx into my_idx and increment idx by chunk_size
