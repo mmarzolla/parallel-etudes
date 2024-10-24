@@ -266,12 +266,15 @@ parallel version using OpenMP.
 
 ## Files
 
-- [omp-cat-map.c](omp-cat-map.c)
+- [omp-cat-map.c](omp-cat-map.c) [hpc.h](hpc.h)
 - [omp-cat-map-rectime.c](omp-cat-map-rectime.c)
 - [cat1024.pgm](cat1024.pgm) (what is the minimum recurrence time of this image?)
 - [cat1368.pgm](cat1368.pgm) (verify that the minimum recurrence time of this image is 36)
 
 ***/
+#if _XOPEN_SOURCE < 600
+#define _XOPEN_SOURCE 600
+#endif
 #include "hpc.h"
 #include <stdio.h>
 #include <stdlib.h>
