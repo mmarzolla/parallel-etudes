@@ -35,7 +35,9 @@ To execute:
 ## Files
 
 - [opencl-sat.c](opencl-sat.c)
-- Some input files: <queens-05.cnf>, <uf20-01.cnf>, <uf20-077.cnf>
+- [simpleCL.c](simpleCL.c) [simpleCL.h](simpleCL.h) [hpc.h](hpc.h).
+- Some input files: <queens-05.cnf>, <uf20-01.cnf>, <uf20-077.cnf>7
+
 ***/
 #if _XOPEN_SOURCE < 600
 #define _XOPEN_SOURCE 600

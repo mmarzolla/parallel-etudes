@@ -61,7 +61,7 @@ Example:
 
 ## Files
 
-- [cuda-denoise.cu](cuda-denoise.cu)
+- [cuda-denoise.cu](cuda-denoise.cu) [hpc.h](hpc.h)
 - [valve-noise.ppm](valve-noise.ppm) (sample input)
 
  ***/

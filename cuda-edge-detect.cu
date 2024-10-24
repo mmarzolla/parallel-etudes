@@ -57,7 +57,7 @@ Example:
 
 ## Files
 
-- [cuda-edge-detect.cu](cuda-edge-detect.cu)
+- [cuda-edge-detect.cu](cuda-edge-detect.cu) [hpc.h](hpc.h)
 - [BWstop-sign.pgm](BWstop-sign.pgm)
 
 ***/
