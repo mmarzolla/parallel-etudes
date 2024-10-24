@@ -25,7 +25,7 @@
 /***
 % HPC - Ray tracing
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2024-10-06
+% Last updated: 2024-10-24
 
 The file [omp-c-ray.c](omp-c-ray.c) contains the implementation of a
 [simple ray tracer](https://github.com/jtsiomb/c-ray) written
@@ -57,12 +57,11 @@ modify global variables, so there are not hidden dependences. If you
 have time, measure the _speedup_ and the _strong scaling efficienty_
 of the parallel version.
 
-Although not strictly necessary, it is useful to know
-[how a ray tracer
-works](https://en.wikipedia.org/wiki/Ray_tracing_(graphics)) using
-[Whitted recursive
-algorithm](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.156.1534)
-(Figure 2).
+Although not strictly necessary, it is useful to understand [how a ray
+tracer works](https://en.wikipedia.org/wiki/Ray_tracing_(graphics))
+using Whitted's recursive algorithm (T. Whitted, _An improved
+illumination model for shaded display_, Commun. ACM 23, 6, June 1980,
+343–349. <https://doi.org/10.1145/358876.358882>). Refer to Figure 2.
 
 ![Figure 2: Recursive ray tracer](omp-c-ray.svg)
 
