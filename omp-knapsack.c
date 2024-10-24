@@ -137,7 +137,7 @@ For example, to use $P=4$ OpenMP threads:
 
 ## Files
 
-- [omp-knapsack.c](omp-knapsack.c)
+- [omp-knapsack.c](omp-knapsack.c) [hpc.h](hpc.h)
 - [knapsack-gen.c](knapsack-gen.c) (to generate random input instances)
 - [knap-10-10.in](knap-10-10.in)
 - [knap-100-100.in](knap-100-100.in)

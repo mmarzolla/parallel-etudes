@@ -97,7 +97,7 @@ Example:
 ## Files
 
 - [opencl-coupled-oscillators.c](opencl-coupled-oscillators.c)
-- [simpleCL.c](simpleCL.c) [simpleCL.h](simpleCL.h) [hpc.h](hpc.h)
+- [simpleCL.c](simpleCL.c) [simpleCL.h](simpleCL.h)
 
  ***/
 

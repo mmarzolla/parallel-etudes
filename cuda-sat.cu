@@ -34,7 +34,7 @@ To execute:
 
 ## Files
 
-- [cuda-sat.c](cuda-sat.c)
+- [cuda-sat.c](cuda-sat.c) [hpc.h](hpc.h)
 - Some input files: <queens-05.cnf>, <uf20-01.cnf>, <uf20-077.cnf>
 ***/
 

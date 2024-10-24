@@ -53,7 +53,7 @@ Run with:
 
 ## Files
 
-* [opencl-letters.c](opencl-letters.c)
+* [opencl-letters.c](opencl-letters.c) [hpc.h](hpc.h)
 * [simpleCL.h](simpleCL.h) [simpleCL.c](simpleCL.c)
 * [War and Peace](war-and-peace.txt) by L. Tolstoy
 * [The Hound of the Baskervilles](the-hound-of-the-baskervilles.txt) by A. C. Doyle

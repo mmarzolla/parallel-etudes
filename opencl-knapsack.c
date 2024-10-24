@@ -138,7 +138,7 @@ Run with:
 ## Files
 
 - [opencl-knapsack.c](opencl-knapsack.c)
-- [simpleCL.c](simpleCL.c) [simpleCL.h](simpelCL.h) [hpc.h](hpc.h)
+- [simpleCL.c](simpleCL.c) [simpleCL.h](simpelCL.h)
 - [knapsack-gen.c](knapsack-gen.c) (to generate random input instances)
 - [knap-10-10.in](knap-10-10.in)
 - [knap-100-100.in](knap-100-100.in)

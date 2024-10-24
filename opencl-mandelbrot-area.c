@@ -24,9 +24,9 @@ The Mandelbrot set is the set of black points in Figure 1.
 
 ![Figure 1: The Mandelbrot set](mandelbrot-set.png)
 
-The file [omp-mandelbrot-area.c](omp-mandelbrot-area.c) contains a
-serial program that computes an estimate of the area of the Mandelbrot
-set.
+The file [opencl-mandelbrot-area.c](opencl-mandelbrot-area.c) contains
+a serial program that computes an estimate of the area of the
+Mandelbrot set.
 
 The program works as follows. First, we identify a rectangle in the
 complex plane that contains the Mandelbrot set. Let _(XMIN, YMIN)_ and
@@ -54,34 +54,23 @@ The approximation gets better if the number of points $N$ is large.
 The exact value of $A$ is not known, but there are [some
 estimates](https://www.fractalus.com/kerry/articles/area/mandelbrot-area.html).
 
-Modify the serial program to use the shared-memory parallelism
-provided by OpenMP. To this aim, you can distribute the $N \times N$
-lattice points across $P$ OpenMP threads using the `omp parallel for`
-directive; you might want to use the `collapse` directive as
-well. Each thread computes the number of points that belong to the
-Mandelbrot set; the result is the sum-reduction of the partial counts
-from each thread. This can be achieved with the `reduction` clause.
+Modify the serial program to use OpenCL parallelism.
 
 Compile with:
 
-        gcc -std=c99 -Wall -Wpedantic -fopenmp omp-mandelbrot-area.c -o omp-mandelbrot-area
+        gcc -std=c99 -Wall -Wpedantic opencl-mandelbrot-area.c simpleCL.c -o opencl-mandelbrot-area
 
 Run with:
 
-        ./omp-mandelbrot-area [N]
+        ./opencl-mandelbrot-area [N]
 
-For example, to use a grid of $1000 \times 1000$$ points using $P=2$
-OpenMP threads:
+For example, to use a grid of $1000 \times 1000$$ points:
 
-        OMP_NUM_THREADS=2 ./omp-mandelbrot-area 1000
-
-You might want to experiment with the `static` or `dynamic` scheduling
-policies, as well as with some different values for the chunk size.
+        ./opencl-mandelbrot-area 1000
 
 ## Files
 
-- [opencl-mandelbrot-area.c](opencl-mandelbrot-area.c)
-- [opencl-mandelbrot-area.cl](opencl-mandelbrot-area.cl)
+- [opencl-mandelbrot-area.c](opencl-mandelbrot-area.c) [opencl-mandelbrot-area.cl](opencl-mandelbrot-area.cl)
 - [simpleCL.c](simpleCL.c) [simpleCL.h](simpleCL.h) [hpc.h](hpc.h)
 
 ***/

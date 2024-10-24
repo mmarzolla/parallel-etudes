@@ -122,7 +122,7 @@ void test( bsearch_fun_t f, const int *x, int n )
     for (int i=0; i<K; i++) {
         keys[i] = randab(-1, n+1);
     }
-    
+
     const double tstart = hpc_gettime();
     for (int r = 0; r<R; r++) {
         for (int i = 0; i<K; i++) {
