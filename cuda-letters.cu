@@ -53,7 +53,7 @@ Run with:
 
 ## Files
 
-* [cuda-letters.cu](cuda-letters.cu)
+* [cuda-letters.cu](cuda-letters.cu) [hpc.h](hpc.h)
 * [War and Peace](war-and-peace.txt) by L. Tolstoy
 * [The Hound of the Baskervilles](the-hound-of-the-baskervilles.txt) by A. C. Doyle
 * [The War of the Worlds](the-war-of-the-worlds.txt) by H. G. Wells

@@ -71,7 +71,7 @@ Example:
 
 ## Files
 
-- [cuda-mandelbrot.cu](cuda-mandelbrot.cu)
+- [cuda-mandelbrot.cu](cuda-mandelbrot.cu) [hpc.h](hpc.h)
 
 ***/
 

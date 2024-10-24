@@ -82,6 +82,7 @@ policies, as well as with some different values for the chunk size.
 
 - [opencl-mandelbrot-area.c](opencl-mandelbrot-area.c)
 - [opencl-mandelbrot-area.cl](opencl-mandelbrot-area.cl)
+- [simpleCL.c](simpleCL.c) [simpleCL.h](simpleCL.h) [hpc.h](hpc.h)
 
 ***/
 

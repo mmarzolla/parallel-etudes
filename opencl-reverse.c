@@ -1,4 +1,4 @@
-/****************************************************************************
+Ãƒ¹0;136;0c/****************************************************************************
  *
  * opencl-reverse.c - Array reversal with OpenCL
  *
@@ -65,7 +65,7 @@ Example:
 ## Files
 
 - [opencl-reverse.c](opencl-reverse.c)
-- [simpleCL.c](simpleCL.c) [simpleCL.h](simpleCL.h) [hpc.h](hpc.h)
+- [simpleCL.c](simpleCL.c) [simpleCL.h](simpleCL.h)
 
 ***/
 

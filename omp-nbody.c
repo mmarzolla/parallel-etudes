@@ -126,7 +126,7 @@ Example:
 
 ## File
 
-- [omp-nbody.c](omp-nbody.c)
+- [omp-nbody.c](omp-nbody.c) [hpc.h](hpc.h)
 
 ***/
 #include "hpc.h"
