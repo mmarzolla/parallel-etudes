@@ -309,11 +309,7 @@ void cat_map( PGM_image* img, int k )
 #ifndef SERIAL
         /* Note: the collapse(2) directive automatically makes the
            loop variables y and x private */
-#if __GNUC__ < 9
-#pragma omp parallel for collapse(2) default(none) shared(cur,next,tmp,img)
-#else
 #pragma omp parallel for collapse(2) default(none) shared(cur,next,tmp,img,N)
-#endif
 #endif
         for (int y=0; y<N; y++) {
             for (int x=0; x<N; x++) {
@@ -342,11 +338,7 @@ void cat_map_interchange( PGM_image* img, int k )
 
     /* [TODO] Which of the following loop(s) can be parallelized? */
 #ifndef SERIAL
-#if __GNUC__ < 9
-#pragma omp parallel for collapse(2) default(none) shared(cur,next,k)
-#else
 #pragma omp parallel for collapse(2) default(none) shared(N,cur,next,k)
-#endif
 #endif
     for (int y=0; y<N; y++) {
         for (int x=0; x<N; x++) {

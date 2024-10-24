@@ -161,9 +161,8 @@ typedef struct {
 
 /* The __attribute__(( ... )) definition is gcc-specific, and tells
    the compiler that the fields of this structure should not be padded
-   or aligned in any way. Since the structure only contains unsigned
-   chars, it _might_ be unpadded by default; I am not sure,
-   however. */
+   or aligned. Since the structure only contains unsigned chars, it
+   _might_ be unpadded; I am not sure, however. */
 typedef struct __attribute__((__packed__)) {
     uint8_t r;  /* red   */
     uint8_t g;  /* green */
