@@ -2,7 +2,7 @@
  *
  * omp-pi.c - Monte Carlo approximation of PI
  *
- * Copyright (C) 2017--2023 by Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2017--2024 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % HPC - Monte Carlo approximation of $\pi$
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2023-10-19
+% Last updated: 2023-10-25
 
 The file [omp-pi.c](omp-pi.c) implements a serial Monte Carlo
 algorithm for computing the approximate value of $\pi$. Monte Carlo
@@ -31,15 +31,23 @@ interest.
 
 ![Figure 1: Monte Carlo computation of the value of $\pi$](pi_Monte_Carlo.svg)
 
-To estimate $\pi$ we generate $N$ random points uniformly distributed
-inside the square with corners at $(-1, -1)$ and $(1, 1)$ (Figure
-1). Let $x$ be the number of points that fall inside the circle
-inscribed in the square; then, the ratio $x / N$ is an approximation
-of the ratio between the area of the circle and the area of the
-square. Since the area of the circle is $\pi$ and the area of the
-square is $4$, we have $x/N \approx \pi / 4$, from which $\pi \approx
-4x / N$. This estimate becomes more accurate as we generate more
-points.
+The idea is simple (see Figure 1). We generate $N$ random points
+uniformly distributed over a square with corners at $(-1, -1)$ and
+$(1, 1)$, and count the number $x$ of points falling inside the circle
+with center $(0,0)$ and unitary radius. Then, we have:
+
+$$
+\frac{\text{N. of points inside the circle}}{\text{Total n. of points}} \approx \frac{\text{Area of circle}}{\text{Area of enclosing square}}
+$$
+
+from which, substituting the appropriate variables:
+
+$$
+\frac{x}{N} \approx \frac{\pi}{4}
+$$
+
+hence $\pi \approx 4x / N$. This estimate becomes more accurate as the
+number of points $N$ increases.
 
 The goal of this exercise is to modify the serial program to make use
 of shared-memory parallelism using OpenMP.

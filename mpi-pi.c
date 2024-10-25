@@ -22,7 +22,7 @@
 /***
 % HPC - Monte Carlo approximation of PI
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2024-10-05
+% Last updated: 2024-10-25
 
 The file [mpi-pi.c](mpi-pi.c) contains a serial program for computing
 the approximate value of $\pi$ using a Monte Carlo algorithm. Monte
@@ -32,14 +32,22 @@ of some quantity of interest.
 ![Figure 1: Monte Carlo computation of the value of $\pi$](pi_Monte_Carlo.svg)
 
 The idea is simple (see Figure 1). We generate $N$ random points
-uniformly distributed inside the square with corners at $(-1, -1)$ and
-$(1, 1)$. Let $x$ be the number of points that fall inside the circle
-inscribed in the square; then, the ratio $x / N$ is an approximation
-of the ratio between the area of the circle and the area of the
-square. Since the area of the circle is $\pi$ and the area of the
-square is $4$, we have $x/N \approx \pi / 4$ which yelds $\pi \approx
-4x / N$. This estimate becomes more accurate as the number of points
-$N$ increases.
+uniformly distributed over a square with corners at $(-1, -1)$ and
+$(1, 1)$, and count the number $x$ of points falling inside the circle
+with center $(0,0)$ and unitary radius. Then, we have:
+
+$$
+\frac{\text{N. of points inside the circle}}{\text{Total n. of points}} \approx \frac{\text{Area of circle}}{\text{Area of enclosing square}}
+$$
+
+from which, substituting the appropriate variables:
+
+$$
+\frac{x}{N} \approx \frac{\pi}{4}
+$$
+
+hence $\pi \approx 4x / N$. This estimate becomes more accurate as the
+number of points $N$ increases.
 
 Modify the serial program to parallelize the computation. Several
 parallelization strategies are possible, but for now you are advised
