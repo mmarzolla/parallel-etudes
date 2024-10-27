@@ -135,8 +135,8 @@ void do_static(const int *vin, int *vout, int n)
 {
 #ifdef SERIAL
     /* [TODO] parallelize the following loop, simulating a
-       "schedule(static,1)" clause, i.e., static scheduling with block
-       size 1. Optionally, allow an arbitrary chunk size.
+       "schedule(static,chunk_size)" clause. You should do so using
+       "omp parallel" without "omp for".
 
        Hint: the iteration space i=0..n-1 should be partitioned into
        blocks of length `chunk_size`.  the blocks are assigned to
@@ -170,6 +170,8 @@ void do_static(const int *vin, int *vout, int n)
        number of threads, therefore addtional checks are necessary to
        ensure that we never exceed the upper bound `n-1`.
     */
+    const int chunk_size = 1; /* can be set to any value >= 1 */
+#pragma omp parallel for schedule(static, chunk_size);
     for (int i=0; i<n; i++) {
         vout[i] = fib_rec(vin[i]);
         /* printf("vin[%d]=%d vout[%d]=%d\n", i, vin[i], i, vout[i]); */
@@ -199,9 +201,8 @@ void do_dynamic(const int *vin, int *vout, int n)
 {
 #ifdef SERIAL
     /* [TODO] parallelize the following loop, simulating a
-       "schedule(dynamic,1)" clause, i.e., dynamic scheduling with
-       chunk size 1. Optionally, allow the user to specify the chunk
-       size.
+       "schedule(dynamic,chunk_size)" clause. You should do so using
+       "omp parallel" only, without "omp for".
 
        Hint: keep a shared variable `idx` representing the index of
        the beginning of the first unprocessed chunk, i.e., the first
@@ -220,6 +221,8 @@ void do_dynamic(const int *vin, int *vout, int n)
          }
        } while (my_idx < n);
     */
+    const int chunk_size = 1; /* can be set to any value >= 1 */
+#pragma omp parallel for schedule(dynamic, chunk_size)
     for (int i=0; i<n; i++) {
         vout[i] = fib_rec(vin[i]);
         /* printf("vin[%d]=%d vout[%d]=%d\n", i, vin[i], i, vout[i]); */
