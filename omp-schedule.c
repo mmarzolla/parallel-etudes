@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * omp-schedule.c - simulate "schedule()" directives
+ * omp-schedule.c - simulate the "schedule()" clause
  *
- * Copyright (C) 2017--2023 by Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2017--2024 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,14 +20,14 @@
  ****************************************************************************/
 
 /***
-% HPC - Simulate "schedule()" directives
+% HPC - Simulate the "schedule()" clause
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2023-10-23
+% Last updated: 2024-10-28
 
 OpenMP allows the use of the `schedule(static)` and
-`schedule(dynamic)` clauses to assign loop iterations to OpenMP
-threads. The purpose of this exercise is to simulate these clauses
-_without_ using the `omp parallel for` construct.
+`schedule(dynamic)` clauses to choose how to assign loop iterations to
+OpenMP threads. The purpose of this exercise is to simulate these
+clauses using the `omp parallel` construct only.
 
 The file [omp-schedule.c](omp-schedule.c) contains a serial program
 that creates two arrays `vin[]` and `vout[]` of length $n$ such that
@@ -40,13 +40,13 @@ There are two functions, `do_static()` and `do_dynamic()` that perform
 the computation above.
 
 1. Modify `do_static()` to distribute the loop iterations as would be
-   done by the `schedule(static, chunk_size)` clause, but without
-   using a `omp parallel for` directive (you may use `omp parallel`).
+   done by the `schedule(static, chunk_size)` clause using the `omp
+   parallel` directive (not `omp for`).
 
 2. Modify `do_dynamic()` to distribute the loop iterations according
    to the _master-worker_ paradigm, as would be done by the
-   `schedule(dynamic, chunk_size)` clause. Again, you are not allowed
-   to use `omp parallel for`, but only `omp parallel`.
+   `schedule(dynamic, chunk_size)` clause. Again, use the `omp
+   parallel` directive (not `omp for`).
 
 See the source code for suggestions.
 
