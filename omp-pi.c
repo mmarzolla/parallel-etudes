@@ -33,7 +33,7 @@ interest.
 
 The idea is simple (see Figure 1). We generate $N$ random points
 uniformly distributed over a square with corners at $(-1, -1)$ and
-$(1, 1)$, and count the number $x$ of points falling inside the circle
+$(1, 1)$, and count the number $I$ of points falling inside the circle
 with center $(0,0)$ and unitary radius. Then, we have:
 
 $$
@@ -43,10 +43,10 @@ $$
 from which, substituting the appropriate variables:
 
 $$
-\frac{x}{N} \approx \frac{\pi}{4}
+\frac{I}{N} \approx \frac{\pi}{4}
 $$
 
-hence $\pi \approx 4x / N$. This estimate becomes more accurate as the
+hence $\pi \approx 4 I / N$. This estimate becomes more accurate as the
 number of points $N$ increases.
 
 The goal of this exercise is to modify the serial program to make use
@@ -68,7 +68,7 @@ follows:
    it must be shared across all OpenMP threads.
 
 3. At the end of the parallel region, the master (thread 0) computes
-   $x$ as the sum of the content of `inside[]`; from this the estimate
+   $I$ as the sum of the content of `inside[]`; from this the estimate
    of $\pi$ can be computed as above.
 
 You may initially assume that the number of points $N$ is a multiple

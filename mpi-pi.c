@@ -33,7 +33,7 @@ of some quantity of interest.
 
 The idea is simple (see Figure 1). We generate $N$ random points
 uniformly distributed over a square with corners at $(-1, -1)$ and
-$(1, 1)$, and count the number $x$ of points falling inside the circle
+$(1, 1)$, and count the number $I$ of points falling inside the circle
 with center $(0,0)$ and unitary radius. Then, we have:
 
 $$
@@ -43,10 +43,10 @@ $$
 from which, substituting the appropriate variables:
 
 $$
-\frac{x}{N} \approx \frac{\pi}{4}
+\frac{I}{N} \approx \frac{\pi}{4}
 $$
 
-hence $\pi \approx 4x / N$. This estimate becomes more accurate as the
+hence $\pi \approx 4 I / N$. This estimate becomes more accurate as the
 number of points $N$ increases.
 
 Modify the serial program to parallelize the computation. Several
@@ -54,25 +54,27 @@ parallelization strategies are possible, but for now you are advised
 to implement the following one ($P$ is the number of MPI processes):
 
 1. Each process gets the value of the number of points $N$ from the
-   command line; you may initially assume that $N$ is a multiple of
+   command line. You may initially assume that $N$ is a multiple of
    $P$, and then relax this requirement to make the program with any
    value of $N$.
 
 2. Each process $p$, including the master, generates $N/P$ random
-   points and keeps track of the number $x_p$ of points inside the
-   circle;
+   points and keeps track of the number $I_p$ of points that fall
+   inside the circle;
 
-3. Each process $p > 0$ sends its local value $x_p$ to the master
-   using point-to-point send/receive operations.
+3. The master computes the total number $I$ of points that fall inside
+   the circle as the sum of $I_p$, $p=0, \ldots, P-1$.
 
-4. The master receives $x_p$ from all each process $p = 1, \ldots,
-   P-1$ (the master already knows $x_0$), computes their sum $x$ and
-   the prints the approximate value of $\pi$ as $(4x / N)$.
+Step 3 involves a reduction operation. Start by implementing the
+inefficient solution, e.g., each process $p > 0$ sends its local value
+$I_p$ to the master using point-to-point send/receive operations. The
+master receives $I_p$ from all each process $p = 1, \ldots, P-1$ (the
+master already knows $I_0$), computes their sum $I$ and the prints the
+approximate value of $\pi$ as $(4 I / N)$.
 
-Step 3 above should be performed using send/receive
-operations. However, note that **this is not efficient** and should be
-done using the MPI reduction operation that will be introduced in the
-next lecture.
+Once you have a working implementation, modify it to use the preferred
+solution, i.e., `MPI_Reduce()` instead of point-to-point
+communications. 
 
 To compile:
 
