@@ -2,7 +2,7 @@
  *
  * mpi-my-bcast.c - Broadcast using point-to-point communications
  *
- * Copyright (C) 2017--2022 by Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2017--2024 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,17 +20,19 @@
  ****************************************************************************/
 
 /***
-% HPC - Broadcast using point-to-point communication
+% HPC - Broadcast using point-to-point communications
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2023-11-09
+% Last updated: 2024-10-31
 
 The purpose of this exercise is to implement the function
 
         void my_Bcast(int *v)
 
-which realizes a _broadcast_ communication, where the value `*v` that
-resides on the local memory of process 0 is sent to all other
-processes. In practice, this function should behave as
+using point-to-point communications. The function
+sends the value `*v` that
+resides on the local memory of process 0 to all other
+processes. In practice, this function should be equivalent
+to calling
 
 ```C
 MPI_Bcast(v,             \/\* buffer   \*\/
@@ -43,13 +45,10 @@ MPI_Bcast(v,             \/\* buffer   \*\/
 
 > **Note**. `MPI_Bcast()` must always be preferred to any home-made
 > solution. The purpose of this exercise is to learn how `MPI_Bcast()`
-> might be implemented, although the actual implementation is
-> architecture-dependent.
+> _might_ be implemented.
 
 To implement `my_Bcast()`, each process determines its own rank $p$
-and the number $P$ of MPI processes.
-
-Then, process 0:
+and the number $P$ of MPI processes. Then, process 0:
 
 - sends `*v` to processes $(2p + 1)$ and $(2p + 2)$, provided that
   they exist.
@@ -114,8 +113,8 @@ void my_Bcast(int *v)
     }
     dest1 = (2*my_rank + 1 < comm_sz ? 2*my_rank + 1 : MPI_PROC_NULL);
     dest2 = (2*my_rank + 2 < comm_sz ? 2*my_rank + 2 : MPI_PROC_NULL);
-    /* sending a message using MPI_Send() to MPI_PROC_NULL has no
-       effect (see man page for MPI_Send) */
+    /* sending a message to MPI_PROC_NULL has no effect (see man page
+       for MPI_Send) */
     MPI_Send( v, 1, MPI_INT, dest1, 0, MPI_COMM_WORLD);
     MPI_Send( v, 1, MPI_INT, dest2, 0, MPI_COMM_WORLD);
 #endif
@@ -143,25 +142,24 @@ void my_Ibcast(int *v)
     }
     dest1 = (2*my_rank + 1 < comm_sz ? 2*my_rank + 1 : MPI_PROC_NULL);
     dest2 = (2*my_rank + 2 < comm_sz ? 2*my_rank + 2 : MPI_PROC_NULL);
-    /* sending a message using MPI_Send() to MPI_PROC_NULL has no effect */
+    /* sending a message to MPI_PROC_NULL has no effect */
     MPI_Isend( v, 1, MPI_INT, dest1, 0, MPI_COMM_WORLD, &req[0]);
     MPI_Isend( v, 1, MPI_INT, dest2, 0, MPI_COMM_WORLD, &req[1]);
-    /* Wait all pending requests to complete */
+    /* Wait for all pending requests to complete */
     MPI_Waitall(2, req, MPI_STATUSES_IGNORE);
 }
 #endif
 
 int main( int argc, char *argv[] )
 {
-    const int SENDVAL = 999; /* valore che viene inviato agli altri processi */
+    const int SENDVAL = 123; /* value to be broadcasted */
     int my_rank;
     int v;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 
-    /* process 0 sets `v` to the value to be broadcast, while all
-       other processes set `v` to -1. */
+    /* only process 0 sets `v` to the value to be broadcasted. */
     if ( 0 == my_rank ) {
         v = SENDVAL;
     } else {
@@ -172,7 +170,7 @@ int main( int argc, char *argv[] )
 
     my_Bcast(&v);
 
-    if ( v == 999 ) {
+    if ( v == SENDVAL ) {
         printf("OK: ");
     } else {
         printf("ERROR: ");
