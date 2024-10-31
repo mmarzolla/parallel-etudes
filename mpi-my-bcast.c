@@ -92,9 +92,6 @@ To execute:
 void my_Bcast(int *v)
 {
     int my_rank, comm_sz;
-#ifndef SERIAL
-    int dest1, dest2;
-#endif
 
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
@@ -111,8 +108,8 @@ void my_Bcast(int *v)
                   MPI_STATUS_IGNORE     /* status       */
                   );
     }
-    dest1 = (2*my_rank + 1 < comm_sz ? 2*my_rank + 1 : MPI_PROC_NULL);
-    dest2 = (2*my_rank + 2 < comm_sz ? 2*my_rank + 2 : MPI_PROC_NULL);
+    const int dest1 = (2*my_rank + 1 < comm_sz ? 2*my_rank + 1 : MPI_PROC_NULL);
+    const int dest2 = (2*my_rank + 2 < comm_sz ? 2*my_rank + 2 : MPI_PROC_NULL);
     /* sending a message to MPI_PROC_NULL has no effect (see man page
        for MPI_Send) */
     MPI_Send( v, 1, MPI_INT, dest1, 0, MPI_COMM_WORLD);
@@ -127,7 +124,8 @@ void my_Bcast(int *v)
 void my_Ibcast(int *v)
 {
     MPI_Request req[2];
-    int my_rank, comm_sz, dest1, dest2;
+    int my_rank, comm_sz;
+
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
     if ( my_rank > 0 ) {
@@ -140,8 +138,8 @@ void my_Ibcast(int *v)
                   MPI_STATUS_IGNORE     /* status       */
                   );
     }
-    dest1 = (2*my_rank + 1 < comm_sz ? 2*my_rank + 1 : MPI_PROC_NULL);
-    dest2 = (2*my_rank + 2 < comm_sz ? 2*my_rank + 2 : MPI_PROC_NULL);
+    const int dest1 = (2*my_rank + 1 < comm_sz ? 2*my_rank + 1 : MPI_PROC_NULL);
+    const int dest2 = (2*my_rank + 2 < comm_sz ? 2*my_rank + 2 : MPI_PROC_NULL);
     /* sending a message to MPI_PROC_NULL has no effect */
     MPI_Isend( v, 1, MPI_INT, dest1, 0, MPI_COMM_WORLD, &req[0]);
     MPI_Isend( v, 1, MPI_INT, dest2, 0, MPI_COMM_WORLD, &req[1]);
