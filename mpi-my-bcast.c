@@ -65,7 +65,7 @@ Figure 1; arrows indicate point-to-point communications, numbers
 indicate the rank of processes. The procedure above should work
 correctly for any $P$.
 
-![Figure 1: Broadcast communication with $P = 15$ processes](mpi-my-bcast.svg)
+![Figure 1: Broadcast tree with $P = 15$ processes](mpi-my-bcast.svg)
 
 The file [mpi-my-bcast.c](mpi-my-bcast.c) contains the skeleton of the
 `my_Bcast()` function. Complete the implementation using
