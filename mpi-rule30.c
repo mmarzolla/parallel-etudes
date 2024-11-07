@@ -22,24 +22,24 @@
 /***
 % HPC - Rule 30 Cellular Automaton
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2024-10-05
+% Last updated: 2024-11-07
 
-We introduced Cellular Automata (CAs) as an example of _stencil
-computations_. In this exercise we implement the [Rule 30 Cellular
+Cellular Automata (CAs) are examples of _stencil computations_. In
+this exercise we implement the [Rule 30 Cellular
 Automaton](https://en.wikipedia.org/wiki/Rule_30).
 
 The Rule 30 CA is a 1D cellular aotmaton that consists of an array
 `x[N]` of $N$ integers that can be either 0 or 1. The state of the CA
 evolves at discrete time steps: the new state of a cell depends on its
-current state, and on the current state of the two neighbors. We
-assume cyclic boundary conditions, so that the neighbors of $x[0]$ are
-$x[N-1]$ and $x[1]$ and the neighbors of $x[N-1]$ are $x[N-2]$ and
-$x[0]$ (Figure 1).
+current state, and on the current state of the left and right
+neighbors. We assume cyclic boundary conditions, so that the neighbors
+of $x[0]$ are $x[N-1]$ and $x[1]$, and the neighbors of $x[N-1]$ are
+$x[N-2]$ and $x[0]$ (Figure 1).
 
 ![Figure 1: Rule 30 CA](mpi-rule30-fig1.svg)
 
 Given the current values $pqr$ of three adjacent cells, the new value
-$q'$ of the middle cell is computed according to Table 1.
+$q'$ of the cell in the middle is computed according to Table 1.
 
 :Table 1: Rule 30 (■ = 1, □ = 0):
 
@@ -49,64 +49,63 @@ New state $q'$ of the central cell         □     □     □     ■     ■  
 ---------------------------------------- ----- ----- ----- ----- ----- ----- ----- -----
 
 The sequence □□□■■■■□ = 00011110 on the second row is the binary
-representation of decimal 30, from which the name ("Rule 30 CA"); more
-details can be found [here](mpi-rule30.pdf).
+representation of decimal 30, from which the name ("Rule 30 CA"); for
+more details on the properties of this CA see [here](mpi-rule30.pdf).
 
 The file [mpi-rule30.c](mpi-rule30.c) contains a serial program that
-computes the evolution of the Rule 30 CA, assuming an initial
-condition where all cells are 0 except the central one. The program
-accepts two optional command line parameters: the domain size $N$ and
-the number of steps _nsteps_ to simulate. At the end, process 0
-produces the image `rule30.pbm` shown in Figure 2 of size $N \times
-\textit{nsteps}$.
+computes the evolution of the Rule 30 CA, from an initial condition
+where only the central cell is 1. The program accepts two optional
+command line parameters: the domain size $N$ and the number of steps
+_nsteps_. At the end, rank 0 saves an image `rule30.pbm` of size $N
+\times \textit{nsteps}$ like the one shown in Figure 2. Each row
+represents the state of the automaton at a specific time step (1 =
+black, 0 = white). Time moves from top to bottom: the first line is
+the initial state (time 0), the second line is the state at time 1,
+and so on.
 
 ![Figure 2: Evolution of Rule 30 CA](rule30.png)
 
-Each row of the image represents the state of the automaton at a
-specific time step (1 = black, 0 = white). Time moves from top to
-bottom: the first line is the initial state (time 0), the second line
-is the state at time 1, and so on.
-
-Interestingly, the pattern shown in Figure 2 is similar to the pattern
-on the [Conus textile](https://en.wikipedia.org/wiki/Conus_textile)
-shell, a highly poisonous marine mollusk which can be found in
-tropical seas (Figure 3).
+The pattern shown in Figure 2 is similar to the pattern on the [Conus
+textile](https://en.wikipedia.org/wiki/Conus_textile) shell, a highly
+poisonous marine mollusk that can be found in tropical seas (Figure
+3).
 
 ![Figure 3: Conus Textile by Richard Ling - Own work; Location: Cod
 Hole, Great Barrier Reef, Australia, CC BY-SA 3.0,
 <https://commons.wikimedia.org/w/index.php?curid=293495>](conus-textile.jpg)
 
 The goal of this exercise is to parallelize the serial program using
-MPI, so that the computation of each step is distributed across the
-MPI processes. The program should operate as follows (see Figure 4):
+MPI, so that the computation of each step is distributed across MPI
+processes. The program should operate as follows (see Figure 4):
 
 ![Figure 4: Parallelization of the Rule 30 CA](mpi-rule30-fig4.svg)
 
 1. The domain is distributed across the $P$ MPI processes using
-   `MPI_Scatter()` (assume that $N$ is a multiple of $P$). Each
-   partition is augmented with two ghost cells that are required to
-   compute the next states.
+   `MPI_Scatter()`; we assume that $N$ is an integer multiple of
+   $P$. Each partition is augmented with two ghost cells, that are
+   required to compute the next states.
 
 2. Each process sends the values on the border of its partition to the
-   neighbors using `MPI_Sendrecv()`. This operation must be performed
-   twice, to fill the left and right ghost cells (see below).
+   left and right neighbors using `MPI_Sendrecv()`. This operation
+   must be performed twice, to fill the left and right ghost cells
+   (see below).
 
 3. Each process computes the next state for the cells in its
    partition.
 
 4. Since we want to dump the state after each step, the master
    collects all updated partitions using `MPI_Gather()`, and stores
-   the resulting row to the output file.
+   the result in the output file.
 
 At the end of step 4 we go back to step 2: since each process already
-has its own updated partition, there is no need to perform a new
-`MPI_Scatter()` every time.
+has its own (updated) partition, there is no need to perform a new
+`MPI_Scatter()`.
 
-Let `comm_sz` be the number of MPI processes.  Each partition at step
-1 has ($\mathit{local\_width} = N / \mathit{comm\_sz} + 2$) elements
-(including the ghosts cell). We denote with `cur[]` the complete
-domain stored on process 0, and with `local_cur[]` the partitions
-assigned to each process.
+Let `comm_sz` be the number of MPI processes. Each partition has
+($\mathit{local\_width} = N / \mathit{comm\_sz} + 2$) elements
+(including two ghosts cell). We denote with `cur[]` the full domain
+stored on process 0, and with `local_cur[]` the augmented domains
+assigned to each process (i.e., containing ghost cells).
 
 Assuming that `cur[]` is also extended with two ghost cells, as in the
 program provided (this is not required in the MPI version), the
@@ -115,10 +114,10 @@ distribution of `cur[]` can be accomplished with the instruction:
 ```C
 MPI_Scatter( &cur[LEFT],        \/\* sendbuf    \*\/
              N/comm_sz,         \/\* Sendcount  \*\/
-             MPI_INT,           \/\* sendtype   \*\/
+             MPI_CHAR,          \/\* sendtype   \*\/
              &local_cur[LOCAL_LEFT],\/\* recvbuf    \*\/
              N/comm_sz,         \/\* recvcount  \*\/
-             MPI_INT,           \/\* recvtype   \*\/
+             MPI_CHAR,          \/\* recvtype   \*\/
              0,                 \/\* root       \*\/
              MPI_COMM_WORLD     \/\* comm       \*\/
              );
@@ -132,12 +131,11 @@ improve readability).
 Filling the ghost cells is a bit tricky and requires two calls to
 `MPI_Sendrecv()` (see Figure 5). First, each process sends the value
 of the _rightmost_ domain cell to the successor, and receives the
-value of the left ghost cells from the predecessor. Then, each process
+value of the left ghost cell from the predecessor. Then, each process
 sends the contents of the _leftmost_ cell to the predecessr, and
 receives the value of the right ghost cell from the successor. All
-processes execute the exact same type of communication: therefore,
-each one should call `MPI_Sendrecv()` twice in the same way (possibly
-with different parameters).
+processes execute the same communication: therefore, each one should
+call `MPI_Sendrecv()` twice.
 
 To compile:
 
@@ -358,7 +356,7 @@ int main( int argc, char* argv[] )
 
     /* The master distributes the domain cur[] to the other MPI
        processes. Each process receives `width/comm_sz` elements of
-       type MPI_INT. Note: the parallel version does not require ghost
+       type MPI_CHAR. Note: the parallel version does not require ghost
        cells in cur[], so it would be possible to allocate exactly
        `width` elements in cur[]. */
 #ifndef SERIAL
