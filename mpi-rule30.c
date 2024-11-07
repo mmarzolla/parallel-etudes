@@ -361,9 +361,9 @@ int main( int argc, char* argv[] )
        `width` elements in cur[]. */
 #ifndef SERIAL
     const int LOCAL_LEFT_GHOST = 0;
-    const int LOCAL_LEFT = LOCAL_LEFT_GHOST + HALO;
-    const int LOCAL_RIGHT = local_ext_width - 1 - HALO;
-    const int LOCAL_RIGHT_GHOST = LOCAL_RIGHT + HALO;
+    const int LOCAL_LEFT = HALO;
+    const int LOCAL_RIGHT = local_ext_width - HALO - 1;
+    const int LOCAL_RIGHT_GHOST = local_ext_width - HALO;
 
     MPI_Scatter( &cur[LEFT],            /* sendbuf      */
                  local_width,           /* sendcount    */
@@ -534,9 +534,8 @@ int main( int argc, char* argv[] )
         local_next = tmp;
 #else
         /*
-          [TODO] swap local_cur and local_next
+          [TODO] replace so that all processes swap local_cur and local_next
          */
-
         if (0 == my_rank) {
             tmp = cur;
             cur = next;
