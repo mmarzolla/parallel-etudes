@@ -24,6 +24,7 @@ typedef unsigned char cell_t;
  * Fill ghost cells in device memory. This kernel must be launched
  * with one thread only.
  */
+__attribute__((reqd_work_group_size(1,1,1)))
 __kernel void
 fill_ghost_kernel( __global cell_t *cur,
                    int ext_n )

@@ -2,7 +2,7 @@
  *
  * cuda-rule30.cu - "Rule 30" Callular Automaton
  *
- * Copyright (C) 2017--2022 by Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2017--2024 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % HPC - "Rule 30" Cellular Automaton
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2022-11-23
+% Last updated: 2024-11-07
 
 The goal of this exercise is to implement the [Rule 30 Cellular
 Automaton](https://en.wikipedia.org/wiki/Rule_30) in CUDA.
@@ -30,7 +30,7 @@ Automaton](https://en.wikipedia.org/wiki/Rule_30) in CUDA.
 The Rule 30 CA is a 1D cellular aotmaton that consists of an array
 `x[N]` of $N$ integers that can be either 0 or 1. The state of the CA
 evolves at discrete time steps: the new state of a cell depends on its
-current state, and on the current state of the two neighbors. We
+current state, and on the current state of the left and right neighbors. We
 assume cyclic boundary conditions, so that the neighbors of $x[0]$ are
 $x[N-1]$ and $x[1]$ and the neighbors of $x[N-1]$ are $x[N-2]$ and
 $x[0]$ (Figure 1).
@@ -38,7 +38,7 @@ $x[0]$ (Figure 1).
 ![Figure 1: Rule 30 CA](mpi-rule30-fig1.svg)
 
 Given the current values $pqr$ of three adjacent cells, the new value
-$q'$ of the middle cell is computed according to Table 1.
+$q'$ of the central cell is computed according to Table 1.
 
 :Table 1: Rule 30 (■ = 1, □ = 0):
 
@@ -53,23 +53,23 @@ details can be found [here](mpi-rule30.pdf).
 
 The file [cuda-rule30.cu](cuda-rule30.cu) contains a serial program
 that computes the evolution of the Rule 30 CA, assuming an initial
-condition where all cells are 0 except the central one. The program
-accepts two optional command line parameters: the domain size $N$ and
-the number of steps _nsteps_ to simulate. At the end, the program
-produces the image `rule30.pbm` shown in Figure 2 of size $N \times
-\textit{nsteps}$.
+condition where only the cell in the middle of the domain is 1. The
+program accepts two optional command line parameters: the domain size
+$N$ and the number of steps _nsteps_. At the end, the program writes
+to disk the image `rule30.pbm` of size $N \times \textit{nsteps}$
+shown in Figure 2.
 
 ![Figure 2: Evolution of Rule 30 CA](rule30.png)
 
-Each row of the image represents the state of the automaton at a
+Each row represents the state of the automaton at a
 specific time step (1 = black, 0 = white). Time moves from top to
 bottom: the first line is the initial state (time 0), the second line
 is the state at time 1, and so on.
 
 Interestingly, the pattern shown in Figure 2 is similar to the pattern
 on the [Conus textile](https://en.wikipedia.org/wiki/Conus_textile)
-shell, a highly poisonous marine mollusk which can be found in
-tropical seas (Figure 3).
+shell, a highly poisonous marine mollusk that can be found in tropical
+seas (Figure 3).
 
 ![Figure 3: Conus Textile by Richard Ling - Own work; Location: Cod
 Hole, Great Barrier Reef, Australia, CC BY-SA 3.0,
@@ -89,11 +89,10 @@ Since each domain cell is read three times by three different threads
 within the same block, the computation _might_ benefit from the use of
 shared memory.
 
-> **Note:** The use shared memory could produce minor improvements on
-> modern GPUs, or even make the program _slower_. The reason is that
-> there is little data reuse, and modern GPUs are equipped with caches
-> that work reasonably well in these kind of
-> computations. Nevertheless, it is useful to practice with shared
+> **Note:** The use shared memory could make the program _slower_ on
+> modern GPUs. The reason is that there is little data reuse, and
+> modern GPUs are equipped with caches that work reasonably well in
+> these situations. However, it is useful to practice with shared
 > memory, so this exercise should be considered as it is: an exercise.
 
 To use shared memory, refer to the simple example of 1D stencil

@@ -49,8 +49,7 @@ New state $q'$ of the central cell         □     □     □     ■     ■  
 ---------------------------------------- ----- ----- ----- ----- ----- ----- ----- -----
 
 The sequence □□□■■■■□ = 00011110 on the second row is the binary
-representation of decimal 30, from which the name ("Rule 30 CA"); for
-more details on the properties of this CA see [here](mpi-rule30.pdf).
+representation of decimal 30, from which the name ("Rule 30 CA").
 
 The file [mpi-rule30.c](mpi-rule30.c) contains a serial program that
 computes the evolution of the Rule 30 CA, from an initial condition
@@ -76,7 +75,8 @@ Hole, Great Barrier Reef, Australia, CC BY-SA 3.0,
 
 The goal of this exercise is to parallelize the serial program using
 MPI, so that the computation of each step is distributed across MPI
-processes. The program should operate as follows (see Figure 4):
+processes. The program should operate as follows (see Figure 4 and
+also [this document](mpi-rule30.pdf)):
 
 ![Figure 4: Parallelization of the Rule 30 CA](mpi-rule30-fig4.svg)
 
