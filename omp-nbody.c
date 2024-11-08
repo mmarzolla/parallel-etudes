@@ -27,18 +27,17 @@
 
 ![A frame of the Bolshoi simulation (source: <http://hipacc.ucsc.edu/Bolshoi/Images.html>)](bolshoi.png)
 
-In the first lecture at the beginning of the course we have seen a
-[video](https://www.youtube.com/watch?v=UngV0zMDEQI) of the [Bolshoi
-simulation](http://hipacc.ucsc.edu/Bolshoi.html). Cosmological
-simulations study the large-scale evolution of the universe, and are
-based on the computation of the dynamics of $N$ masses subject to
-mutual gravitational attraction ($N$-body problem). The Bolshoi
-simulation required 6 million CPU hours on one of the most powerful
-supercomputers of the time. In this exercise we solve the problem for
-a small number $N$ of bodies using a very simple algorithm, based on a
-developed program by Mark Harris available at
-<https://github.com/harrism/mini-nbody> (the program proposed in this
-exercise is a modified version of the original).
+Cosmological simulations study the large-scale evolution of the
+universe, and are based on the computation of the dynamics of $N$
+masses subject to mutual gravitational attraction ($N$-body
+problem). The [Bolshoi
+simulation](http://hipacc.ucsc.edu/Bolshoi.html) required 6 million
+CPU hours on one of the most powerful supercomputers of the time. In
+this exercise we solve the problem for a small number $N$ of bodies
+using a very simple algorithm, based on a developed program by Mark
+Harris available at <https://github.com/harrism/mini-nbody> (the
+program proposed in this exercise is a modified version of the
+original).
 
 The physical laws governing the dynamics of $N$ masses were discovered
 by [Isaac Newton](https://en.wikipedia.org/wiki/Isaac_Newton): this is
@@ -54,15 +53,15 @@ attractive force of magnitude $F = G m_1 m_2 / d^2$ where $G$ is the
 gravitational constant ($G \approx 6,674 \times 10^{-11}\ \mathrm{N}\
 \mathrm{m}^2\ \mathrm{kg}^{-2}$).
 
-The following explanation is not essential for solving this exercise,
+The following explanation is not required for solving this exercise,
 but might be informative and only requires basic physics knowledge.
 
 Let us consider $N$ point-like masses $m_0, \ldots, m_{n-1}$ that are
 subject to mutual gravitational attraction only. Since the masses are
-point-like, they never collide with each other. Let $\textbf{x}_i: =
-(x_i, y_i, z_i)$ be the position and $\textbf{v}_i : = (vx_i, vy_i,
+point-like, they never collide with each other. Let $\textbf{x}_i =
+(x_i, y_i, z_i)$ be the position and $\textbf{v}_i = (vx_i, vy_i,
 vz_i)$ the velocity vector of mass $i$ at a given time $t$. To compute
-the new positions $\textbf{x}'_i$ at time $t': = t + \Delta t$ we
+the new positions $\textbf{x}'_i$ at time $t' = t + \Delta t$ we
 proceed as follows:
 
 1. Compute the total force $\textbf{F}_i$ acting on mass $i$ at time $t$:
@@ -89,17 +88,17 @@ $$
 $$
 
 The previous steps solve the equations of motion using
-Euler's scheme [^1].
+Euler's scheme[^1].
 
 [^1]: Euler's integration is numerically unstable on this problem, and
-      therefore more accurate but more comples schemes are used in
+      therefore more accurate but more complex schemes are used in
       practice.
 
-In this program we trade accuracy in favor of simplicity by ignoring
-the factor $G m_i m_j$ and rewriting the sum as:
+In this program we trade accuracy for simplicity by ignoring the
+factor $G m_i m_j$ and rewriting the sum as:
 
 $$
-\textbf{F} _i: = \sum_{j = 0}^N \frac{\textbf{d}_{ij}}{(d_{ij}^2 + \epsilon)^{3/2}}
+\textbf{F}_i: = \sum_{j = 0}^{N-1} \frac{\textbf{d}_{ij}}{(d_{ij}^2 + \epsilon)^{3/2}}
 $$
 
 where $\textbf{d}_{ij}$ is the vector from particle $i$ to particle
@@ -114,7 +113,7 @@ Modify the serial program to make use of OpenMP parallelism.
 
 To compile:
 
-        gcc -std = c99 -Wall -Wpedantic -fopenmp omp-nbody.c -o omp-nbody -lm
+        gcc -std=c99 -Wall -Wpedantic -fopenmp omp-nbody.c -o omp-nbody -lm
 
 To execute:
 

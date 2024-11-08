@@ -23,9 +23,102 @@
 /***
 % HPC - N-body simulation
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2023-01-20
+% Last updated: 2024-11-08
 
-Original <https://github.com/harrism/mini-nbody>
+![A frame of the Bolshoi simulation (source: <http://hipacc.ucsc.edu/Bolshoi/Images.html>)](bolshoi.png)
+
+Cosmological simulations study the large-scale evolution of the
+universe, and are based on the computation of the dynamics of $N$
+masses subject to mutual gravitational attraction ($N$-body
+problem). The [Bolshoi
+simulation](http://hipacc.ucsc.edu/Bolshoi.html) required 6 million
+CPU hours on one of the most powerful supercomputers of the time. In
+this exercise we solve the problem for a small number $N$ of bodies
+using a very simple algorithm, based on a developed program by Mark
+Harris available at <https://github.com/harrism/mini-nbody> (the
+program proposed in this exercise is a modified version of the
+original).
+
+The physical laws governing the dynamics of $N$ masses were discovered
+by [Isaac Newton](https://en.wikipedia.org/wiki/Isaac_Newton): this is
+the [second law of
+dynamic](https://en.wikipedia.org/wiki/Newton%27s_laws_of_motion#Newton's_second_law)
+and the [law of universal
+gravitation](https://en.wikipedia.org/wiki/Newton's_law_of_universal_gravitation). The
+second law of dynamics states that a force $\textbf{F}$ that acts on a
+particle of mass $m$ produces an acceleration $\textbf{a}$ such that
+$\textbf{F}=m\textbf{a}$. The law of universal gravitation states that
+two masses $m_1$ and $m_2$ at a distance $d$ are subject to an
+attractive force of magnitude $F = G m_1 m_2 / d^2$ where $G$ is the
+gravitational constant ($G \approx 6,674 \times 10^{-11}\ \mathrm{N}\
+\mathrm{m}^2\ \mathrm{kg}^{-2}$).
+
+The following explanation is not required for solving this exercise,
+but might be informative and only requires basic physics knowledge.
+
+Let us consider $N$ point-like masses $m_0, \ldots, m_{n-1}$ that are
+subject to mutual gravitational attraction only. Since the masses are
+point-like, they never collide with each other. Let $\textbf{x}_i =
+(x_i, y_i, z_i)$ be the position and $\textbf{v}_i = (vx_i, vy_i,
+vz_i)$ the velocity vector of mass $i$ at a given time $t$. To compute
+the new positions $\textbf{x}'_i$ at time $t' = t + \Delta t$ we
+proceed as follows:
+
+1. Compute the total force $\textbf{F}_i$ acting on mass $i$ at time $t$:
+$$
+\textbf{F}_i: = \sum_{i \neq j} \frac{G m_i m_j} {d_{ij}^2} \textbf {n}_{ij}
+$$
+where $G$ is the gravitational constant, $d_{ij}^2$ is the
+square of the distance between particles $i$ and $j$, and
+$\textbf{n}_{ij}$ is the unit vector from particle $i$ to particle $j$
+
+2. Compute the acceleration $\textbf{a}_i$ acting on mass $i$:
+$$
+\textbf{a}_i: = \textbf{F}_i / m_i
+$$
+
+3. Compute the _new_ velocity $\textbf{v}'_i$ of mass $i$ at time $t'$:
+$$
+\textbf{v}'_i: = \textbf{v}_i + \textbf{a}_i \Delta t
+$$
+
+4. Compute the _new_ position $\textbf{x}'_i$ of mass $i$ at time $t'$:
+$$
+\textbf{x}'_i: = \textbf{x}_i + \textbf{v}'_i \Delta t
+$$
+
+The previous steps solve the equations of motion using
+Euler's scheme[^1].
+
+[^1]: Euler's integration is numerically unstable on this problem, and
+      therefore more accurate but more complex schemes are used in
+      practice.
+
+In this program we trade accuracy for simplicity by ignoring the
+factor $G m_i m_j$ and rewriting the sum as:
+
+$$
+\textbf{F}_i: = \sum_{j = 0}^{N-1} \frac{\textbf{d}_{ij}}{(d_{ij}^2 + \epsilon)^{3/2}}
+$$
+
+where $\textbf{d}_{ij}$ is the vector from particle $i$ to particle
+$j$, i.e., $\textbf{d}_{ij} := (\textbf{x}_j - \textbf{x}_i)$, and the
+term $\epsilon > 0$ is used to avoid a division by zero when $i = j$,
+that is, when computing the interaction of a particle with itself.
+
+Modify the serial program to make use of distributed-memory parallelism.
+
+To compile:
+
+        mpicc -std=c99 -Wall -Wpedantic mpi-nbody.c -o mpi-nbody -lm
+
+To execute:
+
+        mpirun -n [P] ./mpi-nbody [nsteps [nparticles]]
+
+## File
+
+- [mpi-nbody.c](mpi-nbody.c) [hpc.h](hpc.h)
 
 ***/
 #include <stdio.h>
