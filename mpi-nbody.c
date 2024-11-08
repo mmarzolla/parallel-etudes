@@ -106,6 +106,9 @@ $j$, i.e., $\textbf{d}_{ij} := (\textbf{x}_j - \textbf{x}_i)$, and the
 term $\epsilon > 0$ is used to avoid a division by zero when $i = j$,
 that is, when computing the interaction of a particle with itself.
 
+***/
+
+/***
 Modify the serial program to make use of distributed-memory parallelism.
 
 To compile:
