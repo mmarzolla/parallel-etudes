@@ -66,7 +66,7 @@ proceed as follows:
 
 1. Compute the total force $\textbf{F}_i$ acting on mass $i$ at time $t$:
 $$
-\textbf{F}_i: = \sum_{i \neq j} \frac{G m_i m_j} {d_{ij}^2} \textbf {n}_{ij}
+\textbf{F}_i := \sum_{i \neq j} \frac{G m_i m_j} {d_{ij}^2} \textbf {n}_{ij}
 $$
 where $G$ is the gravitational constant, $d_{ij}^2$ is the
 square of the distance between particles $i$ and $j$, and
@@ -74,17 +74,17 @@ $\textbf{n}_{ij}$ is the unit vector from particle $i$ to particle $j$
 
 2. Compute the acceleration $\textbf{a}_i$ acting on mass $i$:
 $$
-\textbf{a}_i: = \textbf{F}_i / m_i
+\textbf{a}_i := \textbf{F}_i / m_i
 $$
 
 3. Compute the _new_ velocity $\textbf{v}'_i$ of mass $i$ at time $t'$:
 $$
-\textbf{v}'_i: = \textbf{v}_i + \textbf{a}_i \Delta t
+\textbf{v}'_i := \textbf{v}_i + \textbf{a}_i \Delta t
 $$
 
 4. Compute the _new_ position $\textbf{x}'_i$ of mass $i$ at time $t'$:
 $$
-\textbf{x}'_i: = \textbf{x}_i + \textbf{v}'_i \Delta t
+\textbf{x}'_i := \textbf{x}_i + \textbf{v}'_i \Delta t
 $$
 
 The previous steps solve the equations of motion using
@@ -98,7 +98,7 @@ In this program we trade accuracy for simplicity by ignoring the
 factor $G m_i m_j$ and rewriting the sum as:
 
 $$
-\textbf{F}_i: = \sum_{j = 0}^{N-1} \frac{\textbf{d}_{ij}}{(d_{ij}^2 + \epsilon)^{3/2}}
+\textbf{F}_i := \sum_{j = 0}^{N-1} \frac{\textbf{d}_{ij}}{(d_{ij}^2 + \epsilon)^{3/2}}
 $$
 
 where $\textbf{d}_{ij}$ is the vector from particle $i$ to particle
