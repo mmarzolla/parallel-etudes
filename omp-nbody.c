@@ -102,9 +102,9 @@ $$
 $$
 
 where $\textbf{d}_{ij}$ is the vector from particle $i$ to particle
-$j$, i.e., $\textbf{d}_{ij} := (\textbf{x}_j - \textbf{x}_i)$, and the
-term $\epsilon > 0$ is used to avoid a division by zero when $i = j$,
-that is, when computing the interaction of a particle with itself.
+$j$, i.e., $\textbf{d}_{ij} := (\textbf{x}_j - \textbf{x}_i)$, and
+$\epsilon > 0$ is used to avoid a division by zero when $i = j$, that
+is, when computing the interaction of a particle with itself.
 
 ***/
 
