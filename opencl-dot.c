@@ -122,7 +122,7 @@ const char *program =
 sclKernel dot_kernel;
 #endif
 
-float dot( const float *x, const float *y, int n )
+float dot( float *x, float *y, int n )
 {
 #ifdef SERIAL
     /* [TODO] modify this function so that (part of) the dot product
