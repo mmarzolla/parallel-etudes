@@ -630,7 +630,7 @@ Allocate a block of `size` bytes on the device, and initialize it with
 the content of host memory starting from the address
 `hostPointer`. See `sclMalloc()` for the meaning of `mode`.
 
-This function is locally equivalent to `sclMalloc()` followed by
+This function is equivalent to `sclMalloc()` followed by
 `sclMemcpyHostToDevice()`; however, it might be more efficient,
 depending on the device.
 
