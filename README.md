@@ -1,6 +1,6 @@
 # Parallel Etudes
 
-This repository contains the source code of programminf exercises that
+This repository contains the source code of programming exercises that
 are used in the lab sessions of the High Performance Computing (HPC)
 course, University of Bologna, first cycle degree in Computer Science
 and Engineering.
