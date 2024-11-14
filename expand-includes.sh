@@ -1,9 +1,16 @@
 #!/bin/bash
 
-## Espande alcune direttive "include" del file sorgente passato sulla
-## riga di comando.
+## This script expands the following #includes:
+##
+## #include "pgmutils.h"
+## #include "ppmutils.h"
+##
+## by copying the header files in place. Use this to make programs
+## self-contained. The input file is read from stdin; the expanded
+## file is written to stdout.
 
-## Moreno Marzolla 2021-05-19
+## Written by Moreno Marzolla on 2021-05-19
+## Last modified on 2024-11-13 by Moreno Marzolla
 
 cat "$1" | \
     sed -e '/\#include\s*"pgmutils.h"/ {' -e 'r pgmutils.h' -e 'd}' | \

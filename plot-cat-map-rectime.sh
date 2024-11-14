@@ -1,14 +1,15 @@
 #!/bin/sh
 
-## Plot the recurrence time of images of any size between 1 and 1024.
-## This script requires omp-cat-map-rectime compiled with OpenMP
-## (the serial version takes way too long), and gnuplot.
+## Plot the minimum recurrence time of images of any size between 1
+## and 1024. This script requires `omp-cat-map-rectime` compiled with
+## OpenMP (the serial version takes way too long), and the gnuplot
+## program.
 
 ## Written by Moreno Marzolla on 2022-08-12
-## Last modified by Moreno Marzolla on 2022-08-12
+## Last modified by Moreno Marzolla on 2024-11-13
 
 if [ ! -f ./omp-cat-map-rectime ]; then
-    echo "FATAL: ./omp-cat-map-rectime is missing."
+    echo "FATAL: ./omp-cat-map-rectime not found."
     exit 1
 fi
 

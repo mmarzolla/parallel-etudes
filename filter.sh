@@ -1,11 +1,11 @@
 #!/bin/bash
 
-## Questo script effettua le seguenti sostituzioni da standard input a
-## standard output:
+## Performs the following replacements on stdin; write result
+## to stdout:
 ##
-## - #include "pgmutils.h" -> inserisce il contenuto del file pgmutils.h
+## - #include "pgmutils.h" -> replace with the content of file pgmutils.h
 ##
-## - #include "ppmutils.h" -> inserisce il contenuto del file ppmutils.h
+## - #include "ppmutils.h" -> replace with the content of file ppmutils.h
 ##
 ## - \/\* -> \*
 ##

@@ -60,12 +60,12 @@ In this exercise we implement a simple (although not efficient)
 approach where we use a _single_ block of _BLKDIM_ threads.  The
 algorithm works as follows:
 
-1. The CPU allocates a float array `d_tmp[]` of length _BLKDIM_ on the GPU,
-   in addition to a copy of `x[]` and `y[]`.
-
-2. The CPU executes a single 1D thread block containing _BLKDIM_
+1. The CPU executes a single 1D thread block containing _BLKDIM_
    threads; use the maximum number of threads per block supported by
    the hardware, which is _BLKDIM = 1024_.
+
+2. The block defines an array `d_tmp[]` of length _BLKDIM_ in shared
+   memory.
 
 3. Thread $t$ ($t = 0, \ldots, \mathit{BLKDIM}-1$) computes the value
    of the expression $(x[t] \times y[t] + x[t + \mathit{BLKDIM}]
@@ -73,8 +73,10 @@ algorithm works as follows:
    \times y[t + 2 \times \mathit{BLKDIM}] + \ldots)$ and stores the
    result in `d_tmp[t]` (see Figure 1).
 
-4. When the kernel terminates, the CPU transfers `d_tmp[]` back to host
-   memory and performs a sum-reduction to compute the final result.
+4. When all threads complete the previous step (hint: use
+   `__syncthreads()`), thread 0 performs the sum-reduction of
+   `d_tmp[]` and computes the final result that can be transferred
+   back to the host.
 
 ![Figure 1](cuda-dot.svg)
 
@@ -110,14 +112,22 @@ Example:
 #ifndef SERIAL
 #define BLKDIM 1024
 
-__global__ void dot_kernel( const float *x, const float *y, int n, float *tmp )
+__global__ void dot_kernel( const float *x, const float *y, int n, float *result )
 {
+    __shared__ float tmp[BLKDIM];
     const int tid = threadIdx.x;
     float s = 0.0;
     for (int i = tid; i < n; i += blockDim.x) {
         s += x[i] * y[i];
     }
     tmp[tid] = s;
+    __syncthreads();
+    if (0 == tid) {
+        *result = 0;
+        for (int i=0; i < blockDim.x; i++) {
+            *result += tmp[i];
+        }
+    }
 }
 #endif
 
@@ -128,17 +138,15 @@ float dot( const float *x, const float *y, int n )
        is executed on the GPU. You may want to follow the steps
        below. */
 
-    /* Define a `float` array tmp[] of size BLKDIM on host memory */
+    /* Define a `float` variabile `result` in host memory */
 
-    /* Define pointers to copies of x, y and tmp in device memory */
+    /* Allocate space for device copies of `x`, `y` and `result` */
 
-    /* Allocate space for device copies of x,y */
-
-    /* Copy x, y from host to device */
+    /* Copy `x`, `y` from host to device */
 
     /* Launch a suitable kernel on the GPU */
 
-    /* Copy the result back to host memory */
+    /* Copy the value of `result` back to host memory */
 
     /* Perform the final reduction on the CPU */
 
@@ -150,37 +158,31 @@ float dot( const float *x, const float *y, int n )
     }
     return result;
 #else
-    float tmp[BLKDIM];
-    float *d_x, *d_y, *d_tmp; /* device copies of x, y, tmp */
-    const size_t SIZE_TMP = sizeof(tmp);
+    float result;
+    float *d_x, *d_y, *d_result; /* device copies of x, y, result */
     const size_t SIZE_XY = n*sizeof(*x);
+    const size_t SIZE_RESULT = sizeof(result);
 
     /* Allocate space for device copies of x, y */
     cudaSafeCall( cudaMalloc((void **)&d_x, SIZE_XY) );
     cudaSafeCall( cudaMalloc((void **)&d_y, SIZE_XY) );
-    cudaSafeCall( cudaMalloc((void **)&d_tmp, SIZE_TMP) );
+    cudaSafeCall( cudaMalloc((void **)&d_result, SIZE_RESULT) );
 
     /* Copy inputs to device memory */
     cudaSafeCall( cudaMemcpy(d_x, x, SIZE_XY, cudaMemcpyHostToDevice) );
     cudaSafeCall( cudaMemcpy(d_y, y, SIZE_XY, cudaMemcpyHostToDevice) );
 
     /* Launch dot_kernel() on GPU */
-    dot_kernel<<<1, BLKDIM>>>(d_x, d_y, n, d_tmp);
+    dot_kernel<<<1, BLKDIM>>>(d_x, d_y, n, d_result);
     cudaCheckError();
 
     /* Copy the result back to host memory */
-    cudaSafeCall( cudaMemcpy(tmp, d_tmp, SIZE_TMP, cudaMemcpyDeviceToHost) );
-
-    /* Perform the last reduction on the CPU */
-    float result = 0.0;
-    for (int i=0; i<BLKDIM; i++) {
-        result += tmp[i];
-    }
+    cudaSafeCall( cudaMemcpy(&result, d_result, SIZE_RESULT, cudaMemcpyDeviceToHost) );
 
     /* Free device memory */
     cudaFree(d_x);
     cudaFree(d_y);
-    cudaFree(d_tmp);
+    cudaFree(d_result);
 
     return result;
 #endif
