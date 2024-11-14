@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * opencl-dot-local.cl -- kernel for opencl-dot-local.c
+ * opencl-dot.cl -- kernel for opencl-dot.c
  *
- * Copyright (C) 2021 Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2021, 2024 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,23 +25,23 @@ dot_kernel( __global const float *x,
             int n,
             __global float *result )
 {
-    __local float sums[SCL_DEFAULT_WG_SIZE];
+    __local float tmp[SCL_DEFAULT_WG_SIZE];
     float local_sum = 0.0;
 
     const int tid = get_local_id(0);
     const int nitems = get_local_size(0);
-    int i;
 
-    for (i = tid; i < n; i += nitems) {
+    for (int i = tid; i < n; i += nitems) {
         local_sum += x[i] * y[i];
     }
-    sums[tid] = local_sum;
-    barrier(CLK_LOCAL_MEM_FENCE); /* Wait for all work-items to write to the shared array */
+    tmp[tid] = local_sum;
+    /* Wait for all work-items to write to the shared array */
+    barrier(CLK_LOCAL_MEM_FENCE);
     /* Work-item 0 makes the final reduction */
     if ( 0 == tid ) {
         float sum = 0.0;
-        for (i=0; i<nitems; i++) {
-            sum += sums[i];
+        for (int i=0; i<nitems; i++) {
+            sum += tmp[i];
         }
         *result = sum;
     }
