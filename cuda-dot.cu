@@ -64,18 +64,18 @@ algorithm works as follows:
    threads; use the maximum number of threads per block supported by
    the hardware, which is _BLKDIM = 1024_.
 
-2. The block defines an array `d_tmp[]` of length _BLKDIM_ in shared
+2. The block defines an array `tmp[]` of length _BLKDIM_ in shared
    memory.
 
 3. Thread $t$ ($t = 0, \ldots, \mathit{BLKDIM}-1$) computes the value
    of the expression $(x[t] \times y[t] + x[t + \mathit{BLKDIM}]
    \times y[t + \mathit{BLKDIM}] + x[t + 2 \times \mathit{BLKDIM}]
    \times y[t + 2 \times \mathit{BLKDIM}] + \ldots)$ and stores the
-   result in `d_tmp[t]` (see Figure 1).
+   result in `tmp[t]` (see Figure 1).
 
 4. When all threads complete the previous step (hint: use
    `__syncthreads()`), thread 0 performs the sum-reduction of
-   `d_tmp[]` and computes the final result that can be transferred
+   `tmp[]` and computes the final result that can be transferred
    back to the host.
 
 ![Figure 1](cuda-dot.svg)
