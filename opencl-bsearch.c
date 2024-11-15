@@ -21,7 +21,11 @@
 /***
 % HPC - Ceneralized binary search
 % Moreno Marzolla <moreno.marzolla@unibo.it>
-% Last updated: 2024-01-22
+% Last updated: 2024-11-15
+
+Implementation of CREW Search, p. 115 of Selim G. Akl, _The Design and
+Analysis of Parallel Algorithms_, Prentice-Hall International Editions, 1989,
+ISBN 0-13-200073-3
 
 Compile with:
 

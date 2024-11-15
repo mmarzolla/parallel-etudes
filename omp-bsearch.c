@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * omp-bsearch.c - Parallel binary search
+ * omp-bsearch.c - Generalized binary search
  *
- * Copyright (C) 2022 by Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2022, 2024 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,21 +17,31 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * ---------------------------------------------------------------------------
- *
- * Compile with:
- *
- * gcc -std=c99 -Wall -Wpedantic -fopenmp omp-bsearch.c -o omp-bsearch
- *
- * Run with:
- *
- * ./omp-bsearch [len [key]]
- *
- * Example:
- *
- * ./omp-bsearch
- *
  ****************************************************************************/
+
+/***
+% HPC - Generalized binary search
+% [Moreno Marzolla](https://www.moreno.marzolla.name/)
+% Last updated: 2024-11-15
+
+Implementation of CREW Search, p. 115 of Selim G. Akl, _The Design and
+Analysis of Parallel Algorithms_, Prentice-Hall International Editions, 1989,
+ISBN 0-13-200073-3
+
+Compile with:
+
+        gcc -std=c99 -Wall -Wpedantic -fopenmp omp-bsearch.c -o omp-bsearch
+
+Run with:
+
+        ./omp-bsearch [len [key]]
+
+Example:
+
+        ./omp-bsearch
+
+***/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -162,6 +172,7 @@ int main( int argc, char* argv[] )
     vec_init(x, n);
     printf("\nParallel binary search:     "); fflush(stdout);
     test(omp_bsearch, x, n);
+    vec_init(x, n); /* to prevent cache reuse */
     printf("\nSequential binary search:   "); fflush(stdout);
     test(seq_bsearch, x, n);
 
