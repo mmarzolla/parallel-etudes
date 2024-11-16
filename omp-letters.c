@@ -212,6 +212,17 @@ int make_hist( const char *text, int hist[ALPHA_SIZE] )
 }
 
 /**
+ * If `freq == 100`, draw `len` caracters; otherwise, draw a fraction
+ * of `len` characters proportional to `freq`.
+ */
+void bar( float freq, int len )
+{
+    for (int i=0; i<len*freq/100; i++) {
+        printf("#");
+    }
+}
+
+/**
  * Print frequencies
  */
 void print_hist( int hist[ALPHA_SIZE] )
@@ -221,7 +232,10 @@ void print_hist( int hist[ALPHA_SIZE] )
         nlet += hist[i];
     }
     for (int i=0; i<ALPHA_SIZE; i++) {
-        printf("%c : %8d (%6.2f%%)\n", 'a'+i, hist[i], 100.0*hist[i]/nlet);
+        const float freq = 100.0*hist[i]/nlet;
+        printf("%c : %8d (%6.2f%%) ", 'a'+i, hist[i], freq);
+        bar(freq, 65);
+        printf("\n");
     }
     printf("    %8d total\n", nlet);
 }
