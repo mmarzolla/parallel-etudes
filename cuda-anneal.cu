@@ -22,7 +22,7 @@
 /***
 % HPC - ANNEAL cellular automaton
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2024-01-04
+% Last updated: 2024-11-21
 
 The ANNEAL Callular Automaton (also known as _twisted majority rule_)
 is a simple two-dimensional, binary CA defined on a grid of size $W
@@ -74,17 +74,17 @@ GPU to update the domain.
 Some suggestions:
 
 - Start writing a version that does _not_ use shared memory. Transform
-  the `copy_top_bottom()`, `copy_left_right()` and `step()` functions
-  into kernels. The size of the thread blocks that copy the sides of
-  the domain will be different from the size of the domain that
-  computes the evolution of the automaton (see the next points).
+  `copy_top_bottom()`, `copy_left_right()` and `step()` into
+  kernels. The size of the thread blocks that copy the sides of the
+  domain will be different from the size of the domain that computes
+  the evolution of the automaton (see below).
 
 - Use a 1D array of threads to copy the ghost cells.
   `copy_top_bottom()` requires $(W + 2)$ threads, and
-  `copy_left_right()` requires $(H + 2)$ threads.
+  `copy_left_right()` requires $(H + 2)$ threads (Figure 3).
 
-- To compute new states, organize the threads in two-dimensional
-  blocks of size $32 \times 32$.
+- To compute new states, create at least $W \times H$ threads
+  organized in 2D blocks of size $32 \times 32$.
 
 - In the `step()` kernel, each thread computes the new state of a cell
   $(i, j)$. We are working with an extended domain with ghost
@@ -98,6 +98,8 @@ Some suggestions:
   Before making any computation, each thread must verify that $1 \leq i
   \leq H$, $1 \leq j \leq W$, so that excess threads are
   deactivated.
+
+![Figure 3: Initializing the ghost area](cuda-anneal5.svg)
 
 ## Using local memory
 
@@ -127,7 +129,7 @@ buffer. The coordinates can be computes as follows:
     const int lj = 1 + threadIdx.x;
 ```
 
-![Figure 3: Copying data from global to shared memory](cuda-anneal3.svg)
+![Figure 4: Copying data from global to shared memory](cuda-anneal3.svg)
 
 There are several ways to fill the ghost area, all of them rather
 cumbersome and potentially inefficient. The solution proposed below is
@@ -145,9 +147,9 @@ executed by all threads:
 where `ext_width = (W + 2)` is the width of the domain including the
 ghost area.
 
-![Figure 4: Active threads while filling the shared memory](cuda-anneal4.svg)
+![Figure 5: Active threads while filling the shared memory](cuda-anneal4.svg)
 
-Filling the ghost area can be done as follows (see Figure 4):
+Filling the ghost area can be done as follows (see Figure 5):
 
 1. The upper and lower rows are delegated to the threads of the first
    row (i.e., those with $li = 1$);
