@@ -30,18 +30,26 @@ is a simple two-dimensional, binary CA defined on a grid of size $W
 has eight neighbors. Two cells are adjacent if they share a side or a
 corner.
 
-The automaton evolves at discrete time steps $t = 0, 1, \ldots$. The
-state of a cell $x$ at time $t + 1$ depends on its state at time $t$,
-and on the state of its neighbors at time $t$. Specifically, let $B_x$
-be the number of cells in state 1 within the neighborhood of size $3
-\times 3$ centered on $x$ (including $x$). Then, if $B_x = 4$ or $B_x
-\geq 6$ the new state of $x$ is 1, otherwise the new state of $x$ is
-0. See Figure 1 for some examples.
+The automaton evolves at discrete time steps $0, 1, \ldots$. The new
+state $x'$ at time $t+1$ of a cell $x$ depends on its current state at
+time $t$ and on the current state of its neighbors. Specifically, let
+$B_x$ be the number of cells in state 1 within the neighborhood of
+size $3 \times 3$ centered on $x$ (including $x$ itself). Then, if
+$B_x = 4$ or $B_x \geq 6$ the new state $x'$ is 1, otherwise it is 0:
+
+$$
+x' = \begin{cases}
+1 & \mbox{if $B_x=4$ or $B_x \geq 6$} \\
+0 & \mbox{otherwise}
+\end{cases}
+$$
+
+See Figure 1 for some examples.
 
 ![Figure 1: Computation of the new state of the central cell of a
  block of size $3 \times 3$](cuda-anneal1.svg)
 
-To simulate synchrnonous, concurrent updates of all cells, two domains
+To simulate synchronous, concurrent updates of all cells, two domains
 must be used. The state of a cell is read from the "current" domain,
 and new values are written to the "next" domain. "Current" and "next"
 are exchanged at the end of each step.
@@ -190,7 +198,7 @@ You can make an AVI / MPEG-4 animation using:
 
 To compile with shared memory:
 
-        nvcc -DUSE_SHARED cuda-anneal.cu -o cuda-anneal-shared
+        nvcc --ptxas-options=-v -DUSE_SHARED cuda-anneal.cu -o cuda-anneal-shared
 
 To execute:
 
@@ -211,7 +219,6 @@ Example:
 
 - [cuda-anneal.cu](cuda-anneal.cu)
 - [hpc.h](hpc.h)
-- [Animation of the ANNEAL CA on YouTube](https://youtu.be/TSHWSjICCxs)
 
 ***/
 
@@ -234,8 +241,8 @@ Example:
 
 typedef unsigned char cell_t;
 
-/* The following function makes indexing of the 2D domain
-   easier. Instead of writing, e.g., grid[i*ext_width + j] you write
+/* The following function simplifies indexing of the 2D
+   domain. Instead of writing grid[i*ext_width + j] you write
    IDX(grid, ext_width, i, j) to get a pointer to grid[i][j]. This
    function assumes that the size of the CA grid is
    (ext_width*ext_height), where the first and last rows/columns are
