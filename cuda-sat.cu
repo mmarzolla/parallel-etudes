@@ -144,13 +144,8 @@ eval_kernel(const int *x,
 }
 
 /**
- * CUDA implementation of a brute-force SAT solver. It uses 1D grid of
- * 1D blocks; each block has `p->nclauses` threads and evaluates a
- * clause. Different thrads evaluate different clauses in parallel. We
- * can not launch `MAX_VALUE` blocks (one for each possible
- * combination of assignments), since that might exceed hardware
- * limits. Therefore, multiple kernel launches are required in the
- * "for" loop below.
+ * CUDA implementation of a brute-force SAT solver. Each CUDA thread
+ * evaluates a possible assignment of values.
  */
 int sat( const problem_t *p)
 {
