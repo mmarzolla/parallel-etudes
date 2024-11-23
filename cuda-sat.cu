@@ -22,7 +22,7 @@
 /***
 % HPC - Brute-force SAT solver
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last modified: 2024-10-02
+% Last modified: 2024-11-23
 
 To compile:
 
@@ -159,7 +159,6 @@ int sat( const problem_t *p)
     const int MAX_VALUE = (1 << NLIT) - 1;
     const int GRID = 2048; /* you might need to change this depending on your hardware */
     const int CHUNK_SIZE = GRID * BLKLEN;
-    const int NSAT_SIZE = sizeof(int) * CHUNK_SIZE;
 
     int nsat = 0;
     int *d_nsat, *d_x, *d_nx;
