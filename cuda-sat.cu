@@ -138,7 +138,7 @@ eval_kernel(const int *x,
     __syncthreads();
     }
 
-    if (c == 0) {
+    if (0 == lindex) {
         atomic_add(nsat, nsol[0]);
     }
 }
