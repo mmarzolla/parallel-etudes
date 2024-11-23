@@ -112,7 +112,7 @@ eval_kernel(const int *x,
             int v,
             int *nsat)
 {
-    __shared__ nsol[BLKLEN];
+    __shared__ int nsol[BLKLEN];
     const int lindex = threadIdx.x;
     const int gindex = threadIdx.x + blockIdx.x * blockDim.x;
     const int MAX_VALUE = (1 << nlit) - 1;
