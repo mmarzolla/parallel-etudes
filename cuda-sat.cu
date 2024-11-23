@@ -139,7 +139,7 @@ eval_kernel(const int *x,
     }
 
     if (0 == lindex) {
-        atomic_add(nsat, nsol[0]);
+        atomicAdd(nsat, nsol[0]);
     }
 }
 
