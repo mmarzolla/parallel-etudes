@@ -124,21 +124,16 @@ int sat( const problem_t *p)
     const int NLIT = p->nlit;
     const int NCLAUSES = p->nclauses;
     const int MAX_VALUE = (1 << NLIT) - 1;
-    const sclDim BLOCK = DIM1(NCLAUSES);
-    const int GRID_SIZE = 1 << 18; /* you might need to change this depending on your hardware */
-    const sclDim GRID = DIM1(GRID_SIZE * NCLAUSES);
-    const int NSAT_SIZE = sizeof(int) * GRID_SIZE;
+    const sclDim BLOCK = DIM1(SCL_DEFAULT_WG_SIZE);
+    const int GRID_SIZE = SCL_DEFAULT_WG_SIZE * 2048; /* you might need to change this depending on your hardware */
+    const sclDim GRID = DIM1(GRID_SIZE);
 
-    int *nsat = (int*)malloc(NSAT_SIZE); assert(nsat);
+    int nsat = 0;
     cl_mem d_nsat, d_x, d_nx;
 
-    for (int i=0; i<GRID_SIZE; i++) {
-        nsat[i] = 0;
-    }
-
-    d_x = sclMallocCopy(MAXCLAUSES * sizeof(*(p->x)), (void*)(p->x), CL_MEM_READ_ONLY);
-    d_nx = sclMallocCopy(MAXCLAUSES * sizeof(*(p->nx)), (void*)(p->nx), CL_MEM_READ_ONLY);
-    d_nsat = sclMallocCopy(NSAT_SIZE, nsat, CL_MEM_READ_WRITE);
+    d_x = sclMallocCopy(NCLAUSES * sizeof(*(p->x)), (void*)(p->x), CL_MEM_READ_ONLY);
+    d_nx = sclMallocCopy(NCLAUSES * sizeof(*(p->nx)), (void*)(p->nx), CL_MEM_READ_ONLY);
+    d_nsat = sclMallocCopy(sizeof(nsat), &nsat, CL_MEM_READ_WRITE);
 
     for (int cur_value=0; cur_value<=MAX_VALUE; cur_value += GRID_SIZE) {
         sclSetArgsEnqueueKernel(eval_kernel,
@@ -151,17 +146,12 @@ int sat( const problem_t *p)
                                 cur_value,
                                 d_nsat);
     }
-    sclMemcpyDeviceToHost(nsat, d_nsat, NSAT_SIZE);
+    sclMemcpyDeviceToHost(&nsat, d_nsat, sizeof(nsat));
 
-    int result = 0;
-    for (int i=0; i<GRID_SIZE; i++)
-        result += nsat[i];
-
-    free(nsat);
     sclFree(d_nsat);
     sclFree(d_x);
     sclFree(d_nx);
-    return result;
+    return nsat;
 }
 #endif
 

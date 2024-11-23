@@ -102,6 +102,8 @@ int sat( const problem_t *p)
     return nsat;
 }
 #else
+#define BLKLEN 1024
+
 __global__ void
 eval_kernel(const int *x,
             const int *nx,
@@ -110,32 +112,35 @@ eval_kernel(const int *x,
             int v,
             int *nsat)
 {
-    __shared__ bool exp; // Value of the expression handled by this work-item
+    __shared__ nsol[BLKLEN];
     const int lindex = threadIdx.x;
-    const int gindex = blockIdx.x;
-    const int c = lindex;
+    const int gindex = threadIdx.x + blockIdx.x * blockDim.x;
     const int MAX_VALUE = (1 << nlit) - 1;
 
     v += gindex;
-
-    if (v > MAX_VALUE || c >= nclauses)
-        return;
-
-    if (c == 0)
-        exp = true;
-
-    __syncthreads();
-
-    const bool term = (v & x[c]) | (~v & nx[c]);
-
-    /* If one term is false, the whole expression is false. */
-    if (! term)
-        exp = false;
+    if (v <= MAX_VALUE) {
+        bool result = true;
+        for (int c=0; c < nclauses && result; c++) {
+            const bool term = (v & x[c]) | (~v & nx[c]);
+            result &= term;
+        }
+        nsol[lindex] = result;
+    } else
+        nsol[lindex] = 0;
 
     __syncthreads();
 
-    if (c == 0)
-        nsat[gindex] += exp;
+// perform a reduction
+    for (int bsize = blockDim.x / 2; bsize > 0; bsize /= 2) {
+        if ( lindex < bsize ) {
+            nsol[lindex] += nsol[lindex + bsize];
+        }
+    __syncthreads();
+    }
+
+    if (c == 0) {
+        atomic_add(nsat, nsol[0]);
+    }
 }
 
 /**
@@ -152,45 +157,35 @@ int sat( const problem_t *p)
     const int NLIT = p->nlit;
     const int NCLAUSES = p->nclauses;
     const int MAX_VALUE = (1 << NLIT) - 1;
-    const dim3 BLOCK(NCLAUSES);
-    const int GRID_SIZE = 1 << 18; /* you might need to change this depending on your hardware */
-    const dim3 GRID(GRID_SIZE);
-    const int NSAT_SIZE = sizeof(int) * GRID_SIZE;
+    const int GRID = 2048; /* you might need to change this depending on your hardware */
+    const int CHUNK_SIZE = GRID * BLKLEN;
+    const int NSAT_SIZE = sizeof(int) * CHUNK_SIZE;
 
-    int *nsat = (int*)malloc(NSAT_SIZE); assert(nsat);
+    int nsat = 0;
     int *d_nsat, *d_x, *d_nx;
 
-    for (int i=0; i<GRID_SIZE; i++) {
-        nsat[i] = 0;
-    }
+    cudaSafeCall( cudaMalloc((void**)&d_x, NCLAUSES * sizeof(*d_x)) );
+    cudaSafeCall( cudaMemcpy(d_x, p->x, NCLAUSES * sizeof(*d_x), cudaMemcpyHostToDevice) );
+    cudaSafeCall( cudaMalloc((void**)&d_nx, NCLAUSES * sizeof(*d_nx)) );
+    cudaSafeCall( cudaMemcpy(d_nx, p->nx, NCLAUSES * sizeof(*d_nx), cudaMemcpyHostToDevice) );
+    cudaSafeCall( cudaMalloc((void**)&d_nsat, sizeof(nsat)) );
+    cudaSafeCall( cudaMemcpy(d_nsat, &nsat, sizeof(nsat), cudaMemcpyHostToDevice) );
 
-    cudaSafeCall( cudaMalloc((void**)&d_x, MAXCLAUSES * sizeof(*d_x)) );
-    cudaSafeCall( cudaMemcpy(d_x, p->x, MAXCLAUSES * sizeof(*d_x), cudaMemcpyHostToDevice) );
-    cudaSafeCall( cudaMalloc((void**)&d_nx, MAXCLAUSES * sizeof(*d_nx)) );
-    cudaSafeCall( cudaMemcpy(d_nx, p->nx, MAXCLAUSES * sizeof(*d_nx), cudaMemcpyHostToDevice) );
-    cudaSafeCall( cudaMalloc((void**)&d_nsat, NSAT_SIZE) );
-    cudaSafeCall( cudaMemcpy(d_nsat, nsat, NSAT_SIZE, cudaMemcpyHostToDevice) );
-
-    for (int cur_value=0; cur_value<=MAX_VALUE; cur_value += GRID_SIZE) {
-        eval_kernel<<< GRID, BLOCK >>>(d_x,
-                                       d_nx,
-                                       p->nlit,
-                                       p->nclauses,
-                                       cur_value,
-                                       d_nsat);
+    for (int cur_value=0; cur_value<=MAX_VALUE; cur_value += CHUNK_SIZE) {
+        eval_kernel<<< GRID, BLKLEN >>>(d_x,
+                                        d_nx,
+                                        p->nlit,
+                                        p->nclauses,
+                                        cur_value,
+                                        d_nsat);
         cudaCheckError();
     }
-    cudaSafeCall( cudaMemcpy(nsat, d_nsat, NSAT_SIZE, cudaMemcpyDeviceToHost) );
+    cudaSafeCall( cudaMemcpy(&nsat, d_nsat, sizeof(nsat), cudaMemcpyDeviceToHost) );
 
-    int result = 0;
-    for (int i=0; i<GRID_SIZE; i++)
-        result += nsat[i];
-
-    free(nsat);
     cudaFree(d_nsat);
     cudaFree(d_x);
     cudaFree(d_nx);
-    return result;
+    return nsat;
 }
 #endif
 

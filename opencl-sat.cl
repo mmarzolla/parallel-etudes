@@ -22,6 +22,7 @@
 #define MAXLITERALS 30
 #define MAXCLAUSES 512
 
+/* Each work-item checks an assignment */
 __kernel
 void eval_kernel(__global const int *x,
                  __global const int *nx,
@@ -30,30 +31,34 @@ void eval_kernel(__global const int *x,
                  int v,
                  __global int *nsat)
 {
-    __local bool exp; // Value of the expression handled by this work-item
+    __local int nsol[SCL_DEFAULT_WG_SIZE];
     const int lindex = get_local_id(0);
-    const int gindex = get_group_id(0);
-    const int c = lindex;
+    const int gindex = get_global_id(0);
     const int MAX_VALUE = (1 << nlit) - 1;
 
     v += gindex;
 
-    if (v > MAX_VALUE || c >= nclauses)
-        return;
-
-    if (c == 0)
-        exp = true;
-
-    barrier(CLK_LOCAL_MEM_FENCE);
-
-    const bool term = (v & x[c]) | (~v & nx[c]);
-
-    /* If one term is false, the whole expression is false. */
-    if (! term)
-        exp = false;
+    if (v <= MAX_VALUE) {
+        bool result = true;
+        for (int c=0; c < nclauses && result; c++) {
+            const bool term = (v & x[c]) | (~v & nx[c]);
+            result &= term;
+        }
+        nsol[lindex] = result;
+    } else
+        nsol[lindex] = 0;
 
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    if (c == 0)
-        nsat[gindex] += exp;
+    // perform a reduction
+    for (int bsize = get_local_size(0) / 2; bsize > 0; bsize /= 2) {
+        if ( lindex < bsize ) {
+            nsol[lindex] += nsol[lindex + bsize];
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
+    }
+
+    if ( 0 == lindex ) {
+        atomic_add(nsat, nsol[0]);
+    }
 }
