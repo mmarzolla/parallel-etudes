@@ -22,20 +22,40 @@
 /***
 % HPC - Brute-force SAT solver
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last modified: 2024-09-29
+% Last modified: 2024-11-23
+
+The Boolean Satisfability Problem (SAT Problem) asks whether there
+exists an assignment of boolean variables $x_1, \ldots, x_n$ that
+makes a given boolean expression true. In this exercise we consider
+boolean expressions in _Conjunctive Normal Form_ (CNF), which means
+that the expression is the conjunction (logical _and_) of clauses
+which in turn are the disjunction (logical _or_) of (possibly negated)
+variables. For example, the following expression with variables $x_1,
+x_2, x_3, x_4$ is in CNF:
+
+$$
+(x_1 \vee \neg x_2 \vee x_4) \wedge
+(\neg x_2 \vee x_3) \wedge
+(\neg x_1 \vee x_2 \vee \neg x_4)
+$$
 
 A SAT problem is represented as a pair of integer arrays `x[]` and
 `nx[]` of length `nclauses`. `x[i]` and `nx[i]` represents the _i_-th
-clause as follows. The binary digits of `x[i]` are the coefficients of
-the terms that are _true_ in the _i_-th clause; the binary digits of
-`nx[i]` are the literals that are _false_ in the _i_-th clause.  For
-example, if the _i_-th clause is:
+clause as follows. The binary digits of `x[i]` correspond to the
+variables that are not negated in the _i_-th clause; the binary digits
+of `nx[i]` correspond to the variables that are negated in the _i_-th
+clause.
+
+For example, if the _i_-th clause is:
 
 $$
 x_1 \vee x_3 \vee \neg x_4 \vee \neg x_5 \vee x_7
 $$
 
-then it is represented as:
+then $x_1, x_3, x_7$ are not negated, and therefore the first, third
+and seventh bit of `x[i]` will be set to one (the first bit is the
+rightmost one); similarly, $x_4, x_5$ are negated, and therefore the
+fourth and fifth bits of `nx[i]` will be set to one:
 
          x[i] = 1000101_2 = 69_10
         nx[i] = 0011000_2 = 24_10
@@ -46,10 +66,10 @@ encoded in the rightmost bit. The representation above allows at most
 `8*sizeof(int)-1` literals using the `int` datatype, which increases
 to `8*sizeof(uint32_t)` using `uint32_t`.
 
-The representation has the advantage that evaluating a term can be
-done in constant time. Let the binary digits of `v` represent the
-assignment of values to literals.  Then, the term is true if and only
-if
+The representation above has the advantage that evaluating a term can
+be done in constant time. Let the binary digits of an intecer `v`
+represent the assignment of values to literals.  Then, the term is
+true if and only if
 
         (v & x[i]) | (~v & nx[i])
 
@@ -58,15 +78,16 @@ is nonzero.
 For example, let us consider the assignment
 
 $$
-x_1 = x_3 = x_4 = x_5 = 0 \\
+x_1 = x_3 = x_4 = x_5 = 0 \qquad
 x_2 = x_6 = x_7 = 1
 $$
 
 This assignment can be encoded as an integer `v` whose binary
 representation is:
 
+$$
         v = (x_7 x_6 x_5 x_4 x_3 x_2 x_1)_2 = 1100010_2
-
+$$
 and using the values of `x` and `nx` above, we have:
 
 ```
@@ -122,19 +143,35 @@ int abs(int x)
     return (x>=0 ? x : -x);
 }
 
+void print_solution(const problem_t *p, int v)
+{
+#if 0
+#pragma omp critical
+    {
+        const int NLIT = p->nlit;
+        unsigned int mask = 1;
+        for (int i=1; i<=NLIT; i++) {
+            printf("x_%d=%d ", i, (v & mask) != 0);
+            mask = mask << 1;
+        }
+        printf("\n");
+    }
+#endif
+}
+
 /**
  * Evaluate problem `p` in conjunctive normal form by setting the i-th
- * variable to the value of bit (i+1) of `v` (bit 0 is the leftmost
- * bit, which is not used). Returns the value of the boolean
- * expression encoded by `p`.
+ * variable to the value of bit i of `v` (bit 0 is the rightmost
+ * bit). Returns the value of the boolean expression encoded by `p`.
  */
-bool eval(const problem_t* p, const int v)
+bool eval(const problem_t *p, int v)
 {
     bool result = true;
     for (int c=0; c < p->nclauses && result; c++) {
         const bool term = (v & p->x[c]) | (~v & p->nx[c]);
         result &= term;
     }
+    if (result) print_solution(p, v);
     return result;
 }
 
