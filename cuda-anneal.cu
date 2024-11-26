@@ -257,14 +257,6 @@ cell_t* IDX(cell_t *grid, int ext_width, int i, int j)
     return (grid + i*ext_width + j);
 }
 
-#ifndef SERIAL
-__host__ __device__
-#endif
-int d_min(int a, int b)
-{
-    return (a<b ? a : b);
-}
-
 /*
   `grid` points to a (ext_width * ext_height) block of bytes; this
   function copies the top and bottom ext_width elements to the
@@ -395,6 +387,12 @@ void step(cell_t *cur, cell_t *next, int ext_width, int ext_height)
     }
 }
 #else
+__device__
+int d_min(int a, int b)
+{
+    return (a<b ? a : b);
+}
+
 /* Compute the next grid given the current configuration. Each grid
    has (ext_width * ext_height) elements. */
 __global__ void step(cell_t *cur, cell_t *next, int ext_width, int ext_height)
