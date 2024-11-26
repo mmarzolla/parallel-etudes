@@ -324,10 +324,12 @@ int main( int argc, char* argv[] )
 
     const int ext_width = width + 2;
     const size_t ext_size = ext_width * sizeof(*cur); /* includes ghost cells */
+#ifdef SERIAL
     const int LEFT_GHOST = 0;
     const int LEFT = 1;
     const int RIGHT_GHOST = ext_width - 1;
     const int RIGHT = RIGHT_GHOST - 1;
+#endif
     /* Create the output file */
     out = fopen(outname, "w");
     if ( !out ) {
