@@ -294,7 +294,7 @@ int main( int argc, char *argv[] )
 {
     problem_t p;
 
-    assert(MAXLITERALS <= 8*sizeof(int)-1);
+    assert(MAXLITERALS <= 8*sizeof(int)-2);
 
     if (argc != 1) {
         fprintf(stderr, "Usage: %s < input\n", argv[0]);

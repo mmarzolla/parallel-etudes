@@ -22,7 +22,94 @@
 /***
 % HPC - Brute-force SAT solver
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last modified: 2024-11-23
+% Last modified: 2024-11-28
+
+The Boolean Satisfability Problem (SAT Problem) asks whether there
+exists an assignment of boolean variables $x_1, \ldots, x_n$ that
+makes a given boolean expression true. In this exercise we consider
+Boolean expressions in _Conjunctive Normal Form_ (CNF), which means
+that the expression is the conjunction (logical _and_) of clauses
+which in turn are the disjunction (logical _or_) of (possibly negated)
+variables. For example, the following expression with variables $x_1,
+x_2, x_3, x_4$ is in CNF:
+
+$$
+(x_1 \vee \neg x_2 \vee x_4) \wedge
+(\neg x_2 \vee x_3) \wedge
+(\neg x_1 \vee x_2 \vee \neg x_4)
+$$
+
+The expression above has three _clauses_, namely, $(x_1 \vee \neg x_2
+\vee x_4)$, $(\neg x_2 \vee x_3)$ and $(\neg x_1 \vee x_2 \vee \neg
+x_4)$.
+
+An assignment of $n$ Boolean variables $x_1, x_2, \ldots, x_n$ can be
+encoded as a binary value $v = (x_n \cdots x_2 x_1)$. In this exercise
+we develop a parallel SAT solver that tries all $2^n$ assignments, and
+counts the number of solutions, i.e., the number of assignments that
+make the Boolean expression true.
+
+To make the approach less inefficient, it is important to use a
+suitable representation of the Boolean expression, so that it can be
+evaluated quickly. To this aim, let us assume that there are at most
+30 Boolean variables, so that an assignment can be encoded as an `int`
+value without overflow (see the code).
+
+We represent a SAT problem as a pair of integer arrays `x[]` and
+`nx[]` of length `nclauses`. `x[i]` and `nx[i]` represents the _i_-th
+clause as follows. The binary digits of `x[i]` correspond to the
+variables that are not negated in the _i_-th clause; the binary digits
+of `nx[i]` correspond to the variables that are negated in the _i_-th
+clause.
+
+For example, if the _i_-th clause is:
+
+$$
+x_1 \vee x_3 \vee \neg x_4 \vee \neg x_5 \vee x_7
+$$
+
+then $x_1, x_3, x_7$ are not negated, and therefore the first, third
+and seventh bit of `x[i]` will be set to one (the first bit is the
+rightmost one); similarly, $x_4, x_5$ are negated, and therefore the
+fourth and fifth bits of `nx[i]` will be set to one:
+
+         x[i] = 1000101_2 = 69_10
+        nx[i] = 0011000_2 = 24_10
+
+(here _2 and _10 denote base two and ten, respectively). Note that
+literals are indexed starting from one. This representation has the
+advantage that evaluating a clause can be done in constant time. Let
+the binary digits of an intecer `v` represent the assignment of values
+to literals.  Then, clause _i_ is true if and only if
+
+        (v & x[i]) | (~v & nx[i])
+
+is nonzero.
+
+For example, let us consider the assignment
+
+$$
+x_1 = x_3 = x_4 = x_5 = 0 \qquad
+x_2 = x_6 = x_7 = 1
+$$
+
+This assignment can be encoded as an integer `v` whose binary
+representation is:
+
+$$
+        v = (x_7 x_6 x_5 x_4 x_3 x_2 x_1)_2 = 1100010_2
+$$
+and using the values of `x` and `nx` above, we have:
+
+```
+(v & x[i]) | (~v & nx[i]) =
+(1100010 & 1000101) | (0011101 & 0011000) ==
+1000000 | 0011000 ==
+1011000
+```
+
+which is nonzero, and hence with the assignment above the term is
+true.
 
 To compile:
 
@@ -38,14 +125,13 @@ To execute:
 - Some input files: <queens-05.cnf>, <uf20-01.cnf>, <uf20-077.cnf>
 ***/
 
-#include "hpc.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdint.h>
 #include <assert.h>
+#include "hpc.h"
 
 #define MAXLITERALS (8*sizeof(int) - 2)
 #define MAXCLAUSES 512
@@ -269,8 +355,7 @@ int main( int argc, char *argv[] )
 {
     problem_t p;
 
-    assert(MAXLITERALS <= 8*sizeof(int)-1);
-    assert((MAXCLAUSES & (MAXCLAUSES-1)) == 0); /* "bit hack" to check whether MAXCLAUSES is a power of two */
+    assert(MAXLITERALS <= 8*sizeof(int)-2);
 
     if (argc != 1) {
         fprintf(stderr, "Usage: %s < input\n", argv[0]);
