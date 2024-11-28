@@ -22,7 +22,7 @@
 /***
 % HPC - Brute-force SAT solver
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last modified: 2024-11-23
+% Last modified: 2024-11-28
 
 The Boolean Satisfability Problem (SAT Problem) asks whether there
 exists an assignment of boolean variables $x_1, \ldots, x_n$ that
@@ -52,8 +52,8 @@ make the Boolean expression true.
 To make the approach less inefficient, it is important to use a
 suitable representation of the Boolean expression, so that it can be
 evaluated quickly. To this aim, let us assume that there are at most
-31 Boolean variables, so that an assignment can be encoded as an `int`
-value.
+30 Boolean variables, so that an assignment can be encoded as an `int`
+value without overflow (see the code).
 
 We represent a SAT problem as a pair of integer arrays `x[]` and
 `nx[]` of length `nclauses`. `x[i]` and `nx[i]` represents the _i_-th
@@ -133,9 +133,7 @@ To execute:
 #include <assert.h>
 #include <omp.h>
 
-/* MAXLITERALS must be at most (bit width of int) - 2 */
-#define MAXLITERALS 30
-/* MAXCLAUSES must be a power of two */
+#define MAXLITERALS (8*sizeof(int) - 2)
 #define MAXCLAUSES 512
 
 typedef struct {
@@ -196,15 +194,13 @@ bool eval(const problem_t *p, int v)
 int sat( const problem_t *p)
 {
     const int NLIT = p->nlit;
-    const unsigned int MAX_VALUE = (1u << NLIT) - 1;
+    const int MAX_VALUE = (1 << NLIT) - 1;
     int nsat = 0;
 
-    /* `cur_value` should be of type `unsigned int` since at the end
-       of the loop it might overflow the `int` type if NLIT==31 */
 #ifndef SERIAL
 #pragma omp parallel for default(none) shared(p, MAX_VALUE) reduction(+:nsat)
 #endif
-    for (unsigned int cur_value=0; cur_value<=MAX_VALUE; cur_value++) {
+    for (int cur_value=0; cur_value<=MAX_VALUE; cur_value++) {
         nsat += eval(p, cur_value);
     }
     return nsat;
@@ -299,7 +295,6 @@ int main( int argc, char *argv[] )
     problem_t p;
 
     assert(MAXLITERALS <= 8*sizeof(int)-1);
-    assert((MAXCLAUSES & (MAXCLAUSES-1)) == 0); /* "bit hack" to check whether MAXCLAUSES is a power of two */
 
     if (argc != 1) {
         fprintf(stderr, "Usage: %s < input\n", argv[0]);

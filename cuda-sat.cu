@@ -47,9 +47,7 @@ To execute:
 #include <stdint.h>
 #include <assert.h>
 
-/* MAXLITERALS must be at most (bit width of int) - 2 */
-#define MAXLITERALS 30
-/* MAXCLAUSES must be a power of two */
+#define MAXLITERALS (8*sizeof(int) - 2)
 #define MAXCLAUSES 512
 
 typedef struct {
@@ -93,12 +91,10 @@ bool eval(const problem_t* p, const int v)
 int sat( const problem_t *p)
 {
     const int NLIT = p->nlit;
-    const unsigned int MAX_VALUE = (1u << NLIT) - 1;
+    const int MAX_VALUE = (1 << NLIT) - 1;
     int nsat = 0;
 
-    /* `cur_value` should be of type `unsigned int` since at the end
-       of the loop it might overflow the `int` type if NLIT==31 */
-    for (unsigned int cur_value=0; cur_value<=MAX_VALUE; cur_value++) {
+    for (int cur_value=0; cur_value<=MAX_VALUE; cur_value++) {
         nsat += eval(p, cur_value);
     }
     return nsat;
@@ -111,13 +107,13 @@ eval_kernel(const int *x,
             const int *nx,
             int nlit,
             int nclauses,
-            unsigned int v,
+            int v,
             int *nsat)
 {
     __shared__ int nsol[BLKLEN];
     const int lindex = threadIdx.x;
     const int gindex = threadIdx.x + blockIdx.x * blockDim.x;
-    const unsigned int MAX_VALUE = (1u << nlit) - 1;
+    const int MAX_VALUE = (1 << nlit) - 1;
 
     v += gindex;
     if (v <= MAX_VALUE) {
@@ -153,7 +149,7 @@ int sat( const problem_t *p)
 {
     const int NLIT = p->nlit;
     const int NCLAUSES = p->nclauses;
-    const unsigned int MAX_VALUE = (1u << NLIT) - 1;
+    const int MAX_VALUE = (1 << NLIT) - 1;
     const int GRID = 2048; /* you might need to change this depending on your hardware */
     const int CHUNK_SIZE = GRID * BLKLEN;
 
@@ -167,7 +163,7 @@ int sat( const problem_t *p)
     cudaSafeCall( cudaMalloc((void**)&d_nsat, sizeof(nsat)) );
     cudaSafeCall( cudaMemcpy(d_nsat, &nsat, sizeof(nsat), cudaMemcpyHostToDevice) );
 
-    for (unsigned int cur_value=0; cur_value<=MAX_VALUE; cur_value += CHUNK_SIZE) {
+    for (int cur_value=0; cur_value<=MAX_VALUE; cur_value += CHUNK_SIZE) {
         eval_kernel<<< GRID, BLKLEN >>>(d_x,
                                         d_nx,
                                         p->nlit,
