@@ -101,10 +101,10 @@ bool eval(const problem_t* p, const int v)
 int sat( const problem_t *p)
 {
     const int NLIT = p->nlit;
-    const int MAX_VALUE = (1 << NLIT) - 1;
+    const unsigned int MAX_VALUE = (1u << NLIT) - 1;
     int nsat = 0;
 
-    for (int cur_value=0; cur_value<=MAX_VALUE; cur_value++) {
+    for (unsigned int cur_value=0; cur_value<=MAX_VALUE; cur_value++) {
         nsat += eval(p, cur_value);
     }
     return nsat;
@@ -123,7 +123,7 @@ int sat( const problem_t *p)
 {
     const int NLIT = p->nlit;
     const int NCLAUSES = p->nclauses;
-    const int MAX_VALUE = (1 << NLIT) - 1;
+    const unsigned int MAX_VALUE = (1u << NLIT) - 1;
     const sclDim BLOCK = DIM1(SCL_DEFAULT_WG_SIZE);
     const int CHUNK_SIZE = SCL_DEFAULT_WG_SIZE * 2048; /* you might need to change this depending on your hardware */
     const sclDim GRID = DIM1(CHUNK_SIZE);
@@ -135,10 +135,10 @@ int sat( const problem_t *p)
     d_nx = sclMallocCopy(NCLAUSES * sizeof(*(p->nx)), (void*)(p->nx), CL_MEM_READ_ONLY);
     d_nsat = sclMallocCopy(sizeof(nsat), &nsat, CL_MEM_READ_WRITE);
 
-    for (int cur_value=0; cur_value<=MAX_VALUE; cur_value += CHUNK_SIZE) {
+    for (unsigned int cur_value=0; cur_value<=MAX_VALUE; cur_value += CHUNK_SIZE) {
         sclSetArgsEnqueueKernel(eval_kernel,
                                 GRID, BLOCK,
-                                ":b :b :d :d :d :b",
+                                ":b :b :d :d :u :b",
                                 d_x,
                                 d_nx,
                                 p->nlit,

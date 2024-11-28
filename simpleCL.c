@@ -33,7 +33,7 @@
 /***
 % `simpleCL`: A Simple C Wrapper for OpenCL
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last modified: 2024-09-30
+% Last modified: 2024-11-27
 
 `simpleCL` is a C wrapper for OpenCL. Its goal is to make OpenCL
 programming less tedious by hiding most of the burden associated with
@@ -115,6 +115,7 @@ enum {
     SCL_BUFFER = 'b',
     SCL_LOCALMEM = 'L',
     SCL_INT = 'd',
+    SCL_UINT = 'u',
     SCL_LONG = 'l',
     SCL_FLOAT = 'f'
 };
@@ -954,6 +955,7 @@ static void sclVSetKernelArgs( sclKernel kernel, const char *fmt, va_list argLis
     void* argument;
     size_t actual_size;
     int int_arg;
+    unsigned int uint_arg;
     long long_arg;
     float float_arg;
     cl_mem mem_arg;
@@ -984,6 +986,11 @@ static void sclVSetKernelArgs( sclKernel kernel, const char *fmt, va_list argLis
             case SCL_INT:
                 int_arg = va_arg( argList, int );
                 sclSetKernelArg(kernel, arg_count, sizeof(int), &int_arg);
+                arg_count++;
+                break;
+            case SCL_UINT:
+                uint_arg = va_arg( argList, unsigned int );
+                sclSetKernelArg(kernel, arg_count, sizeof(unsigned int), &uint_arg);
                 arg_count++;
                 break;
             case SCL_LONG:
@@ -1056,6 +1063,9 @@ Format      Meaning
 
 `:d`        The corresponding parameter must be of type `int`,
             and corresponds to an `int` kernel parameter.
+
+`:u`        The corresponding parameter must be of type `unsigned int`,
+            and corresponds to an `unsigned int` kernel parameter.
 
 `:l`        The corresponding parameter must be of type `long`,
             and corresponds to a `long` kernel parameter.

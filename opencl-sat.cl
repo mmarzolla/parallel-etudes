@@ -28,13 +28,13 @@ void eval_kernel(__global const int *x,
                  __global const int *nx,
                  int nlit,
                  int nclauses,
-                 int v,
+                 unsigned int v,
                  __global int *nsat)
 {
     __local int nsol[SCL_DEFAULT_WG_SIZE];
     const int lindex = get_local_id(0);
     const int gindex = get_global_id(0);
-    const int MAX_VALUE = (1 << nlit) - 1;
+    const unsigned int MAX_VALUE = (1u << nlit) - 1;
 
     v += gindex;
 
