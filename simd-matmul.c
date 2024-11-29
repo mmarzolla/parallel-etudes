@@ -73,7 +73,7 @@ instead of two.
 
 To compile:
 
-        gcc -march=native -O2 -std=c99 -Wall -Wpedantic -D_XOPEN_SOURCE=600 simd-matmul.c -o simd-matmul
+        gcc -march=native -O2 -std=c99 -Wall -Wpedantic simd-matmul.c -o simd-matmul
 
 To execute:
 
