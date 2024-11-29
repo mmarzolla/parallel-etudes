@@ -168,11 +168,13 @@ void scalar_matmul_tr( const double *p, const double* q, double *r, int n)
 void simd_matmul_tr( const double *p, const double* q, double *r, int n)
 {
 #ifdef SERIAL
+    assert(n % VLEN == 0);
     /* [TODO] Implement this function */
 #else
     double *qT;
     int ret = posix_memalign((void**)&qT, __BIGGEST_ALIGNMENT__, n*n*sizeof(*qT));
     assert( 0 == ret );
+    assert(n % VLEN == 0);
 
     /* transpose q, storing the result in qT */
     for (int i=0; i<n; i++) {
