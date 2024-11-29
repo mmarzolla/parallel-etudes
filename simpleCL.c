@@ -33,7 +33,7 @@
 /***
 % `simpleCL`: A Simple C Wrapper for OpenCL
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last modified: 2024-11-27
+% Last updated: 2024-11-27
 
 `simpleCL` is a C wrapper for OpenCL. Its goal is to make OpenCL
 programming less tedious by hiding most of the burden associated with

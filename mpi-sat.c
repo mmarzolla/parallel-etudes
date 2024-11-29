@@ -22,7 +22,7 @@
 /***
 % HPC - Brute-force SAT solver
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last modified: 2024-09-29
+% Last updated: 2024-09-29
 
 A SAT problem is represented as a pair of integer arrays `x[]` and
 `nx[]` of length `nclauses`. `x[i]` and `nx[i]` represents the _i_-th

@@ -10,7 +10,7 @@
 ## file is written to stdout.
 
 ## Written by Moreno Marzolla on 2021-05-19
-## Last modified on 2024-11-13 by Moreno Marzolla
+## Last updated on 2024-11-13 by Moreno Marzolla
 
 cat "$1" | \
     sed -e '/\#include\s*"pgmutils.h"/ {' -e 'r pgmutils.h' -e 'd}' | \

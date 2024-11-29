@@ -10,7 +10,7 @@
 ## Usage: ./extract-markdown.sh filename > out
 
 ## Written by Moreno Marzolla in 2021
-## Last modified on 2024-11-13 by Moreno Marzolla
+## Last updated on 2024-11-13 by Moreno Marzolla
 
 awk '\
 BEGIN { inside = 0; } \

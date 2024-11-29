@@ -22,7 +22,7 @@
 /***
 % HPC - Brute-force SAT solver
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last modified: 2024-11-28
+% Last updated: 2024-11-29
 
 The Boolean Satisfability Problem (SAT Problem) asks whether there
 exists an assignment of boolean variables $x_1, \ldots, x_n$ that
@@ -241,53 +241,47 @@ void pretty_print( const problem_t *p )
  */
 void load_dimacs( FILE *f, problem_t *p )
 {
-    int result;
-    int c, l, val;
-    int prob_c, prob_l;
+    int ret, nc, nl;
 
     /* Clear all bitmasks */
-    for (c=0; c<MAXCLAUSES; c++) {
+    for (int c=0; c<MAXCLAUSES; c++) {
         p->x[c] = p->nx[c] = 0;
     }
-    p->nlit = -1;
-    c = l = 0;
-    /* From
-       <https://github.com/marijnheule/march-SAT-solver/blob/master/parser.c> */
-    do {
-        result = fscanf(f, " p cnf %i %i \n", &prob_l, &prob_c);
-        if ( result > 0 && result != EOF )
-            break;
-        result = fscanf(f, "%*s\n");
-    } while( result != 2 && result != EOF );
 
-    if ( prob_l > MAXLITERALS-1 ) {
-        fprintf(stderr, "FATAL: too many literals (%d); please set MAXLITERALS to at least %d\n", prob_l, prob_l+1);
+    do {
+        ret = fscanf(f, " p cnf %i %i \n", &nl, &nc);
+        if ( ret > 0 && ret != EOF )
+            break;
+        ret = fscanf(f, "%*s\n");
+    } while( ret != 2 && ret != EOF );
+
+    if ( nl > MAXLITERALS-1 ) {
+        fprintf(stderr, "FATAL: too many literals (%d); please set MAXLITERALS to at least %d\n", nl, nl+1);
         exit(EXIT_FAILURE);
     }
-    if ( prob_c > MAXCLAUSES-1 ) {
-        fprintf(stderr, "FATAL: too many clauses (%d); please set MAXCLAUSES to at least %d\n", prob_c, prob_c+1);
+    if ( nc > MAXCLAUSES-1 ) {
+        fprintf(stderr, "FATAL: too many clauses (%d); please set MAXCLAUSES to at least %d\n", nc, nc+1);
         exit(EXIT_FAILURE);
     }
-    while (fscanf(f, "%d", &val) == 1) {
-        if (val == 0) {
-            /* Check the previous clause for consistency */
-            assert( (p->x[c] & p->nx[c]) == 0 );
-            /* New clause */
-            l = 0;
-            c++;
-        } else {
-            /* New literal */
-            if (val > 0) {
-                p->x[c] |= (1 << (val-1));
-            } else {
-                p->nx[c] |= (1 << -(val+1));
+    p->nlit = -1; /* we compute the number of literals from those actually used in the file */
+    p->nclauses = nc;
+    for (int c=0; c<nc; c++) {
+        int val;
+        do {
+            ret = fscanf(f, "%d", &val);
+            assert(ret == 1);
+            if (val)  {
+                if (val > 0) {
+                    p->x[c] |= (1 << (val-1));
+                } else {
+                    p->nx[c] |= (1 << -(val+1));
+                }
+                p->nlit = max(p->nlit, abs(val));
             }
-            p->nlit = max(p->nlit, abs(val));
-            l++;
-        }
+        } while (val);
+        assert( (p->x[c] & p->nx[c]) == 0 );
     }
-    p->nclauses = c;
-    fprintf(stderr, "DIMACS CNF files: %d clauses, %d literals\n", c, p->nlit);
+    fprintf(stderr, "DIMACS CNF files: %d clauses, %d literals\n", nc, p->nlit);
 }
 
 int main( int argc, char *argv[] )
