@@ -58,18 +58,15 @@ mandelbrot_area_kernel( int xsize,
     const float XMIN = -2.25, XMAX = 0.75;
     const float YMIN = -1.4, YMAX = 1.5;
 
-    __local local_inside[SCL_DEFAULT_WG_SIZE2D][SCL_DEFAULT_WG_SIZE2D];
-
-    local_inside[ly][lx] = 0;
-
-    barrier(CLK_LOCAL_MEM_FENCE);
+    __local uint32_t local_inside[SCL_DEFAULT_WG_SIZE2D][SCL_DEFAULT_WG_SIZE2D];
 
     if (x < xsize && y < ysize) {
         const float cx = XMIN + (XMAX - XMIN) * x / xsize;
         const float cy = YMIN + (YMAX - YMIN) * y / ysize;
         const int v = iterate(cx, cy);
         local_inside[ly][lx] = (v >= MAXIT);
-    }
+    } else
+        local_inside[ly][lx] = 0;
 
     barrier(CLK_LOCAL_MEM_FENCE);
 
@@ -81,10 +78,10 @@ mandelbrot_area_kernel( int xsize,
         barrier(CLK_LOCAL_MEM_FENCE);
     }
 
-    /* Row-wise reduction */
+    /* Row-wise reduction on first column */
     if (lx == 0) {
         for ( int bsize = get_local_size(1) / 2; bsize > 0; bsize /= 2 ) {
-            if ( lx < bsize ) {
+            if ( ly < bsize ) {
                 local_inside[ly][0] += local_inside[ly + bsize][0];
             }
             barrier(CLK_LOCAL_MEM_FENCE);
