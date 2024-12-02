@@ -27,7 +27,7 @@
 Write a MPI program that solves the following problem. Given a
 non-empty integer array `v[0..N-1]` of length $N$, and an integer
 value $k$, find the position (index) of the first occurrence of $k$ in
-`v[]`; if $k$ is not present, the result will be $N$ (which is not a
+`v[]`; if $k$ is not present, the result must be $N$ (which is not a
 valid index of the array, so we know that $N$ is not a valid result).
 
 For example, if `v[] = {3, 15, -1, 15, 21, 15, 7}` and `k = 15`, the
@@ -41,8 +41,9 @@ You may assume that:
 
 - The array length $N$ is an integer multiple of $P$.
 
-- At the beginning, the array length $N$, the value of $k$ and the
-  content of `v[]` are all known by process 0 only.
+- At the beginning, the array length $N$, the value of $k$ are known
+  by all processes; however, the content of `v[]` is known by process
+  0 only.
 
 - At the end, process 0 should receive the result.
 
@@ -76,14 +77,6 @@ should return 132.
 #include <assert.h>
 #include <mpi.h>
 
-/**
- * Returns a random value in [a, b]
- */
-int randab(int a, int b)
-{
-    return a + rand() % (b - a + 1);
-}
-
 int main( int argc, char *argv[] )
 {
     int my_rank, comm_sz, N, k, minpos;
@@ -92,12 +85,6 @@ int main( int argc, char *argv[] )
     MPI_Init( &argc, &argv );
     MPI_Comm_rank( MPI_COMM_WORLD, &my_rank );
     MPI_Comm_size( MPI_COMM_WORLD, &comm_sz );
-
-    /* This implementation receives the values `N` and `k` from the
-       command line. These value could therefore be accessed by all
-       processes. However, the specification asserts that only process
-       0 knows then, so we need to broadcast the values to all other
-       processes. */
 
     if ( argc > 1 ) {
         N = atoi(argv[1]);
@@ -108,7 +95,7 @@ int main( int argc, char *argv[] )
     if ( argc > 2 ) {
         k = atoi(argv[2]);
     } else {
-        k = randab(-1, N-1);
+        k = N/8;
     }
 
     if ((N % comm_sz != 0) && (my_rank == 0)) {
@@ -118,6 +105,7 @@ int main( int argc, char *argv[] )
 
     /* The array is initialized by process 0 */
     if ( 0 == my_rank ) {
+        printf("N=%d, k=%d\n", N, k);
         v = (int*)malloc(N * sizeof(*v));
         assert(v != NULL);
         for (int i=0; i<N; i++) {
@@ -133,18 +121,6 @@ int main( int argc, char *argv[] )
             minpos++;
     }
 #else
-    MPI_Bcast(&N,       /* buffer       */
-              1,        /* count        */
-              MPI_INT,  /* datatype     */
-              0,        /* root         */
-              MPI_COMM_WORLD );
-
-    MPI_Bcast(&k,       /* buffer       */
-              1,        /* count        */
-              MPI_INT,  /* datatype     */
-              0,        /* root         */
-              MPI_COMM_WORLD );
-
     /* All processes initialize the local buffers */
     const int local_N = N / comm_sz;
     int *local_v = (int*)malloc(local_N * sizeof(*local_v));
