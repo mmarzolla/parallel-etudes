@@ -208,7 +208,7 @@ pub: ALL
 	put-aruba.sh
 
 clean:
-	\rm -r -f *.html a.out *.o ${EXE} anneal-*.pbm coupled-oscillators.ppm anneal.avi cuda-anneal-*.pbm cuda-anneal.avi opencl-anneal-*.pbm opencl-anneal-*-out.png opencl-anneal.avi cuda-rule30.pbm opencl-rule30.pbm *.tmp.p[pbg]m sphfract.ppm opencl-mandelbrot.ppm cuda-mandelbrot.ppm cat-map-demo-[0-9]*.png cat-map-demo-[0-9]*.pgm anneal-demo-[0-9]*.p?? count-locs.tex
+	\rm -r -f *.html a.out *.o *.s ${EXE} anneal-*.pbm coupled-oscillators.ppm anneal.avi cuda-anneal-*.pbm cuda-anneal.avi opencl-anneal-*.pbm opencl-anneal-*-out.png opencl-anneal.avi cuda-rule30.pbm opencl-rule30.pbm *.tmp.p[pbg]m sphfract.ppm opencl-mandelbrot.ppm cuda-mandelbrot.ppm cat-map-demo-[0-9]*.png cat-map-demo-[0-9]*.pgm anneal-demo-[0-9]*.p?? count-locs.tex
 
 distclean: clean
 	\rm -rf handouts/* solutions/*
