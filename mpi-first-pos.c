@@ -22,7 +22,7 @@
 /***
 % HPC - First occurrence of a value in a vector
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2024-10-05
+% Last updated: 2024-12-02
 
 Write a MPI program that solves the following problem. Given a
 non-empty integer array `v[0..N-1]` of length $N$, and an integer
@@ -54,6 +54,17 @@ To execute:
 
         mpirun -n 4 ./mpi-first-pos [N [k]]
 
+This program initializes the input array as `v[] = {0, 1, ..., N-1}`.
+
+Example:
+
+        mpirun -n 4 ./mpi-first-pos 1000 -73
+
+should return 1000 (not fount);
+
+        mpirun -n 4 ./mpi-first-pos 1000 132
+
+should return 132.
 ## Files
 
 - [mpi-first-pos.c](mpi-first-pos.c)
@@ -75,12 +86,18 @@ int randab(int a, int b)
 
 int main( int argc, char *argv[] )
 {
-    int my_rank, comm_sz, N, k, pos, minpos;
+    int my_rank, comm_sz, N, k, minpos;
     int *v = NULL;
 
     MPI_Init( &argc, &argv );
     MPI_Comm_rank( MPI_COMM_WORLD, &my_rank );
     MPI_Comm_size( MPI_COMM_WORLD, &comm_sz );
+
+    /* This implementation receives the values `N` and `k` from the
+       command line. These value could therefore be accessed by all
+       processes. However, the specification asserts that only process
+       0 knows then, so we need to broadcast the values to all other
+       processes. */
 
     if ( argc > 1 ) {
         N = atoi(argv[1]);
@@ -103,19 +120,19 @@ int main( int argc, char *argv[] )
     if ( 0 == my_rank ) {
         v = (int*)malloc(N * sizeof(*v));
         assert(v != NULL);
-        printf("Before: [");
         for (int i=0; i<N; i++) {
             v[i] = i;
-            printf("%d ", v[i]);
         }
-        printf("]\n");
     }
 
-    /* This implementation receives the values `N` and `k` from the
-       command line. These value could therefore be accessed by all
-       processes. However, the specification asserts that only process
-       0 knows then, so we need to broadcast the values to all other
-       processes. */
+#ifdef SERIAL
+    /* [TODO] replace this block with a true parallel version */
+    if (0 == my_rank) {
+        minpos = 0;
+        while (minpos < N && v[minpos] != k)
+            minpos++;
+    }
+#else
     MPI_Bcast(&N,       /* buffer       */
               1,        /* count        */
               MPI_INT,  /* datatype     */
@@ -150,31 +167,39 @@ int main( int argc, char *argv[] )
        the result is computed as the min-reduction of the partial
        results, if a process does not find the key on the local array,
        it must send `N` to process 0. */
-    int i = 0;
+    int i = 0, local_minpos;
     while (i<local_N && local_v[i] != k) {
         i++;
     }
     if (i<local_N) {
-        pos = my_rank * local_N + i; /* map local indices to global indices */
+        local_minpos = my_rank * local_N + i; /* map local indices to global indices */
     } else {
-        pos = N;
+        local_minpos = N;
     }
 
     /* Performs a min-reduction of the local results */
-    MPI_Reduce(&pos,    /* sendbuf      */
-               &minpos, /* recvbuf      */
-               1,       /* count        */
-               MPI_INT, /* datatype     */
-               MPI_MIN, /* op           */
-               0,       /* root         */
+    MPI_Reduce(&local_minpos,   /* sendbuf      */
+               &minpos,         /* recvbuf      */
+               1,               /* count        */
+               MPI_INT,         /* datatype     */
+               MPI_MIN,         /* op           */
+               0,               /* root         */
                MPI_COMM_WORLD );
 
+    free(local_v);
+#endif
+
     if ( 0 == my_rank ) {
-        printf("Result: %d\n", minpos);
+        const int expected = (k>=0 && k<N ? k : N);
+        printf("Result: %d ", minpos);
+        if (minpos == expected) {
+            printf("OK\n");
+        } else {
+            printf("FAILED (expected %d)\n", expected);
+        }
     }
 
     free(v);
-    free(local_v);
     MPI_Finalize();
     return EXIT_SUCCESS;
 }

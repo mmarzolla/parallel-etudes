@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * levenshtein.c - Levenshtein's edit distance
+ * omp-levenshtein.c - Levenshtein's edit distance
  *
  * Written in 2017--2022, 2024 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
@@ -22,7 +22,7 @@
 /***
 % HPC - Levenshtein's edit distance
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2024-08-26
+% Last updated: 2024-12-02
 
 The file [omp-levenshtein.c](omp-levenhstein.c) contains a serial
 implementation of [Levenshtein's
@@ -112,15 +112,15 @@ inter-dependences.
 
 Compile with:
 
-        gcc -std=c99 -Wall -pedantic -fopenmp omp-levenshtein.c -o omp-levenshtein
+        gcc -std=c99 -Wall -Wpedantic -fopenmp omp-levenshtein.c -o omp-levenshtein
 
 Run with:
 
-        ./levenshtein str1 str2
+        ./omp-levenshtein str1 str2
 
 Example:
 
-        ./levenshtein "prova prova" "test prova 1"
+        ./omp-levenshtein "this is a test" "that test is different"
 
 ## Files
 

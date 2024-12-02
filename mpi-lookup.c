@@ -2,7 +2,7 @@
  *
  * mpi-lookup.c - Parallel linear search
  *
- * Copyright (C) 2021--2023 by Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2021--2024 by Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,23 +22,25 @@
 /***
 % HPC - Parallel linear search
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2023-03-07
+% Last updated: 2024-12-02
 
 Write an MPI program that finds the positions of all occurrences of a
-given `key` in an unsorted integer array `v[]`. For example, if `v[] =
-{1, 3, -2, 3, 4, 3, 3, 5, -10}` and `key = 3`, the program must
+given key `key` in an unsorted integer array `v[]`. For example, if
+`v[] = {1, 3, -2, 3, 4, 3, 3, 5, -10}` and `key = 3`, the program must
 build the result array
 
         {1, 3, 5, 6}
 
-whose elements correspond to the positions (indices) in `v[]` where
-the value `key` is found. Assume that:
+whose elements correspond to the positions (indices) of `key` in
+`v[]`. Assume that:
 
-- The array `v[]` is initially defined in the local memory of process
-  0 only;
+- The array `v[]` is initially known by process 0 only.
+
+- The length of `v[]` is an integer multiple of the number of
+  processes.
 
 - All processes know the value `key`, which is a compile-time
-  constant;
+  constant.
 
 - At the end, the result array must reside in the local memory of
   process 0.
