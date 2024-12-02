@@ -2,7 +2,7 @@
  *
  * opencl-mandelbrot-area.cl - Area of the Mandelbrot set
  *
- * Copyright (C) 2022 Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2022--2024 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,10 +58,9 @@ mandelbrot_area_kernel( int xsize,
     const float XMIN = -2.25, XMAX = 0.75;
     const float YMIN = -1.4, YMAX = 1.5;
 
-    __local uint32_t local_inside;
+    __local local_inside[SCL_DEFAULT_WG_SIZE2D][SCL_DEFAULT_WG_SIZE2D];
 
-    if (lx == 0 && ly == 0)
-        local_inside = 0;
+    local_inside[ly][lx] = 0;
 
     barrier(CLK_LOCAL_MEM_FENCE);
 
@@ -69,12 +68,29 @@ mandelbrot_area_kernel( int xsize,
         const float cx = XMIN + (XMAX - XMIN) * x / xsize;
         const float cy = YMIN + (YMAX - YMIN) * y / ysize;
         const int v = iterate(cx, cy);
-        if (v >= MAXIT)
-            atomic_inc(&local_inside);
+        local_inside[ly][lx] = (v >= MAXIT);
     }
 
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    if (lx == 0 && ly == 0)
-        atomic_add(ninside, local_inside);
+    /* Column-wise reduction */
+    for ( int bsize = get_local_size(0) / 2; bsize > 0; bsize /= 2 ) {
+        if ( lx < bsize ) {
+            local_inside[ly][lx] += local_inside[ly][lx + bsize];
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
+    }
+
+    /* Row-wise reduction */
+    if (lx == 0) {
+        for ( int bsize = get_local_size(1) / 2; bsize > 0; bsize /= 2 ) {
+            if ( lx < bsize ) {
+                local_inside[ly][0] += local_inside[ly + bsize][0];
+            }
+            barrier(CLK_LOCAL_MEM_FENCE);
+        }
+
+        if (ly == 0)
+            atomic_add(ninside, local_inside[0][0]);
+    }
 }

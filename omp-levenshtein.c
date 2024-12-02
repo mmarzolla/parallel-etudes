@@ -182,7 +182,8 @@ int levenshtein(const char* s, const char* t)
             const int i = ii + 1;
             const int j = jj + 1;
             L[i][j] = min3(L[i-1][j] + 1,
-                           L[i][j-1] + 1, L[i-1][j-1] + (s[i-1] != t[j-1]));
+                           L[i][j-1] + 1,
+                           L[i-1][j-1] + (s[i-1] != t[j-1]));
         }
     }
 #endif
