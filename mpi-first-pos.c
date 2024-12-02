@@ -54,7 +54,7 @@ To execute:
 
         mpirun -n 4 ./mpi-first-pos [N [k]]
 
-This program initializes the input array as `v[] = {0, 1, ..., N-1}`.
+This program initializes the input array as `v[] = {0, 1, ..., N/4, 0, 1, ..., N/4, ...}`.
 
 Example:
 
@@ -121,7 +121,7 @@ int main( int argc, char *argv[] )
         v = (int*)malloc(N * sizeof(*v));
         assert(v != NULL);
         for (int i=0; i<N; i++) {
-            v[i] = i;
+            v[i] = i % (N/4);
         }
     }
 
@@ -190,7 +190,7 @@ int main( int argc, char *argv[] )
 #endif
 
     if ( 0 == my_rank ) {
-        const int expected = (k>=0 && k<N ? k : N);
+        const int expected = (k>=0 && k<(N/4) ? k : N);
         printf("Result: %d ", minpos);
         if (minpos == expected) {
             printf("OK\n");
