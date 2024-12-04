@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * opencl-bsearch.cl -- kernel for opencl-bsearch.c
+ * opencl-bsearch.cl - kernel for opencl-bsearch.c
  *
  * Copyright 2022--2024 Moreno Marzolla <moreno.marzolla(at)unibo.it>
  *

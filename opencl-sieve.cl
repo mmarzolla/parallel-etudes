@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * opencl-sieve.cl -- kernel for opencl-sieve.c
+ * opencl-sieve.cl - kernel for opencl-sieve.c
  *
  * Copyright (C) 2023 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *

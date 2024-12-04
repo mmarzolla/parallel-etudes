@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * opencl-denoise.c -- Image denoising using the median filter
+ * opencl-denoise.c - Image denoising using the median filter
  *
  * Copyright (C) 2018--2024 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *

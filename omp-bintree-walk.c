@@ -2,7 +2,7 @@
  *
  * omp-bintree-walk.c - Parallel Binary Search Tree traversal with OpenMP tasks
  *
- * Copyright (C) 2023 by Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2023 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

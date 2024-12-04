@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * cuda-denoise.cu -- Image denoising
+ * cuda-denoise.cu - Image denoising
  *
  * Copyright (C) 2018--2024 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *

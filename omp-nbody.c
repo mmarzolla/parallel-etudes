@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * omp-nbody.c -- N-body simulation
+ * omp-nbody.c - N-body simulation
  *
  * Copyright (C) Mark Harris
  * Copyright (C) 2021, 2022 Moreno Marzolla <https://www.moreno.marzolla.name/>

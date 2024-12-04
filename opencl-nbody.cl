@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * opencl-nbody.cl -- Kernels for opencl-nbody.c
+ * opencl-nbody.cl - Kernels for opencl-nbody.c
  *
  * Copyright (C) 2021, 2022 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *

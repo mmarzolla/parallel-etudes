@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * opencl-letters.cl -- kernel for opencl-letters.c
+ * opencl-letters.cl - kernel for opencl-letters.c
  *
  * Copyright (C) 2023 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *

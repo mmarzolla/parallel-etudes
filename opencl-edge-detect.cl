@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * opencl-edge-detect.cl -- Kernels for opencl-edge-detect.c
+ * opencl-edge-detect.cl - Kernels for opencl-edge-detect.c
  *
  * Copyright (C) 2022 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *

@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * opencl-denoise.cl -- kernel for opencl-denoise.c
+ * opencl-denoise.cl - kernel for opencl-denoise.c
  *
  * Copyright (C) 2021, 2022 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *

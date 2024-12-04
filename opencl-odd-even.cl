@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * opencl-odd-evenl.cl -- kernel for opencl-odd-even.c
+ * opencl-odd-evenl.cl - kernel for opencl-odd-even.c
  *
  * Copyright (C) 2021 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *

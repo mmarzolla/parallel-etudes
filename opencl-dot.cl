@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * opencl-dot.cl -- kernel for opencl-dot.c
+ * opencl-dot.cl - kernel for opencl-dot.c
  *
  * Copyright (C) 2021, 2024 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *

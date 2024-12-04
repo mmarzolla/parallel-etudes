@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * opencl-anneal.cl -- Kernels for opencl-anneal.c
+ * opencl-anneal.cl - Kernels for opencl-anneal.c
  *
  * Copyright (C) 2021, 2022 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *

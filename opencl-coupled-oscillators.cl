@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * opencl-coupled-oscillators.cl -- Kernel for opencl-coupled-oscillator.c
+ * opencl-coupled-oscillators.cl - Kernel for opencl-coupled-oscillator.c
  *
  * Copyright (C) 2021 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *

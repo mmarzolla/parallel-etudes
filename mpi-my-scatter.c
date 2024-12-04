@@ -2,7 +2,7 @@
  *
  * mpi-my-scatter.c - Scatter usando comunicazioni punto-punto
  *
- * Copyright (C) 2021 by Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2021 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

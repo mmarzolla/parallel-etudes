@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * opencl-rule30.cl -- Kernels for opencl-rule30.c
+ * opencl-rule30.cl - Kernels for opencl-rule30.c
  *
  * Copyright (C) 2021 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *

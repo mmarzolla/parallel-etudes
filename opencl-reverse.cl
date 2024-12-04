@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * opencl-reverse.cl -- Kernels for opencl-reverse.c
+ * opencl-reverse.cl - Kernels for opencl-reverse.c
  *
  * Copyright (C) 2021 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *

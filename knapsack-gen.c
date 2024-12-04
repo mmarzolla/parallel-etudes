@@ -2,7 +2,7 @@
  *
  * knapsack-gen.c - generate instances for the knapsack solver
  *
- * Written in 2016, 2017 by Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Written in 2016, 2017 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

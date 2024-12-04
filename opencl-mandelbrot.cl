@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * opencl-mandelbrot.cl -- Kernel for opencl-mandelbrot.c
+ * opencl-mandelbrot.cl - Kernel for opencl-mandelbrot.c
  *
  * Copyright (C) 2022 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *

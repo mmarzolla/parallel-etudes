@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * opencl-knapsack.cl -- Kernel for opencl-knapsack.c
+ * opencl-knapsack.cl - Kernel for opencl-knapsack.c
  *
  * Copyright (C) 2022 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *

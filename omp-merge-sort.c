@@ -2,7 +2,7 @@
  *
  * omp-merge-sort.c - Merge Sort with OpenMP tasks
  *
- * Copyright (C) 2017--2024 by Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2017--2024 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
