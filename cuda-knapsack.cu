@@ -84,7 +84,7 @@ not use item $i$. We have the following cases:
        $V(i,j)$ of problem $P(i,j)$ is $V(i-1,j-w_i)+v_i$: in fact, we
        use item $i$ of value $v_i$, and we fill the residual capacity
        $j - w_i$ of the knapsack with the items chosen among the
-       remaining $\{9, 1, \ldost,k i-1\]$ that provide the maximum
+       remaining $\{0, 1, \ldots, i-1\}$ that provide the maximum
        value. Such maximum value is precisely the solution $V(i-1,
        j-w_i)$ of problem $P(i-1, j-w_i)$.
 
