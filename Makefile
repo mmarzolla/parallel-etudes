@@ -69,6 +69,8 @@ opencl-nbody-local: LDLIBS+=-lm
 opencl-nbody-local: opencl-nbody.c
 	$(CC) $(CFLAGS) $< -o $@ $(LDLIBS)
 
+omp-tri-gemv: LDLIBS+=-lm
+
 cuda: $(EXE_CUDA)
 
 % : %.cu
