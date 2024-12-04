@@ -26,9 +26,8 @@
 
 Write a MPI program that solves the following problem. Given a
 non-empty integer array `v[0..N-1]` of length $N$, and an integer
-value $k$, find the position (index) of the first occurrence of $k$ in
-`v[]`; if $k$ is not present, the result must be $N$ (which is not a
-valid index of the array, so we know that $N$ is not a valid result).
+$k$, find the position (index) of the first occurrence of $k$ in
+`v[]`; if $k$ is not present, the result must be $N$.
 
 For example, if `v[] = {3, 15, -1, 15, 21, 15, 7}` and `k = 15`, the
 result is 1, since `v[1]` is the first occurrence of `15`. If $k$ were
@@ -37,11 +36,11 @@ array must be returned.
 
 You may assume that:
 
-- the array length $N$ is much larger than the number of MPI processes $P$.
+- the array length $N$ is much larger than the number $P$ of MPI processes.
 
 - The array length $N$ is an integer multiple of $P$.
 
-- At the beginning, the array length $N$, the value of $k$ are known
+- At the beginning, the array length $N$ and the value $k$ are known
   by all processes; however, the content of `v[]` is known by process
   0 only.
 
@@ -119,6 +118,7 @@ int main( int argc, char *argv[] )
         minpos = 0;
         while (minpos < N && v[minpos] != k)
             minpos++;
+        /* Invariant: (minpos == N) or (minpos is the first occurrence of k in v[]) */
     }
 #else
     /* All processes initialize the local buffers */
