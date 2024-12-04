@@ -124,25 +124,39 @@ mandelbrot_area_kernel( int xsize,
     const int x = blockIdx.x * blockDim.x + threadIdx.x;
     const int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-    __shared__ uint32_t local_inside;
-
-    if (lx == 0 && ly == 0)
-        local_inside = 0;
-
-    __syncthreads();
+    __shared__ uint32_t local_inside[BLKDIM][BLKDIM];
 
     if (x < xsize && y < ysize) {
         const float cx = XMIN + (XMAX - XMIN) * x / xsize;
         const float cy = YMIN + (YMAX - YMIN) * y / ysize;
         const int v = iterate(cx, cy);
-        if (v >= MAXIT)
-            atomicAdd(&local_inside, 1);
-    }
+        local_inside[ly][lx] = (v >= MAXIT);
+    } else
+        local_inside[ly][lx] = 0;
 
     __syncthreads();
 
-    if (lx == 0 && ly == 0)
-        atomicAdd(ninside, local_inside);
+    /* column-wisd reduction */
+    for ( int bsize = blockDim.x / 2; bsize > 0; bsize /= 2 ) {
+        if ( lx < bsize ) {
+            local_inside[ly][lx] += local_inside[ly][lx + bsize];
+        }
+        __syncthreads();
+    }
+
+    /* Row-wise reduction on first column */
+    if (lx == 0) {
+        for ( int bsize = blockDim.y / 2; bsize > 0; bsize /= 2 ) {
+            if ( ly < bsize ) {
+                local_inside[ly][0] += local_inside[ly + bsize][0];
+            }
+            __syncthreads();
+        }
+
+        if (ly == 0)
+            atomicAdd(ninside, local_inside[0][0]);
+    }
+
 }
 #endif
 
