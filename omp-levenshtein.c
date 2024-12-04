@@ -22,7 +22,7 @@
 /***
 % HPC - Levenshtein's edit distance
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2024-12-02
+% Last updated: 2024-12-04
 
 The file [omp-levenshtein.c](omp-levenhstein.c) contains a serial
 implementation of [Levenshtein's
@@ -43,48 +43,53 @@ description of the algorithm is provided below.
 Let $s[]$ and $t[]$ be two strings of lengths $n \leq 0, m \leq 0$
 respectively. Let $L[i][j]$ be the edit distance between the prefix of
 $s$ of length $i$ (denoted as $s[0 \ldots i-1]$) and the prefix of $t$
-of length $j$ (denoted as $s[0 \ldots j-1]$), $0 \leq \leq n$, $0 \leq
-j \leq m$ (pay attention to the indices). In other words, $L[i][j]$ is
-the minimum number of edit operations that are required to transform
-the first $i$ characters of $s$ into the first $j$ characters of
-$t$. Each operation is assumed to have unitary cost.
+of length $j$ (denoted as $s[0 \ldots j-1]$), $i=0, \ldots, n$, $j =
+0, \ldots, m$. In other words, $L[i][j]$ is the minimum number of edit
+operations that are required to transform the first $i$ characters of
+$s$ into the first $j$ characters of $t$. Each operation is assumed to
+have unitary cost.
 
-The simplest situation arises when one of the prefixes is empty,
-i.e., $i=0$ or $j=0$:
+The base case arises when one of the prefixes is empty, i.e., $i=0$ or
+$j=0$:
 
-- If $i=0$ the first prefix is empty, so to transform it into
-  $t[0 \ldots j-1]$ we need to perform $j$ insert operations. Therefore,
-  $L[0][j] = j$.
+- If $i=0$ the first prefix is empty, so to transform an empty string
+  into $t[0 \ldots j-1]$ we need $j$ insert operations, hence $L[0][j]
+  = j$.
 
 - If $j=0$ the second prefix is empty, so to transform $s[0 \ldots
-  i-1]$ into the empty string we need to perform $i$ removal
-  operations.  Therefore, $L[i][0] = i$.
+  i-1]$ into the empty string we need $i$ removal operations, hence
+  $L[i][0] = i$.
 
-If both $i$ and $j$ are nonzero, we need to look at the $i$-th
-character of string $s$ ($s[i-1]$) and the $j$-th character of string
-$t$ ($t[j-1]$). We have the following cases:
-
-- If $s[i-1] = t[j-1]$, then the last character of the prefixes is the
-  same. Therefore, to transform the substring $s[0 \ldots i-1]$ into
-  $t[0 \ldots j-1]$ we ignore the last characters and transform $s[0
-  \ldots i-2]$ into $t[0 \ldots j-2]$. The cost of the latter is
-  $L[i-1][j-1]$ (note the indices). Hence, in this case: $L[i][j] =
-  L[i-1][j-1]$.
+If both $i$ and $j$ are nonzero, we look at the last character of (the
+prefix of) $s$ ($s[i-1]$) and $t$ ($t[j-1]$):
 
 - If $s[i-1] \neq t[j-1]$, we have three sub-choices:
 
-  a. Delete the last character of the substring $s[i-1]$ and transform
-     the rest into $t[0 \ldots j-1]$. Cost is $1 + L[i-1][j]$ (one
+  a. Delete the last character of $s[0 \ldots i-1]$ and transform $s[0
+     \ldots i-2]$ into $t[0 \ldots j-1]$. Cost: $1 + L[i-1][j]$ (one
      delete operation, plus the cost of transforming $s[i-2]$ into
      $t[j-1]$).
 
-  b. Delete the last character of the substring $t[j-1]$ and transform
-     $s[0 \ldots i-1]$ into $t[0 \ldots j-2]$. Cost is $1 +
-     L[i][j-1]$.
+  b. Delete the last character of $t[0 \ldots j-1]$ and transform $s[0
+     \ldots i-1]$ into $t[0 \ldots j-2]$. Cost: $1 + L[i][j-1]$.
 
-  c. Replace the last character of $s[0 \ldots i-1]$ with the last
-     character of $t[0 \ldots j-1]$, and transform the prefix $s[0
-     \ldots i-2]$ into $t[0 \ldots j-2]$. Cost is $1 + L[i-1][j-1]$.
+  c. Replace $s[i-1]$ with $t[j-1]$, and transform the prefix $s[0
+     \ldots i-2]$ into $t[0 \ldots j-2]$. Cost: $1 + L[i-1][j-1]$.
+
+- If $s[i-1] = t[j-1]$, we have the same cases, the only difference
+  being case c:
+
+  a. Delete the last character of $s[0 \ldots i-1]$ and transform $s[0
+     \ldots i-2]$ into $t[0 \ldots j-1]$. Cost: $1 + L[i-1][j]$ (one
+     delete operation, plus the cost of transforming $s[i-2]$ into
+     $t[j-1]$).
+
+  b. Delete the last character of $t[0 \ldots j-1]$ and transform $s[0
+     \ldots i-1]$ into $t[0 \ldots j-2]$. Cost: $1 + L[i][j-1]$.
+
+  c. Keep $s[i-1]$ (which is equal to $t[j-1]$ in this case) and
+     transform the prefix $s[0 \ldots i-2]$ into $t[0 \ldots
+     j-2]$. Cost: $L[i-1][j-1]$.
 
 All cases above can be summarized in a single equation:
 
@@ -112,6 +117,25 @@ can rewrite the loops so that the matrix is filled diagonally through
 a _wavefront computation_. The computation of the values on the
 diagonal can indeed be computed in parallel since they have no
 inter-dependences.
+
+The wavefront computation can be implemented as follows:
+
+```C
+for (int slice=0; slice < n + m - 1; slice++) {
+    const int z1 = slice < m ? 0 : slice - m + 1;
+    const int z2 = slice < n ? 0 : slice - n + 1;
+    for (int ii = slice - z2; ii >= z1; ii--) {
+        const int jj = slice - ii;
+        const int i = ii + 1;
+        const int j = jj + 1;
+        L[i][j] = min3(L[i-1][j] + 1,
+                       L[i][j-1] + 1,
+                       L[i-1][j-1] + (s[i-1] != t[j-1]));
+    }
+}
+```
+
+and the inner loop can be parallelized.
 
 Compile with:
 
