@@ -40,28 +40,27 @@ To solve this exercise you are not required to know the details; for
 the sake of completeness (and for those who are interested), a brief
 description of the algorithm is provided below.
 
-Let $s[]$ and $t[]$ be two strings of lengths $n \leq 0, m \leq 0$
-respectively. Let $L[i][j]$ be the edit distance between the prefix of
-$s$ of length $i$ (denoted as $s[0 \ldots i-1]$) and the prefix of $t$
-of length $j$ (denoted as $s[0 \ldots j-1]$), $i=0, \ldots, n$, $j =
-0, \ldots, m$. In other words, $L[i][j]$ is the minimum number of edit
+Let $s[]$ and $t[]$ be two strings of lengths $n \geq 0, m \geq 0$
+respectively. Let $L[i][j]$ be the edit distance between the prefix
+$s[0 \ldots i-1]$ of length $i$ and $t[0 \ldots j-1]$ of length $j$,
+$i=0, \ldots, n$, $j = 0, \ldots, m$.
+In other words, $L[i][j]$ is the minimum number of edit
 operations that are required to transform the first $i$ characters of
-$s$ into the first $j$ characters of $t$. Each operation is assumed to
-have unitary cost.
+$s$ into the first $j$ characters of $t$.
 
 The base case arises when one of the prefixes is empty, i.e., $i=0$ or
 $j=0$:
 
-- If $i=0$ the first prefix is empty, so to transform an empty string
-  into $t[0 \ldots j-1]$ we need $j$ insert operations, hence $L[0][j]
-  = j$.
+- If $i=0$ then the first prefix is empty, so to transform an empty
+  string into $t[0 \ldots j-1]$ we need $j$ insert operations:
+  $L[0][j] = j$.
 
-- If $j=0$ the second prefix is empty, so to transform $s[0 \ldots
-  i-1]$ into the empty string we need $i$ removal operations, hence
+- If $j=0$ then the second prefix is empty, so to transform $s[0 \ldots
+  i-1]$ into the empty string we need $i$ removal operations:
   $L[i][0] = i$.
 
-If both $i$ and $j$ are nonzero, we look at the last character of (the
-prefix of) $s$ ($s[i-1]$) and $t$ ($t[j-1]$):
+If both $i$ and $j$ are nonzero, we look at the last characters of
+$s[0 \ldots i-1]$ and $t[0 \ldots j-1]$:
 
 - If $s[i-1] \neq t[j-1]$, we have three sub-choices:
 
@@ -89,7 +88,7 @@ prefix of) $s$ ($s[i-1]$) and $t$ ($t[j-1]$):
 
   c. Keep $s[i-1]$ (which is equal to $t[j-1]$ in this case) and
      transform the prefix $s[0 \ldots i-2]$ into $t[0 \ldots
-     j-2]$. Cost: $L[i-1][j-1]$.
+     j-2]$. Cost: $L[i-1][j-1]$ (keeping a character has zero cost).
 
 All cases above can be summarized in a single equation:
 
