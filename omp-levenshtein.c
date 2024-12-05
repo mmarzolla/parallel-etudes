@@ -22,7 +22,7 @@
 /***
 % HPC - Levenshtein's edit distance
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2024-12-04
+% Last updated: 2024-12-05
 
 The file [omp-levenshtein.c](omp-levenhstein.c) contains a serial
 implementation of [Levenshtein's
@@ -40,7 +40,7 @@ To solve this exercise you are not required to know the details; for
 the sake of completeness (and for those who are interested), a brief
 description of the algorithm is provided below.
 
-Let $s[]$ and $t[]$ be two strings of lengths $n \geq 0, m \geq 0$
+Let $s$ and $t$ be two strings of lengths $n \geq 0, m \geq 0$
 respectively. Let $L[i][j]$ be the edit distance between the prefix
 $s[0 \ldots i-1]$ of length $i$ and $t[0 \ldots j-1]$ of length $j$,
 $i=0, \ldots, n$, $j = 0, \ldots, m$.
@@ -59,10 +59,7 @@ $j=0$:
   i-1]$ into the empty string we need $i$ removal operations:
   $L[i][0] = i$.
 
-If both $i$ and $j$ are nonzero, we look at the last characters of
-$s[0 \ldots i-1]$ and $t[0 \ldots j-1]$:
-
-- If $s[i-1] \neq t[j-1]$, we have three sub-choices:
+If both $i$ and $j$ are nonzero, we  have three possibilities:
 
   a. Delete the last character of $s[0 \ldots i-1]$ and transform $s[0
      \ldots i-2]$ into $t[0 \ldots j-1]$. Cost: $1 + L[i-1][j]$ (one
@@ -72,23 +69,17 @@ $s[0 \ldots i-1]$ and $t[0 \ldots j-1]$:
   b. Delete the last character of $t[0 \ldots j-1]$ and transform $s[0
      \ldots i-1]$ into $t[0 \ldots j-2]$. Cost: $1 + L[i][j-1]$.
 
-  c. Replace $s[i-1]$ with $t[j-1]$, and transform the prefix $s[0
-     \ldots i-2]$ into $t[0 \ldots j-2]$. Cost: $1 + L[i-1][j-1]$.
+  c. Depending on the last characters of the prefixes
+     of $s$ and $t$:
 
-- If $s[i-1] = t[j-1]$, we have the same cases, the only difference
-  being case c:
+     1. If the last characters are the same ($s[i-1] = t[j+1]$), then
+        we may keep the last characters and transform $s[0 \ldots
+        i-2]$ into $t[0 \ldots j-2]$. Cost: $L[i-1][j-1]$.
 
-  a. Delete the last character of $s[0 \ldots i-1]$ and transform $s[0
-     \ldots i-2]$ into $t[0 \ldots j-1]$. Cost: $1 + L[i-1][j]$ (one
-     delete operation, plus the cost of transforming $s[i-2]$ into
-     $t[j-1]$).
-
-  b. Delete the last character of $t[0 \ldots j-1]$ and transform $s[0
-     \ldots i-1]$ into $t[0 \ldots j-2]$. Cost: $1 + L[i][j-1]$.
-
-  c. Keep $s[i-1]$ (which is equal to $t[j-1]$ in this case) and
-     transform the prefix $s[0 \ldots i-2]$ into $t[0 \ldots
-     j-2]$. Cost: $L[i-1][j-1]$ (keeping a character has zero cost).
+     2. If the last characters are different (i.e., $s[i-1] \neq
+        t[i-1]$), we can replace $s[i-1]$ with $t[j-1]$, and transform
+        $s[0 \ldots i-2]$ into $t[0 \ldots j-2]$. Cost: $1 +
+        L[i-1][j-1]$.
 
 All cases above can be summarized in a single equation:
 
@@ -100,13 +91,12 @@ i & \mbox{if $i > 0, j=0$} \\
 \end{cases}
 $$
 
-where $1_P$ is the _indicator function_ for predicate $P$, i.e., an
-expression whose value is 1 iff $P$ is true, 0 otherwise.  The result
-is $L[n+1][m+1]$.
+where $1_P$ is the _indicator function_ of predicate $P$, i.e., a
+function whose value is 1 iff $P$ is true, 0 otherwise.
 
 The core of the algorithm is the computation of the entries of matrix
-$L[][]$ of size $(n+1) \times (m+1)$; the equation above shows that
-the matrix can be filled using two nested loops, and is based on a
+$L$ of size $(n+1) \times (m+1)$; the equation above shows that the
+matrix can be filled using two nested loops, and is based on a
 _three-point stencil_ since the value of each element depends of the
 value above, on the left, and on the upper left corner.
 
