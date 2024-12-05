@@ -175,6 +175,41 @@ void vec_shift_right_par2(int *a, int n)
 #endif
 }
 
+/* Reverse a[i..j] */
+void reverse(int *a, int i, int j)
+{
+    const int len = j-i+1;
+#pragma omp parallel for default(none) shared(a,i,j,len)
+    for (int k=0; k < len/2; k++) {
+        const int left = i+k;
+        const int right = j-k;
+        assert(left < right);
+        const int tmp = a[right];
+        a[right] = a[left];
+        a[left] = tmp;
+    }
+}
+
+/* The following algorithm is reported for information, since it is
+   based on an obscure and nontrivial idea; I read about this
+   algorithm in the book "Programming Pearls", by Jon Bentley,
+   Addison-Wesley Professional; 2nd edition (September 27, 1999) ISBN
+   978-0201657883.
+
+   A right-k-shift of a[] can be realized using three array reversals:
+
+   1. reverse the first (n-k) elements of a[].
+   2. reverse the last k elements of a[].
+   3. reverse a[].
+
+   In our case k==1, so the second step is not necessary.
+*/
+void vec_shift_right_par3(int *a, int n)
+{
+    reverse(a, 0, n-2);
+    reverse(a, 0, n-1);
+}
+
 /****************************************************************************/
 
 /* This function converts 2D indexes into a linear index; n is the
@@ -360,6 +395,15 @@ int main( void )
     printf("vec_shift_right_par2()\t"); fflush(stdout);
     fill(a2, N);
     vec_shift_right_par2(a2, N);
+    if ( array_equal(a1, a2, N) ) {
+        printf("OK\n");
+    } else {
+        printf("FAILED\n");
+    }
+
+    printf("vec_shift_right_par3()\t"); fflush(stdout);
+    fill(a2, N);
+    vec_shift_right_par3(a2, N);
     if ( array_equal(a1, a2, N) ) {
         printf("OK\n");
     } else {
