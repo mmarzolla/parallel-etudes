@@ -28,7 +28,7 @@ void eval_kernel(__global const int *x,
                  int v,
                  __global int *nsat)
 {
-    __local int nsol[SCL_DEFAULT_WG_SIZE];
+    __local int nsol[SCL_DEFAULT_WG_SIZE1D];
     const int lindex = get_local_id(0);
     const int gindex = get_global_id(0);
     const int MAX_VALUE = (1 << nlit) - 1;
