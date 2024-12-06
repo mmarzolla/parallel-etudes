@@ -55,8 +55,8 @@ mandelbrot_area_kernel( int xsize,
     const int lx = get_local_id(0);
     const int ly = get_local_id(1);
 
-    const float XMIN = -2.25, XMAX = 0.75;
-    const float YMIN = -1.4, YMAX = 1.5;
+    const float XMIN = -2.25f, XMAX = 0.75f;
+    const float YMIN = -1.4f, YMAX = 1.5f;
 
     __local uint32_t local_inside[SCL_DEFAULT_WG_SIZE2D][SCL_DEFAULT_WG_SIZE2D];
 
@@ -70,6 +70,7 @@ mandelbrot_area_kernel( int xsize,
 
     barrier(CLK_LOCAL_MEM_FENCE);
 
+#if 0
     /* Column-wise reduction */
     for ( int bsize = get_local_size(0) / 2; bsize > 0; bsize /= 2 ) {
         if ( lx < bsize ) {
@@ -90,4 +91,23 @@ mandelbrot_area_kernel( int xsize,
         if (ly == 0)
             atomic_add(ninside, local_inside[0][0]);
     }
+#else
+    int xbsize = get_local_size(0), ybsize = get_local_size(1) / 2;
+    while (xbsize > 0 && ybsize > 0) {
+        /* Column-wise reduction */
+        if ( lx < xbsize && ly < ybsize ) {
+            local_inside[ly][lx] += local_inside[ly + ybsize][lx];
+        }
+        xbsize /= 2;
+        barrier(CLK_LOCAL_MEM_FENCE);
+        /* Row-wise reduction */
+        if ( lx < xbsize && ly < ybsize ) {
+            local_inside[ly][lx] += local_inside[ly][lx + xbsize];
+        }
+        ybsize /= 2;
+        barrier(CLK_LOCAL_MEM_FENCE);
+    }
+    if (ly == 0 && lx == 0)
+        atomic_add(ninside, local_inside[0][0]);
+#endif
 }
