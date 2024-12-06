@@ -59,7 +59,7 @@ $j=0$:
   i-1]$ into the empty string we need $i$ removal operations:
   $L[i][0] = i$.
 
-If both $i$ and $j$ are nonzero, we  have three possibilities:
+If both $i$ and $j$ are nonzero, we  have three possibilities (see Fig. 1):
 
   a. Delete the last character of $s[0 \ldots i-1]$ and transform $s[0
      \ldots i-2]$ into $t[0 \ldots j-1]$. Cost: $1 + L[i-1][j]$ (one
@@ -80,6 +80,8 @@ If both $i$ and $j$ are nonzero, we  have three possibilities:
         t[i-1]$), we can replace $s[i-1]$ with $t[j-1]$, and transform
         $s[0 \ldots i-2]$ into $t[0 \ldots j-2]$. Cost: $1 +
         L[i-1][j-1]$.
+
+![Figure 1: Computation of $L[i][j]$](omp-levenshtein.svg)
 
 All cases above can be summarized in a single equation:
 
