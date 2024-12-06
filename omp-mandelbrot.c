@@ -139,15 +139,20 @@ int iterate( float cx, float cy )
 /* Draw the Mandelbrot set on the bitmap pointed to by `p`. */
 void draw_lines( pixel_t* bmap, int xsize, int ysize )
 {
+    const float XMIN = -2.3, XMAX = 1.0;
+    const float SCALE = (XMAX - XMIN)*ysize / xsize;
+    const float YMIN = -SCALE/2, YMAX = SCALE/2;
+
 #ifndef SERIAL
-#pragma omp parallel for schedule(dynamic) default(none) shared(bmap, xsize, ysize, MAXIT, NCOLORS, COLORS)
+#pragma omp parallel for schedule(dynamic) default(none) shared(bmap, xsize, ysize, MAXIT, NCOLORS, COLORS, XMIN, XMAX, YMIN, YMAX)
 #endif
     for ( int y = 0; y < ysize; y++) {
         for ( int x = 0; x < xsize; x++ ) {
-            const float cx = -2.5 + 3.5 * (float)x / (xsize - 1);
-            const float cy = 1 - 2.0 * (float)y / (ysize - 1);
-            const int v = iterate(cx, cy);
             pixel_t *p = &bmap[y*xsize + x];
+            const float re = XMIN + (XMAX - XMIN) * (float)(x) / (xsize - 1);
+            const float im = YMAX - (YMAX - YMIN) * (float)(y) / (ysize - 1);
+            const int v = iterate(re, im);
+
             if (v < MAXIT) {
                 p->r = COLORS[v % NCOLORS].r;
                 p->g = COLORS[v % NCOLORS].g;
@@ -155,7 +160,6 @@ void draw_lines( pixel_t* bmap, int xsize, int ysize )
             } else {
                 p->r = p->g = p->b = 0;
             }
-            p++;
         }
     }
 }

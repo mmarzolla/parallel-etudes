@@ -24,7 +24,7 @@
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last updated: 2024-01-04
 
-![](mandelbrot-set.png)
+![Figure 1: The Mandelbrot set.](mandelbrot-set.png)
 
 The file [opencl-mandelbrot.c](opencl-mandelbrot.c) contains a serial
 program that computes the Mandelbrot set. The program accepts the

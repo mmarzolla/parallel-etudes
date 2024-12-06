@@ -24,7 +24,7 @@
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last updated: 2024-09-03
 
-![](mandelbrot-set.png)
+![Figure 1: The Mandelbrot set.](mandelbrot-set.png)
 
 The file [cuda-mandelbrot.cu](cuda-mandelbrot.cu) contains a serial
 program that computes the Mandelbrot set. The program accepts the

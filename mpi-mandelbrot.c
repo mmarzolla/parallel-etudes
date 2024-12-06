@@ -24,7 +24,7 @@
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last updated: 2023-11-13
 
-![](mandelbrot-set.png)
+![Figure 1: The Mandelbrot set.](mandelbrot-set.png)
 
 The file [mpi-mandelbrot.c](mpi-mandelbrot.c) contains a MPI program
 that computes the Mandelbrot set; it is not a parallel program,
@@ -41,9 +41,9 @@ can use the following command on the Linux server:
 Write a parallel version where all MPI processes contribute to the
 computation. To do this, we can partition the image into $P$ vertical
 blocks where $P$ is the number of MPI processes, and let each process
-draws a portion of the image (see Figure 1).
+draws a portion of the image (see Figure 2).
 
-![Figure 1: Domain decomposition for the computation of the Mandelbrot
+![Figure 2: Domain decomposition for the computation of the Mandelbrot
  set with 4 MPI processes](mpi-mandelbrot.png)
 
 Specifically, each process computes a portion of the image of size
