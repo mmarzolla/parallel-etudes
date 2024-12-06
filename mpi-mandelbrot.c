@@ -155,13 +155,18 @@ int iterate( float cx, float cy )
    of the WHOLE image. */
 void draw_lines( int ystart, int yend, pixel_t* p, int xsize, int ysize )
 {
+    const float XMIN = -2.3, XMAX = 1.0;
+    const float SCALE = (XMAX - XMIN)*ysize / xsize;
+    const float YMIN = -SCALE/2, YMAX = SCALE/2;
     int x, y;
+
     for ( y = ystart; y < yend; y++) {
         for ( x = 0; x < xsize; x++ ) {
-            const float cx = -2.5 + 3.5 * (float)x / (xsize - 1);
-            const float cy = 1 - 2.0 * (float)y / (ysize - 1);
-            const int v = iterate(cx, cy);
-            if (v < MAXIT) {
+             const float re = XMIN + (XMAX - XMIN) * (float)(x) / (xsize - 1);
+             const float im = YMAX - (YMAX - YMIN) * (float)(y) / (ysize - 1);
+             const int v = iterate(re, im);
+
+             if (v < MAXIT) {
                 p->r = colors[v % NCOLORS].r;
                 p->g = colors[v % NCOLORS].g;
                 p->b = colors[v % NCOLORS].b;

@@ -148,9 +148,13 @@ mandelbrot_kernel( int xsize, int ysize, pixel_t* bmap)
 
     if (x < xsize && y < ysize) {
         pixel_t *p = bmap + y * xsize + x;
-        const float cx = -2.5f + 3.5f * (float)x / (xsize - 1);
-        const float cy = 1 - 2.0f * (float)y / (ysize - 1);
-        const int v = iterate(cx, cy);
+        const float XMIN = -2.3, XMAX = 1.0;
+        const float SCALE = (XMAX - XMIN)*ysize / xsize;
+        const float YMIN = -SCALE/2, YMAX = SCALE/2;
+        const float re = XMIN + (XMAX - XMIN) * (float)(x) / (xsize - 1);
+        const float im = YMAX - (YMAX - YMIN) * (float)(y) / (ysize - 1);
+        const int v = iterate(re, im);
+
         if (v < MAXIT) {
             p->r = colors[v % NCOLORS].r;
             p->g = colors[v % NCOLORS].g;

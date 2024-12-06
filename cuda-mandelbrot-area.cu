@@ -82,10 +82,8 @@ For example, to use a grid of $1000 \times 1000$$ points:
 
 /* We consider the region on the complex plane -2.25 <= Re <= 0.75
    -1.4 <= Im <= 1.5 */
-const float XMIN = -2.25f;
-const float XMAX = 0.75f;
-const float YMIN = -1.4f;
-const float YMAX = 1.5f;
+const float XMIN = -2.25f, XMAX = 0.75f;
+const float YMIN = -1.4f, YMAX = 1.5f;
 
 #define MAXIT 10000
 

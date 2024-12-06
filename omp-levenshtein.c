@@ -83,7 +83,8 @@ If both $i$ and $j$ are nonzero, we  have three possibilities (see Fig. 1):
 
 ![Figure 1: Computation of $L[i][j]$](omp-levenshtein.svg)
 
-All cases above can be summarized in a single equation:
+We choose the alternative that minimizes the cost, so we can summazize
+the cases above with the following expression:
 
 $$
 L[i][j] = \begin{cases}
