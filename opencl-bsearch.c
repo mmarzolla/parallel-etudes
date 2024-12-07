@@ -112,7 +112,9 @@ int main( int argc, char* argv[] )
 {
     int n = 1024*1024;
     int *x, result, key = n/2;          /* host copies of x, y, result */
+#ifndef SERIAL
     cl_mem d_x, d_result;               /* device copies of x, y, result */
+#endif
     const int max_len = n * 64;
 
     if ( argc > 3 ) {
@@ -133,22 +135,23 @@ int main( int argc, char* argv[] )
         key = atoi(argv[2]);
     }
     const size_t size = n * sizeof(*x);
-    sclInitFromFile("opencl-bsearch.cl");
-    sclKernel bsearch_kernel = sclCreateKernel("bsearch_kernel");
 
     /* Allocate space for host copies of x */
     x = (int*)malloc(size); assert(x != NULL);
     vec_init(x, n);
+
+    printf("Searching for %d on %d elements... ", key, n);
+#ifdef SERIAL
+    result = seq_bsearch(x, n, key);
+#else
+    sclInitFromFile("opencl-bsearch.cl");
+    sclKernel bsearch_kernel = sclCreateKernel("bsearch_kernel");
 
     /* Allocate space for device copies of x, result */
     d_x = sclMallocCopy(size, x, CL_MEM_READ_ONLY);
     d_result = sclMalloc(sizeof(result), CL_MEM_WRITE_ONLY);
 
     /* Launch bsearch() kernel on the device */
-    printf("Searching for %d on %d elements... ", key, n);
-#ifdef SERIAL
-    result = seq_bsearch(x, n, key);
-#else
     const sclDim BLOCK = DIM1(SCL_DEFAULT_WG_SIZE);
     const sclDim GRID = DIM1(SCL_DEFAULT_WG_SIZE);
     sclSetArgsEnqueueKernel(bsearch_kernel,
@@ -171,7 +174,9 @@ int main( int argc, char* argv[] )
 
     /* Cleanup */
     free(x);
+#ifndef SERIAL
     sclFree(d_x); sclFree(d_result);
     sclFinalize();
+#endif
     return EXIT_SUCCESS;
 }
