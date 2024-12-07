@@ -24,7 +24,53 @@
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
 % Last updated: 2024-12-07
 
-![](mandelbrot-set.png)
+The Mandelbrot set is the set of black points in Figure 1.
+
+![Figure 1: The Mandelbrot set](mandelbrot-set.png)
+
+The file [mpi-mandelbrot-area.c](mpi-mandelbrot-area.c) contains a
+serial program that computes an estimate of the area of the Mandelbrot
+set.
+
+The program works as follows. First, we identify a rectangle in the
+complex plane that contains the Mandelbrot set. Let _(XMIN, YMIN)_ and
+_(XMAX, YMAX)_ be the upper left and lower right coordinates of such a
+rectangle (the program defines these values).
+
+The program overlaps a regular grid of $N \times N$ points over the
+bounding rectangle. For each point we decide whether it belongs to the
+Mandelbrot set. Let $x$ be the number of points that belong to the
+Mandelbrot set (by construction, $x \leq N \times N$). Let $B$ be the
+area of the bounding rectangle defined as
+
+$$
+B := (\mathrm{XMAX} - \mathrm{XMIN}) \times (\mathrm{YMAX} - \mathrm{YMIN})
+$$
+
+Then, the area $A$ of the Mandelbrot set can be approximated as
+
+$$
+A \approx \frac{x}{N^2} \times B
+$$
+
+The approximation gets better as the number of points $N$ becomes
+larger. The exact value of $A$ is not known, but there are [some
+estimates](https://www.fractalus.com/kerry/articles/area/mandelbrot-area.html).
+
+Modify the serial program to use the distributed-memory parallelism
+provided by MPI. To this aim, you can logically distribute the $N$
+rows of the grid across $P$ MPI processes. No communication is
+required, since each process can compute the start (included) and end
+(excluded) line with the usual formulas:
+
+```
+const int local_ystart = (N * my_rank) / comm_sz;
+const int local_yend = (N * (my_rank+1)) / comm_sz;
+```
+
+Once each process has computed the number of points of the Mandelbrot
+set in its assigned strip, all processes can compute a sum-reduction
+of the local values to get the result.
 
 To compile:
 
