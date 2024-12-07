@@ -142,31 +142,31 @@ uint32_t inside( int xsize, int ysize )
 
 int main( int argc, char *argv[] )
 {
-    int npoints = 1000;
+    int N = 1000;
 
     if (argc > 2) {
-        fprintf(stderr, "Usage: %s [npoints]\n", argv[0]);
+        fprintf(stderr, "Usage: %s [N]\n", argv[0]);
         return EXIT_FAILURE;
     }
 
     if (argc > 1) {
-        npoints = atoi(argv[1]);
+        N = atoi(argv[1]);
     }
 
-    printf("Using a %d x %d grid\n", npoints, npoints);
+    printf("Using a %d x %d grid\n", N, N);
 
     /* Loop over grid of points in the complex plane which contains
        the Mandelbrot set, testing each point to see whether it is
        inside or outside the set. */
 
     const double tstart = omp_get_wtime();
-    const uint32_t ninside = inside(npoints, npoints);
+    const uint32_t ninside = inside(N, N);
     const double elapsed = omp_get_wtime() - tstart;
 
-    printf("npoints = %d, ninside = %u\n", npoints*npoints, ninside);
+    printf("N = %d, ninside = %u\n", N*N, ninside);
 
     /* Compute area and output the results */
-    const float area = (XMAX-XMIN)*(YMAX-YMIN)*ninside/(npoints*npoints);
+    const float area = (XMAX-XMIN)*(YMAX-YMIN)*ninside/(N*N);
 
     printf("Area of Mandlebrot set = %f\n", area);
     printf("Correct answer should be around 1.50659\n");

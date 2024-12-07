@@ -22,7 +22,7 @@
 /***
 % HPC - Area of the Mandelbrot set
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2024-01-05
+% Last updated: 2024-12-07
 
 ![](mandelbrot-set.png)
 
@@ -32,7 +32,7 @@ To compile:
 
 To execute:
 
-        mpirun -n NPROC ./mpi-mandelbrot-area [npoints]
+        mpirun -n NPROC ./mpi-mandelbrot-area [N]
 
 Example:
 
@@ -55,43 +55,31 @@ const int MAXIT = 10000;
 
 /* We consider the region on the complex plane -2.25 <= Re <= 0.75
    -1.4 <= Im <= 1.5 */
-const double XMIN = -2.25, XMAX = 0.75;
-const double YMIN = -1.5, YMAX = 1.5;
-
-struct d_complex {
-    double re;
-    double im;
-};
+const float XMIN = -2.25, XMAX = 0.75;
+const float YMIN = -1.4, YMAX = 1.5;
 
 /**
  * Performs the iteration z = z*z+c, until ||z|| > 2 when point is
- * known to be outside the Mandelbrot set. If loop count reaches
- * MAXIT, point is considered to be inside the set. Returns 1 iff
- * inside the set.
+ * known to be outside the Mandelbrot set. Return the number of
+ * iterations until ||z|| > 2, or MAXIT.
  */
-int inside(struct d_complex c)
+int iterate(float cx, float cy)
 {
-    struct d_complex z = {0.0, 0.0}, znew;
+    float x = 0.0f, y = 0.0f, xnew, ynew;
     int it;
-
-    for ( it = 0; (it < MAXIT) && (z.re*z.re + z.im*z.im <= 4.0); it++ ) {
-        znew.re = z.re*z.re - z.im*z.im + c.re;
-        znew.im = 2.0*z.re*z.im + c.im;
-        z = znew;
+    for ( it = 0; (it < MAXIT) && (x*x + y*y <= 2.0f*2.0f); it++ ) {
+        xnew = x*x - y*y + cx;
+        ynew = 2.0f*x*y + cy;
+        x = xnew;
+        y = ynew;
     }
-    return (it >= MAXIT);
-}
-
-/* Generate a random number in [a, b] */
-double randab(double a, double b)
-{
-    return a + ((b-a)*rand())/RAND_MAX;
+    return it;
 }
 
 int main( int argc, char *argv[] )
 {
     int my_rank, comm_sz;
-    int npoints;
+    int N = 1000;
     int ninside = 0;
 
     MPI_Init(&argc, &argv);
@@ -99,35 +87,36 @@ int main( int argc, char *argv[] )
     MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
 
     if ( argc > 1 ) {
-        npoints = atoi(argv[1]);
-    } else {
-        npoints = 1000;
+        N = atoi(argv[1]);
     }
-
-    srand(123 + 7*my_rank);
 
     const double tstart = MPI_Wtime();
 #ifdef SERIAL
     if ( 0 == my_rank ) {
         /* [TODO] This is not a true parallel version, since the master
            does everything */
-        for (int i=0; i<npoints; i++) {
-            struct d_complex c;
-            c.re = randab(XMIN, XMAX);
-            c.im = randab(YMIN, YMAX);
-            ninside += inside(c);
+        for (int i=0; i<N; i++) {
+            for (int j=0; j<N; j++) {
+                const float cx = XMIN + (XMAX-XMIN)*j/N;
+                const float cy = YMIN + (YMAX-YMIN)*i/N;
+                const int it = iterate(cx, cy);
+                ninside += (it >= MAXIT);
+            }
         }
     }
 #else
-    const int local_npoints = npoints / comm_sz + (my_rank < npoints % comm_sz);
+    const int local_ystart = N * my_rank / comm_sz;
+    const int local_yend = (N * (my_rank + 1)) / comm_sz;
     int local_ninside = 0;
-    for (int i=0; i<local_npoints; i++) {
-        struct d_complex c;
-        c.re = randab(XMIN, XMAX);
-        c.im = randab(YMIN, YMAX);
-        local_ninside += inside(c);
+    for (int i=local_ystart; i<local_yend; i++) {
+        for (int j=0; j<N; j++) {
+            const float cx = XMIN + (XMAX-XMIN)*j/N;
+            const float cy = YMIN + (YMAX-YMIN)*i/N;
+            const int it = iterate(cx, cy);
+            local_ninside += (it >= MAXIT);
+        }
     }
-    printf("Rank=%d local_npoints=%d local_ninside=%d\n", my_rank, local_npoints, local_ninside);
+    printf("Rank=%d local_ninside=%d\n", my_rank, local_ninside);
     MPI_Reduce(&local_ninside,  /* sendbuf      */
                &ninside,        /* recfbuf      */
                1,               /* count        */
@@ -139,13 +128,12 @@ int main( int argc, char *argv[] )
     const double elapsed = MPI_Wtime() - tstart;
 
     if (0 == my_rank) {
-        printf("npoints = %d, ninside = %u\n", npoints, ninside);
+        printf("N = %d, ninside = %u\n", N, ninside);
 
         /* Compute area and error estimate and output the results */
-        const double area = (XMAX-XMIN)*(YMAX-YMIN)*ninside/npoints;
-        const double error = area/sqrt(npoints);
+        const double area = (XMAX-XMIN)*(YMAX-YMIN)*ninside/(N*N);
 
-        printf("Area of Mandlebrot set = %12.8f +/- %12.8f\n", area, error);
+        printf("Area of Mandlebrot set = %f\n", area);
         printf("Correct answer should be around 1.50659\n");
         printf("Elapsed time: %f\n", elapsed);
     }
