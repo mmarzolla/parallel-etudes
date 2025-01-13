@@ -2,7 +2,7 @@
  *
  * mpi-check-sequence.c - Check a sequence
  *
- * Copyright (C) 2024 Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2025 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

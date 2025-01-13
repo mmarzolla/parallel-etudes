@@ -2,7 +2,7 @@
  *
  * mpi-lookup.c - Parallel linear search
  *
- * Copyright (C) 2021--2024 Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2021--2025 Moreno Marzolla <https://www.moreno.marzolla.name/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % HPC - Parallel linear search
 % [Moreno Marzolla](https://www.moreno.marzolla.name/)
-% Last updated: 2024-12-02
+% Last updated: 2025-01-13
 
 Write an MPI program that finds the positions of all occurrences of a
 given key `key` in an unsorted integer array `v[]`. For example, if
@@ -114,11 +114,11 @@ void fill(int *v, int n)
 int main( int argc, char *argv[] )
 {
     int my_rank, comm_sz;
-    int n = 1000;       /* lunghezza array di input */
-    int *v = NULL;      /* array di input */
-    int *result = NULL; /* array degli indici delle occorrenze */
-    int nf = 0;         /* numero di occorrenze trovate */
-    const int KEY = 42; /* valore da cercare */
+    int n = 1000;       /* input length */
+    int *v = NULL;      /* input array */
+    int *result = NULL; /* array of index of occurrences */
+    int nf = 0;         /* number of occurrences */
+    const int KEY = 42; /* lookup key */
 
     MPI_Init( &argc, &argv );
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
@@ -138,7 +138,6 @@ int main( int argc, char *argv[] )
     }
 
 #ifdef SERIAL
-    /* [TODO] replace the following code block with the one below */
     if (my_rank == 0) {
 
         /* Count the number of occurrences of `KEY` in `v[]` */
