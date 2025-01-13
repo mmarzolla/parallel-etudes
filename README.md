@@ -75,22 +75,6 @@ Table 1: List of exercises
 | Single-Source Shortest Path | X      |     |      |        | Reduction                                          |
 | All-Pairs Shortest Paths    | X      |     |      |        | Embarrassingly parallel                            |
 
-The final exam involves slightly more complex applications, which are
-provided by the instructor in serial form. Over the years, the
-following programs (not available in this repository) have been
-proposed:
-
-| Academic Year | Topic                                 |
-|---------------|---------------------------------------|
-| 2016/2017     | Biham-Middleton-Levine CA             |
-| 2017/2018     | Larger-than-Life CA                   |
-| 2018/2019     | Earthquake                            |
-| 2019/2020     | Convex Hull                           |
-| 2020/2021     | Skyline                               |
-| 2021/2022     | Hardy, Pomeau, de Pazzis CA (HPP)     |
-| 2022/2023     | Smoothed Particle Hydrodynamics (SPH) |
-| 2023/2024     | Force-directed circles packing        |
-
 ## OpenMP
 
 ### Lab 1
