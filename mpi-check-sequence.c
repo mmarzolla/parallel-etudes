@@ -57,7 +57,6 @@ Example:
 ***/
 #include <stdio.h>
 #include <stdlib.h> /* for rand() */
-#include <time.h>   /* for time() */
 #include <assert.h>
 #include <mpi.h>
 
@@ -108,11 +107,8 @@ int main( int argc, char *argv[] )
         }
     }
 #else
-    int *local_v = NULL;        /* local portion of `v[]` */
-    int local_valid = 1;
-
     const int local_size = n / comm_sz;
-    local_v = (int*)malloc( local_size * sizeof(*local_v) );
+    int *local_v = (int*)malloc( local_size * sizeof(*local_v) );
     assert(local_v != NULL);
 
     /**
@@ -133,6 +129,7 @@ int main( int argc, char *argv[] )
      ** handle indexes correctly!
      **/
     const int local_start = my_rank * (n / comm_sz);
+    int local_valid = 1;
     for (int local_i = 0; local_i < local_size && local_valid; local_i++) {
         local_valid = (local_v[local_i] == local_start + local_i);
     }
@@ -145,8 +142,8 @@ int main( int argc, char *argv[] )
     MPI_Reduce(&local_valid,    /* sendbuf      */
                &valid,          /* recvbuf      */
                1,               /* count        */
-               MPI_INT,         /* recvtype     */
-               MPI_LAND,        /* operation (logical AND) */
+               MPI_INT,         /* type         */
+               MPI_LAND,        /* logical AND  */
                0,               /* root         */
                MPI_COMM_WORLD   /* comm         */
                );
