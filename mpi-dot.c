@@ -2,7 +2,7 @@
  *
  * mpi-dot.c - Dot product
  *
- * Copyright (C) 2016--2023 Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2016--2023 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 /***
 % HPC - Dot product
-% [Moreno Marzolla](https://www.moreno.marzolla.name/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
 % Last updated: 2023-11-15
 
 The file [mpi-dot.c](mpi-dot.c) contains a MPI program that computes

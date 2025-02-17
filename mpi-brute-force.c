@@ -2,7 +2,7 @@
  *
  * mpi-brute-force.c - Brute-force password cracking
  *
- * Copyright (C) 2017--2024 Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2017--2024 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 /***
 % HPC - Brute-force password cracking
-% [Moreno Marzolla](https://www.moreno.marzolla.name/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
 % Last updated: 2024-01-04
 
 ![DES cracker board developed in 1998 by the Electronic Frontier Foundation (EFF); this device can be used to brute-force a DES key. The original uploader was Matt Crypto at English Wikipedia. Later versions were uploaded by Ed g2s at en.wikipedia - CC BY 3.0 us, <https://commons.wikimedia.org/w/index.php?curid=2437815>](des-cracker.jpg)
@@ -106,11 +106,6 @@ Run with:
 irregularly depending on the number $P$ of MPI processes. Why?
 
 ## Files
-
-You can use the `wget` command to easily transfer the files on the lab
-server:
-
-        wget https://www.moreno.marzolla.name/teaching/HPC/handouts/omp-brute-force.c
 
 - [mpi-brute-force.c](mpi-brute-force.c)
 

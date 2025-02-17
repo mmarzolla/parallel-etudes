@@ -2,7 +2,7 @@
  *
  * mpi-circles.c - Monte Carlo estimation of the area of the union of circles
  *
- * Copyright (C) 2017--2023 Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2017--2023 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 /***
 % HPC - Monte Carlo estimation of the area of the union of circles
-% [Moreno Marzolla](https://www.moreno.marzolla.name/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
 % Last updated: 2023-11-13
 
 The ile [mpi-circles.c](mpi-circles.c) contains a serial

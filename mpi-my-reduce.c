@@ -2,7 +2,7 @@
  *
  * mpi-my-reduce.c - Sum-reduce using point-to-point communications
  *
- * Copyright (C) 2013 Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2013 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 /***
 % HPC - Sum-reduce using point-to-point communication
-% [Moreno Marzolla](https://www.moreno.marzolla.name/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
 % Last updated: 2023-02-14
 
 ***/

@@ -6,7 +6,7 @@
  *
  * Copyright (C) 2011 Oscar Amoros Huguet, Cristian Garcia Marin
  * Copyright (C) 2013 Camil Demetrescu
- * Copyright (C) 2021, 2023, 2024 Moreno Marzolla
+ * Copyright (C) 2021, 2023--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@
 
 /***
 % `simpleCL`: A Simple C Wrapper for OpenCL
-% [Moreno Marzolla](https://www.moreno.marzolla.name/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
 % Last updated: 2024-11-27
 
 `simpleCL` is a C wrapper for OpenCL. Its goal is to make OpenCL
@@ -48,9 +48,9 @@ been dropped, others have been added, and some have been changed in a
 non-compatible way. Therefore, **this program is not compatible with
 the original simpleCL**.
 
-`simpleCL` has been developed to support the [High Performance
-Computing](https://www.moreno.marzolla.name/teaching/HPC) course
-taught by [Moreno Marzolla](https://www.moreno.marzolla.name/) at the
+`simpleCL` has been developed to support the High Performance
+Computing course taught by [Moreno
+Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/) at the
 University of Bologna. The course moved away from CUDA, so a
 significant amount of CUDA programs had to be ported to
 OpenCL. `simpleCL` is loosely inspired to the CUDA API in order to

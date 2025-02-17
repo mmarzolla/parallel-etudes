@@ -2,7 +2,7 @@
  *
  * omp-knapsack.c - 0-1 knapsack problem
  *
- * Copyright (C) 2017--2023 Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2017--2023 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 /***
 % HPC - 0-1 Knapsack problem
-% [Moreno Marzolla](https://www.moreno.marzolla.name/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
 % Last updated: 2023-10-24
 
 ![](knapsack.png)

@@ -2,7 +2,7 @@
  *
  * omp-inclusive-scan.c - Inclusive scan with OpenMP
  *
- * Copyright (C) 2017--2022 Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2017--2022 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 /***
 % HPC - Inclusive Scan
-% [Moreno Marzolla](https://www.moreno.marzolla.name/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
 % Last updated: 2022-10-12
 
 The file [omp-inclusive-scan.c](omp-inclusive-scan.c) contains a

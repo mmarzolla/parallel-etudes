@@ -2,7 +2,7 @@
  *
  * omp-list-ranking.c - Parallel list ranking
  *
- * Copyright (C) 2021, 2022, 2024 Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2021, 2022, 2024 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 /***
 % HPC - Parallel list ranking
-% [Moreno Marzolla](https://www.moreno.marzolla.name/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
 % Last updated: 2024-09-24
 
 The goal of this exercise is to implement the _list ranking_

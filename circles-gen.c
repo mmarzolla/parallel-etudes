@@ -2,7 +2,7 @@
  *
  * circles-gen.c - Generate an input file for the mpi-circles.c program
  *
- * Copyright (C) 2017--2023 Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2017--2023 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

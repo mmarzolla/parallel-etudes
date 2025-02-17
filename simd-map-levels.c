@@ -2,7 +2,7 @@
  *
  * simd-map-levels.c - Map gray levels
  *
- * Copyright (C) 2018--2024 Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2018--2024 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 /***
 % HPC - Map gray levels
-% [Moreno Marzolla](https://www.moreno.marzolla.name/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
 % Last updated: 2024-01-28
 
 Let us consider a grayscale bitmap with $M$ rows and $N$ columns,

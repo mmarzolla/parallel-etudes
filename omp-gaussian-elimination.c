@@ -2,7 +2,7 @@
  *
  * omp-gaussian-elimination.c - Solve systems of linear equations in upper triangular form
  *
- * Copyright (C) 2023, 2024 Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2023, 2024 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 /***
 % HPC - Solve systems of linear equations in upper triangular form
-% [Moreno Marzolla](https://www.moreno.marzolla.name/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
 % Last updated: 2024-10-05
 
 The solution of a linear system $Ax = b$, where $A$ is a square matrix

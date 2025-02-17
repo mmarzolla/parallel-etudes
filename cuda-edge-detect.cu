@@ -2,7 +2,7 @@
  *
  * cuda-edge-detect.cu - Edge detection on grayscale images
  *
- * Copyright (C) 2024 Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2024 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 /***
 % HPC - Edge detection on grayscale images
-% [Moreno Marzolla](https://www.moreno.marzolla.name/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
 % Last updated: 2024-09-02
 
 ![Result of the Sobel operator](edge-detect.png)

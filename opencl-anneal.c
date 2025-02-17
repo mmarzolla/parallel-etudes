@@ -2,7 +2,7 @@
  *
  * opencl-anneal.c - ANNEAL cellular automaton
  *
- * Copyright (C) 2017--2024 Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2017--2024 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 /***
 % HPC - ANNEAL cellular automaton
-% [Moreno Marzolla](https://www.moreno.marzolla.name/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
 % Last updated: 2024-01-04
 
 In this exercise we consider a simple two-dimensional, binary Cellular

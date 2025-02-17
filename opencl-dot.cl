@@ -2,7 +2,7 @@
  *
  * opencl-dot.cl - kernel for opencl-dot.c
  *
- * Copyright (C) 2021, 2024 Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2021, 2024 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

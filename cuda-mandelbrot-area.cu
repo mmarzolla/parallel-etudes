@@ -17,7 +17,7 @@
 
 /***
 % HPC - Area of the Mandelbrot set
-% [Moreno Marzolla](https://www.moreno.marzolla.name/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
 % Last updated: 2024-01-04
 
 The Mandelbrot set is the set of black points in Figure 1.

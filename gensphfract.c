@@ -2,7 +2,7 @@
  *
  * gensphfract.c - Generate input for omp-c-ray
  *
- * Copyright (C) 2018--2023 Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2018--2023 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 /***
 % HPC - Generate input for omp-c-ray
-% [Moreno Marzolla](https://www.moreno.marzolla.name/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
 % Last updated: 2023-11-03
 
 This program generates a fractal image that can be used as input to

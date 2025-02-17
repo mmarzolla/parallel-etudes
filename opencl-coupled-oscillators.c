@@ -2,7 +2,7 @@
  *
  * opencl-coupled-oscillators.c - One-dimensional coupled oscillators system
  *
- * Copyright (C) 2017--2023 Moreno Marzolla <https://www.moreno.marzolla.name/>
+ * Copyright (C) 2017--2023 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 /***
 % HPC - One-dimensional coupled oscillators
-% [Moreno Marzolla](https://www.moreno.marzolla.name/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
 % Last updated: 2023-06-08
 
 ![](coupled_metronomes.jpg)
