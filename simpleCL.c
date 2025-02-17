@@ -32,7 +32,7 @@
 
 /***
 % `simpleCL`: A Simple C Wrapper for OpenCL
-% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2024-11-27
 
 `simpleCL` is a C wrapper for OpenCL. Its goal is to make OpenCL
@@ -50,7 +50,7 @@ the original simpleCL**.
 
 `simpleCL` has been developed to support the High Performance
 Computing course taught by [Moreno
-Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/) at the
+Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla) at the
 University of Bologna. The course moved away from CUDA, so a
 significant amount of CUDA programs had to be ported to
 OpenCL. `simpleCL` is loosely inspired to the CUDA API in order to

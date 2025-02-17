@@ -2,7 +2,7 @@
  *
  * mpi-send-col.c - MPI Datatypes
  *
- * Copyright (C) 2017--2023 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
+ * Copyright (C) 2017--2023 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 /***
 % HPC - MPI Datatypes
-% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2023-11-18
 
 When you need to decompose a rectangular domain of size $R \times C$

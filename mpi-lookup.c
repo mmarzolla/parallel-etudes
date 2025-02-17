@@ -2,7 +2,7 @@
  *
  * mpi-lookup.c - Parallel linear search
  *
- * Copyright (C) 2021--2025 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
+ * Copyright (C) 2021--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 /***
 % HPC - Parallel linear search
-% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2025-01-13
 
 Write an MPI program that finds the positions of all occurrences of a

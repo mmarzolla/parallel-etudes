@@ -2,7 +2,7 @@
  *
  * cuda-matsum.cu - Matrix-matrix addition
  *
- * Copyright (C) 2017--2024 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
+ * Copyright (C) 2017--2024 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 /***
 % HPC - Matrix-matrix addition
-% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2024-01-04
 
 The program [cuda-matsum.cu](cuda-matsum.cu) computes the sum of two

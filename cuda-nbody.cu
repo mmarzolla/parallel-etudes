@@ -3,7 +3,7 @@
  * cuda-nbody.cu - N-body simulation
  *
  * Copyright (C) Mark Harris
- * Modified in 2020--2024 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
+ * Modified in 2020--2024 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 
 /***
 % HPC - N-Body simulation
-% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2024-01-04
 
 ![A frame of the Bolshoi simulation (source: <http://hipacc.ucsc.edu/Bolshoi/Images.html>)](bolshoi.png)

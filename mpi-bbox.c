@@ -2,7 +2,7 @@
  *
  * mpi-bbox.c - Bounding box of a set of rectangles
  *
- * Copyright (C) 2017--2024 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
+ * Copyright (C) 2017--2024 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 /***
 % HPC - Bounding box of a set of rectangles
-% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2024-10-05
 
 Write a parallel program that computes the _bounding box_ of a set of

@@ -2,7 +2,7 @@
  *
  * omp-loop.c - Loop-carried dependences
  *
- * Copyright (C) 2018--2022, 2024 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
+ * Copyright (C) 2018--2022, 2024 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 /***
 % HPC - Loop-carried dependences
-% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2024-10-11
 
 The file [omp-loop.c](omp-loop.c) contains a set of serial functions

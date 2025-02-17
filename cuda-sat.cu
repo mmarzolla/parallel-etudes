@@ -2,7 +2,7 @@
  *
  * cuda-sat.c - Brute-force SAT solver
  *
- * Copyright (C) 2018, 2023, 2024 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
+ * Copyright (C) 2018, 2023, 2024 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 /***
 % HPC - Brute-force SAT solver
-% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2024-11-29
 
 The Boolean Satisfability Problem (SAT Problem) asks whether there

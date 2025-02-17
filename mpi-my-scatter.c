@@ -2,7 +2,7 @@
  *
  * mpi-my-scatter.c - Scatter usando comunicazioni punto-punto
  *
- * Copyright (C) 2021 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
+ * Copyright (C) 2021 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 /***
 % HPC - Scatter usando comunicazioni punto-punto
-% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Ultimo aggiornamento: 2021-11-04
 
 Implementare una funzione

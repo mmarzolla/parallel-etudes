@@ -2,7 +2,7 @@
  *
  * omp-edge-detect.c - Edge detection on grayscale images
  *
- * Copyright (C) 2019, 2021, 2022 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
+ * Copyright (C) 2019, 2021, 2022 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 /***
 % HPC - Edge detection on grayscale images
-% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2022-08-19
 
 ![Result of the Sobel operator](edge-detect.png)

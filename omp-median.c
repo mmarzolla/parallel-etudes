@@ -2,7 +2,7 @@
  *
  * omp-median.c - Image denoising using a median filter
  *
- * Copyright (C) 2018--2023 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
+ * Copyright (C) 2018--2023 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 /***
 % HPC - Image denoising using a median filter
-% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2023-11-03
 
 The file [omp-median.c](omp-median.c) contains a serial implementation

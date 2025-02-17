@@ -2,7 +2,7 @@
  *
  * opencl-denoise.cl - kernel for opencl-denoise.c
  *
- * Copyright (C) 2021, 2022 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
+ * Copyright (C) 2021, 2022 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

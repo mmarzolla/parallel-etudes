@@ -2,7 +2,7 @@
  *
  * opencl-bsearch.c - Generalized binary search
  *
- * Copyright (C) 2022--2024 Moreno Marzolla <moreno.marzolla(at)unibo.it>
+ * Copyright (C) 2022--2024 Moreno Marzolla
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 /***
 % HPC - Ceneralized binary search
-% Moreno Marzolla <moreno.marzolla@unibo.it>
+% Moreno Marzolla
 % Last updated: 2024-11-15
 
 Implementation of CREW Search, p. 115 of Selim G. Akl, _The Design and

@@ -2,7 +2,7 @@
  *
  * hpc.h - Miscellaneous utility functions for the HPC course
  *
- * Copyright (C) 2017 by Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla>
+ * Copyright (C) 2017 by Moreno Marzolla
  * Last modified on 2024-11-29 by Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify

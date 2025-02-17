@@ -2,7 +2,7 @@
  * mpi-c-ray - Ray tracing
  *
  * Copyright (C) 2006 John Tsiombikas <nuclear@siggraph.org>
- * Copyright (C) 2016, 2017, 2018, 2020, 2021, 2022, 2024 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
+ * Copyright (C) 2016, 2017, 2018, 2020, 2021, 2022, 2024 Moreno Marzolla
  *
  * You are free to use, modify and redistribute this program under the
  * terms of the GNU General Public License v2 or (at your option) later.
@@ -24,7 +24,7 @@
 
 /***
 % HPC - Ray Tracing
-% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla/)
+% [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2024-10-05
 
 The file [mpi-c-ray.c](mpi-c-ray.c) contains the implementation of a

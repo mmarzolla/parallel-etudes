@@ -2,7 +2,7 @@
  *
  * cuda-dot-devicemem.cu - Dot product with CUDA using __device__ memory
  *
- * Copyright (C) 2017--2021 Moreno Marzolla <https://www.unibo.it/sitoweb/moreno.marzolla/>
+ * Copyright (C) 2017--2021 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
