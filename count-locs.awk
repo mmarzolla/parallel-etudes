@@ -104,7 +104,7 @@ BEGIN {
     patterns["merge-sort"] = "DC, task-level parallelism";
 
     title["nbody"] = "N-body simulation";
-    patterns["nbody"] = "EP, LP, RD";
+    patterns["nbody"] = "EP, LB, RD";
 
     title["odd-even"] = "Odd-even transposition sort";
     patterns["odd-even"] = "SG, P2P";
