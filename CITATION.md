@@ -13,6 +13,7 @@ BibTeX block:
   author = "Moreno Marzolla",
   title = "Etudes for Parallel Programmers",
   booktitle = "proc. 33rd Euromicro International Conference on Parallel, Distributed, and Network-Based Processing (PDP)",
+  editor = "Alessia Antelmi and Iacopo Colonnelli and Doriana Medi{\'{c}} and Horacio Gonz{\'{a}}lez-V{\'{e}}lez,
   month = mar # "12--14",
   address = "Turin, Italy",
   year = 2025,
