@@ -55,12 +55,26 @@ programming exercises has been described in the following paper:
 
 > Moreno Marzolla, _Etudes for Parallel Programmers_, proc. 33rd
 > Euromicro International Conference on Parallel, Distributed, and
-> Network-Based Processing ([PDP 2025](https://pdp2025.org/)), special
-> session on Papers In Parallel/distributed computing, Supercomputing,
-> and QUantum computing Education for Advancing students,
-> professionals and citizens Knowledge (PIPSQUEAK), march 12--14 2025,
-> Turin, Italy, pp. 341--348, IEEE Computer Society Conference
-> Publishing Services (CPS) ISBN: 979-8-3315-2493-7 ISSN: 2377-5750
+> Network-Based Processing (PDP), march 12--14 2025, Turin, Italy,
+> pp. 341--348, IEEE Computer Society Conference Publishing Services
+> (CPS) ISBN: 979-8-3315-2493-7 ISSN: 2377-5750
+
+BibTeX:
+
+```
+@inproceedings{parallel-etudes,
+  author = "Moreno Marzolla",
+  title = "Etudes for Parallel Programmers",
+  booktitle = "proc. 33rd Euromicro International Conference on Parallel, Distributed, and Network-Based Processing (PDP)",
+  month = mar # "12--14",
+  address = "Turin, Italy",
+  year = 2025,
+  pages = "341--348",
+  isbn = "979-8-3315-2493-7",
+  organization = "Euromicro",
+  publisher = "IEEE CPS"
+}
+```
 
 ## List of exercises
 
