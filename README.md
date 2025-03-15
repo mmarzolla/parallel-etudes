@@ -1,21 +1,37 @@
 # Parallel Etudes
 
-This repository contains the source code of programming exercises that
-are used in the lab sessions of the High Performance Computing (HPC)
-course, University of Bologna, first cycle degree in Computer Science
-and Engineering.
+_Etudes for Programmers_ is an unusual yet influential book written by
+Charles Wetherell and published in 1978. The term _étude_ refers to a
+small musical piece that is intended for learning to play an
+instrument.  The book argues that, like playing a musical instrument,
+programming is a craft that -- at least in part -- is learned by
+practicing. To this aim, the book proposes a set of programming
+exercises of various levels of difficulty, from extremely simple to
+extremely complex.
 
-The lab sessions are organized as follows: each exercise includes a
-detailed specification and a working serial implementation. The goal
-is to parallelize the serial program using one of the technologies
-that have been introduced in the last class (OpenMP, MPI,
-CUDA/OpenCL). Possible solutions are made available at the end of each
-lab session.
+I strongly agree with Wetherell, and believe that the practice-based
+approach he suggests is very appropriate also for learning _parallel_
+programming. I incorporated this idea in the [High Performance
+Computing](https://www.moreno.marzolla.name/teaching/hpc/) course that
+I have been teaching over the last few years for the Computer science
+and Engineering degree at the University of Bologna.
+
+The course is an elective, undergraduate-level course in parallel
+programming on shared-memory, distributed-memory and GPU
+architectures. A considerable emphasis is put on practical aspects of
+parallel programming using OpenMP, MPI and CUDA, for which suitable
+exercises need to be developed.
+
+This repository contains the source code of programming exercises that
+are used in the lab sessions. The labs are organized as follows: each
+exercise includes a detailed specification and a working serial
+implementation. The goal is to parallelize the serial program using
+one of the technologies that have been introduced in the previous
+class. Solutions are made available at the end of each lab session.
 
 Some exercises are quite simple, while others are more
-complex. However, the level of difficulty is quite low since students
-are expected to fully solve at least one exercise during each lab
-session.
+complex. However, the level of difficulty is low since students are
+expected to solve at least one exercise during each lab session.
 
 Some notable points:
 
@@ -31,6 +47,20 @@ Some notable points:
 - Some exercises can be parallelized using multiple programming
   paradigms.  This is quite useful to appreciate the strengths and
   weaknesses of each paradigm.
+
+## Citation
+
+The teaching methodology behind this collection of parallel
+programming exercises has been described in the following paper:
+
+> Moreno Marzolla, _Etudes for Parallel Programmers_, proc. 33rd
+> International Conference on Parallel, Distributed, and Network-Based
+> Processing ([PDP 2025][(https://pdp2025.org/)), special session on
+> Papers In Parallel/distributed computing, Supercomputing, and
+> QUantum computing Education for Advancing students, professionals
+> and citizens Knowledge (PIPSQUEAK), march 12--14 2025, Turin, Italy,
+> pp. 341--348, IEEE Computer Society Conference Publishing Services
+> (CPS) ISBN: 979-8-3315-2493-7 ISSN: 2377-5750
 
 ## List of exercises
 
