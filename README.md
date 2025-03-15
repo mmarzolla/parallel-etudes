@@ -54,13 +54,14 @@ The teaching methodology behind this collection of parallel
 programming exercises has been described in the following paper:
 
 > Moreno Marzolla, _Etudes for Parallel Programmers_, proc. 33rd
-> International Conference on Parallel, Distributed, and Network-Based
-> Processing ([PDP 2025][(https://pdp2025.org/)), special session on
-> Papers In Parallel/distributed computing, Supercomputing, and
-> QUantum computing Education for Advancing students, professionals
-> and citizens Knowledge (PIPSQUEAK), march 12--14 2025, Turin, Italy,
-> pp. 341--348, IEEE Computer Society Conference Publishing Services
-> (CPS) ISBN: 979-8-3315-2493-7 ISSN: 2377-5750
+> Euromicro International Conference on Parallel, Distributed, and
+> Network-Based Processing ([PDP 2025][(https://pdp2025.org/)),
+> special session on Papers In Parallel/distributed computing,
+> Supercomputing, and QUantum computing Education for Advancing
+> students, professionals and citizens Knowledge (PIPSQUEAK), march
+> 12--14 2025, Turin, Italy, pp. 341--348, IEEE Computer Society
+> Conference Publishing Services (CPS) ISBN: 979-8-3315-2493-7 ISSN:
+> 2377-5750
 
 ## List of exercises
 
