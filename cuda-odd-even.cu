@@ -22,17 +22,16 @@
 /***
 % HPC - Odd-even sort
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last upated: 2024-01-04
+% Last upated: 2025-03-22
 
 The _Odd-Even sort_ algorithm is a variant of BubbleSort, and sorts an
-array of $n$ elements in sequential time $O(n^2)$. Although
-inefficient, odd-even sort is easily parallelizable; indeed, we have
-discussed both an OpenMP and an MPI version. In this exercise we will
-create a CUDA version.
+array of $n$ elements in $O(n^2)$ sequential time. Although not
+efficient, odd-even sort is easily parallelizable. The goal of this
+exercise is to write a CUDA version of Odd-Even sort.
 
 Given an array `v[]` of length $n$, the algorithm performs $n$ steps
 numbered $0, \ldots, n-1$. During even steps, array elements in even
-positions are compared with the next element and swapped if not in the
+positions are compared with their successors and swapped if not in the
 correct order. During odd steps, elements in odd position are compared
 (and possibly swapped) with their successors. See Figure 1.
 
@@ -40,13 +39,13 @@ correct order. During odd steps, elements in odd position are compared
 
 The file [cuda-odd-even.cu](cuda-odd-even.cu) contains a serial
 implementation of Odd-Even transposition sort. The purpose of this
-algorithm is to modify the program to use the GPU.
+exercise is to modify the program to use the GPU.
 
 The CUDA paradigm suggests a fine-grained parallelism where a CUDA
-thread is responsible for a single compare-and-swap operation of a
-pair of adjacent elements. The simplest solution is to launch $n$ CUDA
-threads during each phase; only even (resp. odd) threads will be
-active during even (resp. odd) phases. The kernel looks like this:
+thread is responsible for a single compare-and-swap operation. The
+simplest solution is to launch $n$ CUDA threads during each phase;
+only even (resp. odd) threads will be active during even (resp. odd)
+phases. The kernel looks like this:
 
 ```C
 __global__ odd_even_step_bad( int *x, int n, int phase )
@@ -58,21 +57,19 @@ __global__ odd_even_step_bad( int *x, int n, int phase )
 }
 ```
 
-This solution is simple but definitely _not_ efficient since only half
-the threads are active during each phase, so a lot of computational
+This solution is simple but not efficient because only half the
+threads are active during each phase, so a lot of computational
 resources are wasted. To address this issue, write a second version
-where $\lceil n/2 \rceil$ CUDA threads are executed at each phase, so
-that each one is always active. Indexing becomes more problematic,
-since each thread should be uniquely assigned to an even (resp. odd)
-position depending on the phase.  Specifically, in even phases threads
-$0, 1, 2, 3, \ldots$ are required to handle the pairs $(0, 1)$, $(2,
-3)$, $(4, 5)$, $(6, 7)$, $\ldots$. During odd phases, the threads are
-required to handle the pairs $(1, 2)$, $(3, 4)$, $(5, 6)$, $(7, 8)$,
-$\ldots$.
+where $\lceil n/2 \rceil$ CUDA threads are launched during each
+phase. Indexing becomes more problematic, since each thread should be
+uniquely assigned to an even (resp. odd) position depending on the
+phase. Specifically, during even phases, threads $0, 1, 2, 3, \ldots$
+must handle the pairs $(0, 1)$, $(2, 3)$, $(4, 5)$, $(6, 7)$,
+$\ldots$. During odd phases, the threads must handle the pairs $(1,
+2)$, $(3, 4)$, $(5, 6)$, $(7, 8)$, $\ldots$.
 
-Table 1 illustrates the correspondence between the "linear" index
-`idx` of each thread, computed using the expression in the above code
-snipped, and the index pair it needs to manage.
+Table 1 illustrates the mapping between the linear thread index `idx`
+and the pair of elements it needs to manage.
 
 :Table 1: Mapping thread index to array index pairs.
 
