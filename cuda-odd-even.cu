@@ -48,7 +48,7 @@ only even (resp. odd) threads will be active during even (resp. odd)
 phases. The kernel looks like this:
 
 ```C
-__global__ odd_even_step_bad( int *x, int n, int phase )
+__global__ void odd_even_step_bad( int *x, int n, int phase )
 {
 	const int idx = threadIdx.x + blockIdx.x * blockDim.x;
 	if ( (idx < n-1) && ((idx % 2) == (phase % 2)) ) {
