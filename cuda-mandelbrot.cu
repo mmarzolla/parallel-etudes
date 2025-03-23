@@ -92,7 +92,10 @@ typedef struct __attribute__((__packed__)) {
 } pixel_t;
 
 /* color gradient from https://stackoverflow.com/questions/16500656/which-color-gradient-is-used-to-color-mandelbrot-in-wikipedia */
-__constant__ pixel_t colors[] = {
+#ifndef HANDOUT
+__constant__
+#endif
+pixel_t colors[] = {
     { 66,  30,  15}, /* r, g, b */
     { 25,   7,  26},
     {  9,   1,  47},
@@ -109,7 +112,10 @@ __constant__ pixel_t colors[] = {
     {204, 128,   0},
     {153,  87,   0},
     {106,  52,   3} };
-__constant__ int NCOLORS = sizeof(colors)/sizeof(colors[0]);
+#ifndef HANDOUT
+__constant__
+#endif
+int NCOLORS = sizeof(colors)/sizeof(colors[0]);
 
 /*
  * Iterate the recurrence:
@@ -120,7 +126,9 @@ __constant__ int NCOLORS = sizeof(colors)/sizeof(colors[0]);
  * Returns the first `n` such that `z_n > bound`, or `MAXIT` if `z_n` is below
  * `bound` after `MAXIT` iterations.
  */
+#ifndef HANDOUT
 __device__
+#endif
 int iterate( float cx, float cy )
 {
     float x = 0.0f, y = 0.0f, xnew, ynew;
@@ -140,6 +148,7 @@ int iterate( float cx, float cy )
    image will be stored; in other words, this function writes to
    pixels p[0], p[1], ... `xsize` and `ysize` MUST be the sizes
    of the WHOLE image. */
+#ifndef HANDOUT
 __global__ void
 mandelbrot_kernel( int xsize, int ysize, pixel_t* bmap)
 {
@@ -164,6 +173,30 @@ mandelbrot_kernel( int xsize, int ysize, pixel_t* bmap)
         }
     }
 }
+#else
+void mandelbrot( int xsize, int ysize, pixel_t* bmap)
+{
+    const float XMIN = -2.3, XMAX = 1.0;
+    const float SCALE = (XMAX - XMIN)*ysize / xsize;
+    const float YMIN = -SCALE/2, YMAX = SCALE/2;
+    for (int x=0; x<xsize; x++) {
+        for (int y=0; y<ysize; y++) {
+            pixel_t *p = bmap + y * xsize + x;
+            const float re = XMIN + (XMAX - XMIN) * (float)(x) / (xsize - 1);
+            const float im = YMAX - (YMAX - YMIN) * (float)(y) / (ysize - 1);
+            const int v = iterate(re, im);
+
+            if (v < MAXIT) {
+                p->r = colors[v % NCOLORS].r;
+                p->g = colors[v % NCOLORS].g;
+                p->b = colors[v % NCOLORS].b;
+            } else {
+                p->r = p->g = p->b = 0;
+            }
+        }
+    }
+}
+#endif
 
 int main( int argc, char *argv[] )
 {
@@ -194,6 +227,7 @@ int main( int argc, char *argv[] )
     const size_t BMAP_SIZE = xsize * ysize * sizeof(pixel_t);
 
     bitmap = (pixel_t*)malloc(BMAP_SIZE); assert(bitmap != NULL);
+#ifndef HANDOUT
     cudaSafeCall( cudaMalloc((void**)&d_bitmap, BMAP_SIZE) );
 
     const dim3 BLOCK(BLKDIM, BLKDIM);
@@ -205,13 +239,18 @@ int main( int argc, char *argv[] )
     cudaSafeCall( cudaMemcpy(bitmap, d_bitmap, BMAP_SIZE, cudaMemcpyDeviceToHost) );
 
     const double elapsed = hpc_gettime() - tstart;
+#else
+    mandelbrot(xsize, ysize, bitmap);
+#endif
     fprintf(stderr, "Elapsed time (s) : %f\n", elapsed);
 
     fwrite(bitmap, sizeof(*bitmap), xsize*ysize, out);
     fclose(out);
 
     free(bitmap);
+#ifndef HANDOUT
     cudaSafeCall( cudaFree(d_bitmap) );
+#endif
 
     return EXIT_SUCCESS;
 }
