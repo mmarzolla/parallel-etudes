@@ -2,7 +2,7 @@
  *
  * cuda-mandelbrot.c - Mandelbrot set
  *
- * Copyright (C) 2017--2024 Moreno Marzolla
+ * Copyright (C) 2017--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % HPC - Mandelbrot set
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-09-03
+% Last updated: 2025-03-23
 
 ![Figure 1: The Mandelbrot set.](mandelbrot-set.png)
 
@@ -92,7 +92,7 @@ typedef struct __attribute__((__packed__)) {
 } pixel_t;
 
 /* color gradient from https://stackoverflow.com/questions/16500656/which-color-gradient-is-used-to-color-mandelbrot-in-wikipedia */
-#ifndef HANDOUT
+#ifndef SERIAL
 __constant__
 #endif
 pixel_t colors[] = {
@@ -112,7 +112,7 @@ pixel_t colors[] = {
     {204, 128,   0},
     {153,  87,   0},
     {106,  52,   3} };
-#ifndef HANDOUT
+#ifndef SERIAL
 __constant__
 #endif
 int NCOLORS = sizeof(colors)/sizeof(colors[0]);
@@ -126,7 +126,7 @@ int NCOLORS = sizeof(colors)/sizeof(colors[0]);
  * Returns the first `n` such that `z_n > bound`, or `MAXIT` if `z_n` is below
  * `bound` after `MAXIT` iterations.
  */
-#ifndef HANDOUT
+#ifndef SERIAL
 __device__
 #endif
 int iterate( float cx, float cy )
@@ -143,12 +143,12 @@ int iterate( float cx, float cy )
 }
 
 /* Draw the rows of the Mandelbrot set from `ystart` (inclusive) to
-   `yend` (excluded) to the bitmap pointed to by `p`. Note that `p`
-   must point to the beginning of the bitmap where the portion of
-   image will be stored; in other words, this function writes to
-   pixels p[0], p[1], ... `xsize` and `ysize` MUST be the sizes
+   `yend` (excluded) to the bitmap pointed to by `bmap`. Note that
+   `bmap` must point to the beginning of the bitmap where the portion
+   of image will be stored; in other words, this function writes to
+   pixels bmap[0], bmap[1], ...; `xsize` and `ysize` MUST be the sizes
    of the WHOLE image. */
-#ifndef HANDOUT
+#ifndef SERIAL
 __global__ void
 mandelbrot_kernel( int xsize, int ysize, pixel_t* bmap)
 {
@@ -202,7 +202,10 @@ int main( int argc, char *argv[] )
 {
     FILE *out = NULL;
     const char* fname="cuda-mandelbrot.ppm";
-    pixel_t *bitmap = NULL, *d_bitmap;
+    pixel_t *bitmap = NULL;
+#ifndef SERIAL
+    pixel_t *d_bitmap;
+#endif
     int xsize, ysize;
 
     if ( argc > 1 ) {
@@ -227,7 +230,7 @@ int main( int argc, char *argv[] )
     const size_t BMAP_SIZE = xsize * ysize * sizeof(pixel_t);
 
     bitmap = (pixel_t*)malloc(BMAP_SIZE); assert(bitmap != NULL);
-#ifndef HANDOUT
+#ifndef SERIAL
     cudaSafeCall( cudaMalloc((void**)&d_bitmap, BMAP_SIZE) );
 
     const dim3 BLOCK(BLKDIM, BLKDIM);
@@ -240,7 +243,9 @@ int main( int argc, char *argv[] )
 
     const double elapsed = hpc_gettime() - tstart;
 #else
+    const double tstart = hpc_gettime();
     mandelbrot(xsize, ysize, bitmap);
+    const double elapsed = hpc_gettime() - tstart;
 #endif
     fprintf(stderr, "Elapsed time (s) : %f\n", elapsed);
 
@@ -248,7 +253,7 @@ int main( int argc, char *argv[] )
     fclose(out);
 
     free(bitmap);
-#ifndef HANDOUT
+#ifndef SERIAL
     cudaSafeCall( cudaFree(d_bitmap) );
 #endif
 
