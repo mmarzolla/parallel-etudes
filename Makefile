@@ -19,7 +19,7 @@ LDLIBS +=
 PANDOC_EXTRA_OPTS += -V lang=en-US --mathjax="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
 NVCC ?= nvcc
 MPICC ?= mpicc
-NVCFLAGS +=
+NVCFLAGS += -Wno-deprecated-gpu-targets
 
 .PHONY: MAKE_DIRS clean distclean images count-locs
 
