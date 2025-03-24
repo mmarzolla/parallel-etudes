@@ -26,6 +26,21 @@
 
 ![Figure 1: The Mandelbrot set.](mandelbrot-set.png)
 
+The Mandelbrot set is the set of points $c$ in the complex plane such
+that the sequence:
+
+$$
+\begin{cases}
+z_0 &= 0 \\
+z_{n+1} &= z_n^2 + c & \mbox{if $n\geq 0$}
+\end{cases}
+$$
+
+does not diverge as $n \rightarrow \infty$. This program uses a cutoff
+value `MAXIT` so that, if the first `MAXIT` terms of the sequence
+$z_n$ do not diverge, point $c$ is assumed to be part of the
+Mandelbrot set.
+
 The file [cuda-mandelbrot.cu](cuda-mandelbrot.cu) contains a serial
 program that computes the Mandelbrot set. The program accepts the
 image height as an optional command-line parameter; the width is
@@ -55,7 +70,9 @@ images produced by both versions with the command:
 
         cmp file1 file2
 
-Both images should be identical; if not, something is wrong.
+Both images should be identical, but floating-point math is not
+implemented in the same way for CPUs and GPUs, so there could be small
+differences.
 
 To compile:
 

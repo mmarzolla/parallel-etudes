@@ -60,7 +60,9 @@ images produced by both versions with the command:
 
         cmp file1 file2
 
-Both images should be identical; if not, something is wrong.
+Both images should be identical, but floating-point math is not
+implemented in the same way for CPUs and GPUs, so there could be small
+differences.
 
 To compile:
 
