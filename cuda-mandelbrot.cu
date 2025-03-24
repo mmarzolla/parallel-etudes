@@ -39,7 +39,9 @@ $$
 does not diverge as $n \rightarrow \infty$. This program uses a cutoff
 value `MAXIT` so that, if the first `MAXIT` terms of the sequence
 $z_n$ do not diverge, point $c$ is assumed to be part of the
-Mandelbrot set.
+Mandelbrot set. For an intuitive explanation of the Mandelbrot set you
+can use [this demo file](mandelbrot-set-demo.ggb) with
+[GeoGebra](https://www.geogebra.org/calculator/).
 
 The file [cuda-mandelbrot.cu](cuda-mandelbrot.cu) contains a serial
 program that computes the Mandelbrot set. The program accepts the
