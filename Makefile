@@ -7,7 +7,7 @@ EXE_SERIAL := gensphfract genspheres gendna bbox-gen circles-gen knapsack-gen
 EXE := $(EXE_OMP) $(EXE_MPI) $(EXE_SERIAL) $(EXE_SIMD) $(EXE_OPENCL) $(EXE_CUDA)
 SRC := $(wildcard *.c) $(wildcard *.cu) $(wildcard *.cl)
 INC := $(wildcard *.h)
-DATAFILES := $(wildcard *.in) $(wildcard *.txt) $(wildcard *.gr) $(wildcard *.cnf)
+DATAFILES := $(wildcard *.in) $(wildcard *.txt) $(wildcard *.gr) $(wildcard *.cnf) mandelbrot-set-demo.ggb
 OUTFILES :=
 HANDOUTS_SRC := ${SRC:%.c=handouts/%.c} ${SRC:%.cu=handouts/%.cu} ${SRC:%.cl=handouts/%.cl} ${INC:%.h=handouts/%.h}
 SOLUTIONS_SRC := ${SRC:%.c=solutions/%.c} ${SRC:%.cu=solutions/%.cu} ${SRC:%.cl=solutions/%.cl} ${INC:%.h=solutions/%.h}
