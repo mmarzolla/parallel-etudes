@@ -2,7 +2,7 @@
  *
  * omp-mandelbrot.c - Draw the Mandelbrot set
  *
- * Copyright (C) 2017--2022 Moreno Marzolla
+ * Copyright (C) 2017--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % HPC - Mandelbrot set
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2022-08-16
+% Last updated: 2024-03-24
 
 ![Benoit Mandelbrot (1924--2010)](Benoit_Mandelbrot.jpg)
 
@@ -31,9 +31,9 @@ program that draws the Mandelbrot set. The Mandelbrot set is the set
 of points $c$ in the complex plane such that the sequence:
 
 $$
-\begin{cases}
-z_0 &= 0 \\
-z_{n+1} &= z_n^2 + c & \mbox{if $n\geq 0$}
+z_n = \begin{cases}
+0 & \mbox{if $n = 0$}\\
+z_{n-1}^2 + c & \mbox{if $n > 0$}
 \end{cases}
 $$
 

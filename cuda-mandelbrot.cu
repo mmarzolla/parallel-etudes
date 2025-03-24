@@ -30,9 +30,9 @@ The Mandelbrot set is the set of points $c$ in the complex plane such
 that the sequence:
 
 $$
-\begin{cases}
-z_0 &= 0 \\
-z_{n+1} &= z_n^2 + c & \mbox{if $n\geq 0$}
+z_n = \begin{cases}
+0 & \mbox{if $n = 0$}\\
+z_{n-1}^2 + c & \mbox{if $n > 0$}
 \end{cases}
 $$
 
