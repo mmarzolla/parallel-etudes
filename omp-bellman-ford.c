@@ -20,7 +20,7 @@
  *****************************************************************************/
 
 /***
-% HPC - Single-Source Shortest Path
+% Single-Source Shortest Path
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2024-05-30
 

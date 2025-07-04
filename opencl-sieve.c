@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - Sieve of Eratosthenes
+% Sieve of Eratosthenes
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2024-09-02
 

@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - Monte Carlo approximation of PI
+% Monte Carlo approximation of PI
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2024-10-25
 

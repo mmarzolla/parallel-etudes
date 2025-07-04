@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - Scatter usando comunicazioni punto-punto
+% Scatter usando comunicazioni punto-punto
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Ultimo aggiornamento: 2021-11-04
 

@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - Ring communication with MPI
+% Ring communication with MPI
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2023-11-06
 

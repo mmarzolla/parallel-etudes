@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - First occurrence of a value in a vector
+% First occurrence of a value in a vector
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2024-12-02
 

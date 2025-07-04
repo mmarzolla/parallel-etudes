@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - Brute-force password cracking
+% Brute-force password cracking
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2024-10-17
 

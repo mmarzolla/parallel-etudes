@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - Parallel linear search
+% Parallel linear search
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2025-01-13
 

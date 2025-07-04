@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - Generalized binary search
+% Generalized binary search
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2024-11-15
 

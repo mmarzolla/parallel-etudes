@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - Dot product
+% Dot product
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2024-11-14
 

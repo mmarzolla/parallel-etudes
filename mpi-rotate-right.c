@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - Rotazione circolare di un array
+% Rotazione circolare di un array
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Ultimo aggiornamento: 2022-11-09
 

@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - Broadcast using point-to-point communications
+% Broadcast using point-to-point communications
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2024-10-31
 

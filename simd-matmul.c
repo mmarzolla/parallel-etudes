@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - Dense matrix-matric product using vector datatypes
+% Dense matrix-matric product using vector datatypes
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2023-03-07
 

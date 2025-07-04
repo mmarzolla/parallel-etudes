@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - Monte Carlo estimation of the area of the union of circles
+% Monte Carlo estimation of the area of the union of circles
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2023-11-13
 

@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - Solve systems of linear equations in upper triangular form
+% Solve systems of linear equations in upper triangular form
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2024-10-05
 

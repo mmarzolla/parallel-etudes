@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - Parallel Binary Search Tree traversal with OpenMP tasks
+% Parallel Binary Search Tree traversal with OpenMP tasks
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2023-07-08
 

@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - Map gray levels
+% Map gray levels
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2024-01-28
 

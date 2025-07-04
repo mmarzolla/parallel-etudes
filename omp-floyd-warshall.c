@@ -20,7 +20,7 @@
  *****************************************************************************/
 
 /***
-% HPC - All-pair shortest paths
+% All-pair shortest paths
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2024-05-09
 

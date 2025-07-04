@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - Brute-force SAT solver
+% Brute-force SAT solver
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2024-11-29
 

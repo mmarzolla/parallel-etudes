@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - Upper-triangular Matrix-Vector multiply
+% Upper-triangular Matrix-Vector multiply
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2024-12-04
 

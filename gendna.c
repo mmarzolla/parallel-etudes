@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - Generate input for omp-c-ray
+% Generate input for omp-c-ray
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2023-11-03
 

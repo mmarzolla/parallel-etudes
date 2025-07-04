@@ -49,18 +49,17 @@ non-compatible way. Therefore, **this program is not compatible with
 the original simpleCL**.
 
 `simpleCL` has been developed to support the High Performance
-Computing course taught by [Moreno
+Computing, and then Parallel Computing course taught by [Moreno
 Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla) at the
-University of Bologna. The course moved away from CUDA, so a
-significant amount of CUDA programs had to be ported to
+University of Bologna. The course is moving away from CUDA, so a
+significant amount of CUDA programs have to be ported to
 OpenCL. `simpleCL` is loosely inspired to the CUDA API in order to
 simplify such conversion.
 
 `simpleCL` has some drawbacks that make it unsuitable for
 general-purpose OpenCL programming:
 
-- It exposes a limited subset of OpenCL capabilities, namely, those
-  that are relevant for the HPC course mentioned above;
+- It exposes a limited subset of OpenCL capabilities;
 
 - It performs extensive error checking to facilitate debugging. No
   provision has been made to make these checks optional (e.g., with a

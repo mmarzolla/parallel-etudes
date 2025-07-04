@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - Sum-reduce using point-to-point communication
+% Sum-reduce using point-to-point communication
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2023-02-14
 

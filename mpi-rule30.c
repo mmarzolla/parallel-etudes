@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - Rule 30 Cellular Automaton
+% Rule 30 Cellular Automaton
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2024-11-07
 

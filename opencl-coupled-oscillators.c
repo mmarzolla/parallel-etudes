@@ -20,7 +20,7 @@
  ******************************************************************************/
 
 /***
-% HPC - One-dimensional coupled oscillators
+% One-dimensional coupled oscillators
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2023-06-08
 

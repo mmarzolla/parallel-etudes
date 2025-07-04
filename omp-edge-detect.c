@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - Edge detection on grayscale images
+% Edge detection on grayscale images
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2022-08-19
 

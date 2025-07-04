@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - Image denoising using the median filter
+% Image denoising using the median filter
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2024-10-05
 
