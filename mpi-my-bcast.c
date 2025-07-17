@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * mpi-my-bcast.c - Broadcast using point-to-point communications
+ * mpi-my-bcast.c - MPI broadcast using point-to-point communications
  *
- * Copyright (C) 2017--2024 Moreno Marzolla
+ * Copyright (C) 2017--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,9 +20,9 @@
  ****************************************************************************/
 
 /***
-% Broadcast using point-to-point communications
+% MPI broadcast using point-to-point communications
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-10-31
+% Last updated: 2025-07-17
 
 The purpose of this exercise is to implement the function
 
@@ -108,12 +108,12 @@ void my_Bcast(int *v)
                   MPI_STATUS_IGNORE     /* status       */
                   );
     }
-    const int dest1 = (2*my_rank + 1 < comm_sz ? 2*my_rank + 1 : MPI_PROC_NULL);
-    const int dest2 = (2*my_rank + 2 < comm_sz ? 2*my_rank + 2 : MPI_PROC_NULL);
+    const int left_child = (2*my_rank + 1 < comm_sz ? 2*my_rank + 1 : MPI_PROC_NULL);
+    const int right_child = (2*my_rank + 2 < comm_sz ? 2*my_rank + 2 : MPI_PROC_NULL);
     /* sending a message to MPI_PROC_NULL has no effect (see man page
        for MPI_Send) */
-    MPI_Send( v, 1, MPI_INT, dest1, 0, MPI_COMM_WORLD);
-    MPI_Send( v, 1, MPI_INT, dest2, 0, MPI_COMM_WORLD);
+    MPI_Send( v, 1, MPI_INT, left_child, 0, MPI_COMM_WORLD);
+    MPI_Send( v, 1, MPI_INT, right_child, 0, MPI_COMM_WORLD);
 #endif
 }
 
@@ -164,7 +164,7 @@ int main( int argc, char *argv[] )
         v = -1;
     }
 
-    printf("BEFORE: value of `v` at rank %d = %d\n", my_rank, v);
+    /* printf("BEFORE: value of `v` at rank %d = %d\n", my_rank, v); */
 
     my_Bcast(&v);
 

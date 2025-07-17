@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * mpi-my-reduce.c - Sum-reduce using point-to-point communications
+ * mpi-my-reduce.c - Sum-reduction using point-to-point communications
  *
- * Copyright (C) 2013 Moreno Marzolla
+ * Copyright (C) 2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Sum-reduce using point-to-point communication
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2023-02-14
+% Last updated: 2025-07-17
 
 ***/
 
@@ -38,41 +38,39 @@ int my_Reduce(const int *v)
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
 
-    const int src1 = 2*my_rank + 1; /* rank of "left" child in the communication tree */
-    if (src1 < comm_sz) {
-        MPI_Recv( &buf,                 /* buf          */
-                  1,                    /* count        */
-                  MPI_INT,              /* datatype     */
-                  src1,                 /* source       */
-                  0,                    /* tag          */
-                  MPI_COMM_WORLD,       /* comm         */
-                  MPI_STATUS_IGNORE     /* status       */
-                  );
-        result += buf;
-    }
-    const int src2 = 2*my_rank + 2; /* rank of "right" child in the communication tree */
-    if (src2 < comm_sz) {
-        MPI_Recv( &buf,                 /* buf          */
-                  1,                    /* count        */
-                  MPI_INT,              /* datatype     */
-                  src2,                 /* source       */
-                  0,                    /* tag          */
-                  MPI_COMM_WORLD,       /* comm         */
-                  MPI_STATUS_IGNORE     /* status       */
-                  );
-        result += buf;
-    }
+    const int left_child = (2*my_rank + 1 < comm_sz ? 2*my_rank + 1 : MPI_PROC_NULL);
+    const int right_child = (2*my_rank + 2 < comm_sz ? 2*my_rank + 2 : MPI_PROC_NULL);
+    const int parent = (my_rank > 0 ? (my_rank - 1)/2 : MPI_PROC_NULL);
 
-    if ( my_rank > 0 ) {
-        const int dst = (my_rank - 1) / 2;
-        MPI_Send( &result,              /* buf          */
-                  1,                    /* count        */
-                  MPI_INT,              /* datatype     */
-                  dst,                  /* destination  */
-                  0,                    /* tag          */
-                  MPI_COMM_WORLD        /* comm         */
-                  );
-    }
+    buf = 0;
+    MPI_Recv( &buf,                 /* buf          */
+              1,                    /* count        */
+              MPI_INT,              /* datatype     */
+              left_child,           /* source       */
+              0,                    /* tag          */
+              MPI_COMM_WORLD,       /* comm         */
+              MPI_STATUS_IGNORE     /* status       */
+              );
+    result += buf;
+
+    buf = 0;
+    MPI_Recv( &buf,                 /* buf          */
+              1,                    /* count        */
+              MPI_INT,              /* datatype     */
+              right_child,          /* source       */
+              0,                    /* tag          */
+              MPI_COMM_WORLD,       /* comm         */
+              MPI_STATUS_IGNORE     /* status       */
+              );
+    result += buf;
+
+    MPI_Send( &result,              /* buf          */
+              1,                    /* count        */
+              MPI_INT,              /* datatype     */
+              parent,               /* destination  */
+              0,                    /* tag          */
+              MPI_COMM_WORLD        /* comm         */
+              );
 
     return result;
 }
