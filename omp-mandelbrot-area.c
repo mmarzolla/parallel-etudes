@@ -170,6 +170,6 @@ int main( int argc, char *argv[] )
 
     printf("Area of Mandlebrot set = %f\n", area);
     printf("Correct answer should be around 1.50659\n");
-    printf("Elapsed time: %f\n", elapsed);
+    printf("Execution time: %f\n", elapsed);
     return EXIT_SUCCESS;
 }

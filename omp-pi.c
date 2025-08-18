@@ -236,7 +236,7 @@ int main( int argc, char *argv[] )
     const double elapsed = omp_get_wtime() - tstart;
     const double pi_approx = 4.0 * n_inside / (double)n_points;
     printf("PI approximation %f, exact %f, error %f%%\n", pi_approx, PI_EXACT, 100.0*fabs(pi_approx - PI_EXACT)/PI_EXACT);
-    printf("Elapsed time: %f\n", elapsed);
+    printf("Execution time: %f\n", elapsed);
 
     return EXIT_SUCCESS;
 }

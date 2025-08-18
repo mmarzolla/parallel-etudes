@@ -201,7 +201,7 @@ int main( int argc, char *argv[] )
     fwrite(bitmap, sizeof(*bitmap), xsize*ysize, out);
     fclose(out);
     free(bitmap);
-    fprintf(stderr, "Elapsed time %f\n", elapsed);
+    fprintf(stderr, "Execution time: %f\n", elapsed);
 
     return EXIT_SUCCESS;
 }

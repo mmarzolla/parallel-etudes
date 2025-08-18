@@ -224,7 +224,7 @@ int main( int argc, char *argv[] )
         free(out);
     }
     const double elapsed = omp_get_wtime() - tstart;
-    printf("Elapsed time: %f\n", elapsed);
+    printf("Execution time: %f\n", elapsed);
 #endif
     return EXIT_SUCCESS;
 }

@@ -262,7 +262,7 @@ int main( int argc, char* argv[] )
     printf("done\n");
     const int ok = is_correct(a, n);
     printf("Check %s\n", (ok ? "OK" : "failed"));
-    printf("Elapsed time: %f\n", elapsed);
+    printf("Execution time: %f\n", elapsed);
 
     free(a);
 

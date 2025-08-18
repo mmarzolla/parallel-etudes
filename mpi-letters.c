@@ -208,7 +208,7 @@ int main( int argc, char *argv[] )
     if ( 0 == my_rank ) {
         const double elapsed = MPI_Wtime() - tstart;
         print_hist(hist);
-        fprintf(stderr, "Elapsed time: %f\n", elapsed);
+        fprintf(stderr, "Execution time: %f\n", elapsed);
     }
 
     free(text);

@@ -179,7 +179,7 @@ int main( int argc, char *argv[] )
     } else {
         printf("Test FAILED: expected %d, got %d\n", expect, result);
     }
-    printf("Elapsed time: %f\n", elapsed);
+    printf("Execution time: %f\n", elapsed);
     free(v1);
     free(v2);
 

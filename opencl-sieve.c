@@ -119,7 +119,7 @@ int main( int argc, char *argv[] )
 
     printf("There are %d primes in {2, ..., %d}\n", nprimes, n);
 
-    printf("Elapsed time: %f\n", elapsed);
+    printf("Execution time: %f\n", elapsed);
 
     sclFinalize();
 

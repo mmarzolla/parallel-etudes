@@ -235,7 +235,7 @@ int main( int argc, char* argv[] )
     if ( 0 == my_rank ) {
         printf("%d points, %d inside, area=%f\n", K, c, 1.0e6*c/K);
         const double elapsed = MPI_Wtime() - tstart;
-        printf("Execution time (s): %f\n", elapsed);
+        printf("Execution time: %f\n", elapsed);
     }
 
     free(x);

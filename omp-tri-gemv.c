@@ -110,7 +110,7 @@ int main( int argc, char *argv[] )
     const double tstart = omp_get_wtime();
     tri_gemv(A, b, c, n);
     const double elapsed = omp_get_wtime() - tstart;
-    printf("Elapsed time (s): %f\n", elapsed);
+    printf("Execution time: %f\n", elapsed);
     check(c, n);
     free(A);
     free(b);

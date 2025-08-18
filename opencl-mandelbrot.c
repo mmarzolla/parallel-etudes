@@ -238,7 +238,7 @@ int main( int argc, char *argv[] )
     mandelbrot(xsize, ysize, bitmap);
     const double elapsed = hpc_gettime() - tstart;
 #endif
-    fprintf(stderr, "Elapsed time (s) : %f\n", elapsed);
+    fprintf(stderr, "Execution time: %f\n", elapsed);
 
     fwrite(bitmap, sizeof(*bitmap), xsize*ysize, out);
     fclose(out);

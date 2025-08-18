@@ -285,7 +285,7 @@ int main( int argc, char* argv[] )
     elapsed = omp_get_wtime() - tstart;
     is_correct(vin, vout, n);
 
-    printf("Elapsed time (static schedule): %f\n", elapsed);
+    printf("Execution time (static schedule): %f\n", elapsed);
 
     /**
      ** Test dynamic schedule implementation
@@ -296,7 +296,7 @@ int main( int argc, char* argv[] )
     elapsed = omp_get_wtime() - tstart;
     is_correct(vin, vout, n);
 
-    printf("Elapsed time (dynamic schedule): %f\n", elapsed);
+    printf("Execution time (dynamic schedule): %f\n", elapsed);
 
     free(vin);
     free(vout);

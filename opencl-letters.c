@@ -183,7 +183,7 @@ int main( void )
     make_hist(text, hist);
     const double elapsed = hpc_gettime() - tstart;
     print_hist(hist);
-    fprintf(stderr, "Elapsed time: %f\n", elapsed);
+    fprintf(stderr, "Execution time: %f\n", elapsed);
 
     free(text);
 

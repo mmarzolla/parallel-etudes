@@ -328,7 +328,7 @@ int main( int argc, char* argv[] )
     if ( 0 == my_rank ) {
         printf("bbox: %f %f %f %f\n", xb1, yb1, xb2, yb2);
         const double elapsed = MPI_Wtime() - tstart;
-        printf("Execution time (s): %f\n", elapsed);
+        printf("Execution time: %f\n", elapsed);
     }
 #endif
 

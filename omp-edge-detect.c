@@ -122,7 +122,7 @@ int main( int argc, char* argv[] )
     const double tstart = omp_get_wtime();
     edge_detect(&bmap, &out, threshold);
     const double elapsed = omp_get_wtime() - tstart;
-    fprintf(stderr, "Execution time %f\n", elapsed);
+    fprintf(stderr, "Execution time: %f\n", elapsed);
     write_pgm(stdout, &out, "produced by omp-edge-detect.c");
     free_pgm(&bmap);
     free_pgm(&out);

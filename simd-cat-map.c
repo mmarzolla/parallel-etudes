@@ -401,11 +401,11 @@ int main( int argc, char* argv[] )
     const double tstart = hpc_gettime();
     cat_map(&img, niter);
     const double elapsed = hpc_gettime() - tstart;
-    fprintf(stderr, "      SIMD width : %d bytes\n", (int)VLEN);
-    fprintf(stderr, "      Iterations : %d\n", niter);
-    fprintf(stderr, "    width,height : %d,%d\n", img.width, img.height);
-    fprintf(stderr, "        Mops/sec : %.4f\n", 1.0e-6 * img.width * img.height * niter / elapsed);
-    fprintf(stderr, "Elapsed time (s) : %f\n", elapsed);
+    fprintf(stderr, "    SIMD width: %d bytes\n", (int)VLEN);
+    fprintf(stderr, "    Iterations: %d\n", niter);
+    fprintf(stderr, "  Width,Height: %d,%d\n", img.width, img.height);
+    fprintf(stderr, "      Mops/sec: %.4f\n", 1.0e-6 * img.width * img.height * niter / elapsed);
+    fprintf(stderr, "Execution time: %f\n", elapsed);
 
     write_pgm(stdout, &img, "produced by simd-cat-map.c");
     free_pgm(&img);

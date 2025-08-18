@@ -226,7 +226,7 @@ int main( int argc, char *argv[] )
     const double elapsed = MPI_Wtime() - tstart;
 
     if ( 0 == my_rank ) {
-        printf("Elapsed time: %f\n", elapsed);
+        printf("Execution time: %f\n", elapsed);
         if (found < 0) {
             fprintf(stderr, "FATAL: key not found\n");
             MPI_Abort(MPI_COMM_WORLD, -1);

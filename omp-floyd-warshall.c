@@ -223,7 +223,7 @@ int main( int argc, char* argv[] )
     const float tstart = omp_get_wtime();
     floyd_warshall(&g, d, p);
     const float elapsed = omp_get_wtime() - tstart;
-    fprintf(stderr, "Execution time....... %f\n", elapsed);
+    fprintf(stderr, "Execution time: %f\n", elapsed);
 
     printf("d[%d,%d] = %f\n", 0, g.n-1, d[IDX(0, g.n-1, g.n)]);
     free(d);

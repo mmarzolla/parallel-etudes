@@ -269,7 +269,7 @@ int main( int argc, char *argv[] )
         fwrite(bitmap, sizeof(*bitmap), xsize*ysize, out);
         fclose(out);
 
-        printf("Elapsed time (s): %f\n", elapsed);
+        printf("Execution time: %f\n", elapsed);
     }
     free(bitmap);
     free(local_bitmap);
@@ -307,7 +307,7 @@ int main( int argc, char *argv[] )
         fwrite(bitmap, sizeof(*bitmap), xsize*ysize, out);
         fclose(out);
 
-        printf("Elapsed time (s): %f\n", elapsed);
+        printf("Execution time: %f\n", elapsed);
     }
     free(bitmap);
     free(local_bitmap);

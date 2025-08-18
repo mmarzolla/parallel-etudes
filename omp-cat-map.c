@@ -390,14 +390,14 @@ int main( int argc, char* argv[] )
 
     fprintf(stderr, "\n=== Without loop interchange ===\n");
 #if defined(_OPENMP)
-    fprintf(stderr, "  OpenMP threads : %d\n", omp_get_max_threads());
+    fprintf(stderr, "  OpenMP threads: %d\n", omp_get_max_threads());
 #else
     fprintf(stderr, "  OpenMP disabled\n");
 #endif
-    fprintf(stderr, "      Iterations : %d\n", niter);
-    fprintf(stderr, "    width,height : %d,%d\n", img.width, img.height);
-    fprintf(stderr, "        Mops/sec : %f\n", 1.0e-6 * img.width * img.height * niter / elapsed);
-    fprintf(stderr, "Elapsed time (s) : %f\n\n", elapsed);
+    fprintf(stderr, "    Iterations: %d\n", niter);
+    fprintf(stderr, "  Width,Height: %d,%d\n", img.width, img.height);
+    fprintf(stderr, "      Mops/sec: %f\n", 1.0e-6 * img.width * img.height * niter / elapsed);
+    fprintf(stderr, "Execution time: %f\n\n", elapsed);
 
     /**
      ** WITH loop interchange
@@ -413,14 +413,14 @@ int main( int argc, char* argv[] )
 
     fprintf(stderr, "\n=== With loop interchange ===\n");
 #if defined(_OPENMP)
-    fprintf(stderr, "  OpenMP threads : %d\n", omp_get_max_threads());
+    fprintf(stderr, "  OpenMP threads: %d\n", omp_get_max_threads());
 #else
     fprintf(stderr, "  OpenMP disabled\n");
 #endif
-    fprintf(stderr, "      Iterations : %d\n", niter);
-    fprintf(stderr, "    width,height : %d,%d\n", img.width, img.height);
-    fprintf(stderr, "        Mops/sec : %.4f\n", 1.0e-6 * img.width * img.height * niter / elapsed);
-    fprintf(stderr, "Elapsed time (s) : %f\n\n", elapsed);
+    fprintf(stderr, "    Iterations: %d\n", niter);
+    fprintf(stderr, "  Width,Height: %d,%d\n", img.width, img.height);
+    fprintf(stderr, "      Mops/sec: %.4f\n", 1.0e-6 * img.width * img.height * niter / elapsed);
+    fprintf(stderr, "Execution time: %f\n\n", elapsed);
 
     free_pgm( &img );
     return EXIT_SUCCESS;

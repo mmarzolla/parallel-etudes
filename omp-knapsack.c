@@ -275,7 +275,7 @@ int main(int argc, char* argv[])
     const float result = knapsack(&k);
     const double elapsed = hpc_gettime() - tstart;
     printf("Optimal profit: %f\n", result);
-    printf("Execution time %f\n", elapsed);
+    printf("Execution time: %f\n", elapsed);
     knapsack_free(&k);
     return EXIT_SUCCESS;
 }

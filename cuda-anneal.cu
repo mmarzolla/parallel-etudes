@@ -669,7 +669,7 @@ int main( int argc, char* argv[] )
     cudaFree(d_cur);
     cudaFree(d_next);
 #endif
-    fprintf(stderr, "Elapsed time: %f (%f Mops/s)\n", elapsed, (width*height/1.0e6)*nsteps/elapsed);
+    fprintf(stderr, "Execution time: %f (%f Mops/s)\n", elapsed, (width*height/1.0e6)*nsteps/elapsed);
 
     return EXIT_SUCCESS;
 }
