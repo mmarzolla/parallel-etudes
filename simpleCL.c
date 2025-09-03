@@ -98,7 +98,6 @@ Steps 2--6 can be repeated as many times as necessary.
 #define MAX_PLATFORMS 8
 #define MAX_DEVICES 16
 #define MAX_STR_LEN 1024
-#define MAX_BUILD_LOG_LEN 8192
 
 static int nkernels = 0; /* number of kernels enqueued so far */
 static sclDevice *scl_dev = NULL;
@@ -497,7 +496,6 @@ void sclInitFromString( const char *source )
     SCL_DEFAULT_WG_SIZE3D /= 2;
 
     char build_options[MAX_STR_LEN];
-    char build_log[MAX_BUILD_LOG_LEN];
     /*
       Pass the values of SCL_DEFAULT_WG_SIZExx as #define's
      */
@@ -512,10 +510,15 @@ void sclInitFromString( const char *source )
              (int)SCL_DEFAULT_WG_SIZE3D);
     err = clBuildProgram( scl_dev->program, 0, NULL, build_options, NULL, NULL );
     if ( err != CL_SUCCESS ) {
-        clGetProgramBuildInfo( scl_dev->program, scl_dev->device_id, CL_PROGRAM_BUILD_LOG, sizeof(build_log), build_log, NULL );
+        size_t build_log_size;
+        clGetProgramBuildInfo( scl_dev->program, scl_dev->device_id, CL_PROGRAM_BUILD_LOG, 0, NULL, &build_log_size);
+
+        char *build_log = (char*)malloc(build_log_size);
+        clGetProgramBuildInfo( scl_dev->program, scl_dev->device_id, CL_PROGRAM_BUILD_LOG, build_log_size, build_log, NULL );
         fprintf(stderr, "\n\n----- COMPILATION ERROR for OpenCL program\n");
         fputs(build_log, stderr);
         fprintf(stderr, "----- END COMPILATION ERROR\n\n");
+        free(build_log);
         sclPanic("clBuildProgram error in sclInitFromString: %s\n", sclGetErrorString(err));
     }
 }
