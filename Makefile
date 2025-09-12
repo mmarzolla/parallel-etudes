@@ -205,8 +205,8 @@ solutions/%.cl: %.cl
 	./expand-includes.sh $< | unifdef -x2 -USERIAL > $@
 
 pub: ALL
-	rsync -av --delete-after handouts/ ~/public_html/teaching/high-performance-computing/2024-2025/handouts && \
-	rsync -av --delete-after solutions/ ~/public_html/teaching/high-performance-computing/2024-2025/solutions && \
+	rsync -av --delete-after handouts/ ~/public_html/teaching/high-performance-computing/2025-2026/handouts && \
+	rsync -av --delete-after solutions/ ~/public_html/teaching/high-performance-computing/2025-2026/solutions && \
 	put-aruba.sh
 
 clean:
