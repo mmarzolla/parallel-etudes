@@ -3,35 +3,38 @@
 _Etudes for Programmers_ is an unusual yet influential book written by
 Charles Wetherell and published in 1978. The term _étude_ refers to a
 small musical piece that is intended for learning to play an
-instrument.  The book argues that, like playing a musical instrument,
-programming is a craft that -- at least in part -- is learned by
-practicing. To this aim, the book proposes a set of programming
+instrument.  The book argues that programming is a craft that -- at
+least in part -- is learned by practicing, like playing a musical
+instrument. To this aim, the book proposes a set of programming
 exercises of various levels of difficulty, from extremely simple to
-extremely complex.
+very complex.
 
 I strongly agree with Wetherell, and believe that the practice-based
 approach he suggests is very appropriate also for learning _parallel_
 programming. I incorporated this idea in the [High Performance
 Computing](https://www.moreno.marzolla.name/teaching/hpc/) course that
-I have been teaching over the last few years for the Computer science
-and Engineering degree at the University of Bologna.
+I have been teaching over the past 10 years to Computer Science and
+Engineering students at the University of Bologna.
 
-The course is an elective, undergraduate-level course in parallel
-programming on shared-memory, distributed-memory and GPU
-architectures. A considerable emphasis is put on practical aspects of
-parallel programming using OpenMP, MPI and CUDA, for which suitable
-exercises need to be developed.
+The course is an elective, undergraduate course in parallel
+programming; it covers all the major parallel programming models,
+i.e., shared-memory, distributed-memory and GPU. Considerable emphasis
+is put on practical aspects of parallel programming using OpenMP, MPI
+and CUDA, for which lab exercises need to be developed.
 
 This repository contains the source code of programming exercises that
 are used in the lab sessions. The labs are organized as follows: each
-exercise includes a detailed specification and a working serial
-implementation. The goal is to parallelize the serial program using
-one of the technologies that have been introduced in the previous
-class. Solutions are made available at the end of each lab session.
+exercise includes a detailed specification, and is provided with a
+fully functional serial solution. The goal is to parallelize the
+serial program using the techniques discussed in the previous
+classes. Reference parallel solutions are made available at the end of
+each lab session, so that each student can compare his/her own code to
+the program provided by the instructor.
 
-Some exercises are quite simple, while others are more
-complex. However, the level of difficulty is low since students are
-expected to solve at least one exercise during each lab session.
+In the spirit of Wetherell's _etudes_, some exercises are simple while
+others are more complex. However, the overall level of difficulty is
+moderate, since students are expected to solve at least one exercise
+during each lab session.
 
 Some notable points:
 
@@ -41,11 +44,11 @@ Some notable points:
 
 - Many exercises are designed to be interesting, and are taken from
   different domains such as 3D graphics, Cellular Automata,
-  gravitational N-body solvers, cryptography and so on. Some programs
-  produce images or movies as output, to make them more appealing.
+  gravitational N-body simulations, cryptography, and others. Some
+  programs generate images or movies, to make them more appealing.
 
 - Some exercises can be parallelized using multiple programming
-  paradigms.  This is quite useful to appreciate the strengths and
+  paradigms. This is quite useful to appreciate the strengths and
   weaknesses of each paradigm.
 
 ## Citation
@@ -57,7 +60,8 @@ programming exercises has been described in the following paper:
 > Euromicro International Conference on Parallel, Distributed, and
 > Network-Based Processing (PDP), march 12--14 2025, Turin, Italy,
 > pp. 341--348, IEEE Computer Society Conference Publishing Services
-> (CPS) ISBN: 979-8-3315-2493-7 ISSN: 2377-5750
+> (CPS) ISBN: 979-8-3315-2493-7 ISSN: 2377-5750, doi:
+> <https://doi.org/10.1109/PDP66500.2025.00010>
 
 BibTeX:
 
@@ -73,7 +77,8 @@ BibTeX:
   pages = "341--348",
   isbn = "979-8-3315-2493-7",
   organization = "Euromicro",
-  publisher = "IEEE CPS"
+  publisher = "IEEE CPS",
+  doi = "10.1109/PDP66500.2025.00010"
 }
 ```
 
@@ -133,22 +138,22 @@ following tools are required:
 
 - [unifdef](https://dotat.at/prog/unifdef/)
 
-## Use
+## Using these exercises
 
 Type
 
     make
 
 to generate the specification of each exercise in HTML format,
-together with the source code of the skeleton provided during the lab
-sessions and the corresponding solutions.
+together with the skeleton source code provided during the lab
+sessions, and the corresponding solution.
 
 ## How it works
 
-The repository contains source files (with extensions `.c`, `.cu`,
+The repository contains program sources (with extensions `.c`, `.cu`,
 `.cl` and `.h`) and data files. The specification of each exercise is
-included in comment blocks in each source file; specifically, the
-content of comments included within these markers:
+in a comment blocks at the top of the source file; specifically, all
+text between the markers
 
 ```C
 /***
@@ -158,51 +163,50 @@ content of comments included within these markers:
 ***/
 ```
 
-is treated as a Markdown
+is treated as Markdown-formatted specification
 text. [Markdown](https://www.markdownguide.org/) is a text-based
 markup language that allows formatting and structural elements to be
-described with a minimalistic and unobstrusive syntax. The provided
-`Makefile` extracts the content of the comments using `sed`, and
-formats it using [pandoc](https://pandoc.org/index.html) to produce
-HTML pages.
+described with a simple syntax. The provided `Makefile` extracts the
+content of the comment blocks above and formats it using
+[pandoc](https://pandoc.org/index.html) to produce HTML pages.
 
-Each source files is further processed to produce a skeleton that is
-provided to students during the lab sessions, and the complete
-solution that is made available afterwards. To define which portion of
-the source code goes to the skeleton or solution, it is possible to
-use the `SERIAL` preprocessor symbol: this symbol is defined when
-compiling the skeleton, and is not defined when compiling the
-solution.
+Each source file is further processed to produce both the serial
+program provided to students during the lab sessions, and the solution
+that is made available afterwards. To define which portion of the
+source code goes to the serial program or the solution, we use the
+`SERIAL` preprocessor symbol: this symbol is defined when compiling
+the serial code only.
 
 ```C
 int foo(int x)
 {
 #ifdef SERIAL
-   /* This block will be included in the serial skeleton provided
-      to students. */
+   /* This will appear in the serial program. */
 #else
-   /* This block will be included in the solution */
+   /* This will appear in the solution. */
 #endif
+   /* This will appear in both the serial program
+      an d the solution. */
 }
 ```
 
 The Makefile uses the [unifdef](https://dotat.at/prog/unifdef/)
-program to generate new source files for both cases.
+utility to generate new source files for both cases.
 
-Therefore, from each source file (`.c` or `.cu`) the provided
-Makefile generates:
+Therefore, from each source file (`.c` or `.cu`) the Makefile
+generates:
 
 - The specification of the assignment, by extracting the comments
-  formatted as above and converting them to HTML and
-  placed into the `handouts/` subdirectory;
+  formatted as above and converting them to HTML placed inside the
+  `handouts/` subdirectory;
 
-- The source code that will be provided during the lab sessions as
-  skeleton to be completed by the students, again placed into the
-  `handouts/` subdirectory; all other source files (`.h` and `.cl`),
-  plus any additional data file, are also copied there.
+- The serial code provided during the lab sessions, to be used as the
+  starting point for the parallel version, placed into the `handouts/`
+  subdirectory; all other source files (`.h` and `.cl`), plus any
+  additional data file, are also copied there.
 
-- The source code of the solution, placed into the `solutions/`
-  subdirectory.
+- The source code of the parallel solution, placed into the
+  `solutions/` subdirectory.
 
 The following figure illustrates the process:
 
