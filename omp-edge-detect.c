@@ -83,7 +83,7 @@ void edge_detect( const PGM_image* in, PGM_image* edges, int threshold )
 #ifdef SERIAL
     /* [TODO] Parallelize the following loops */
 #else
-#pragma omp parallel for collapse(2) default(none) shared(in_bmap, edges_bmap, threshold, height, width, BLACK, WHITE)
+#pragma omp parallel for default(none) shared(in_bmap, edges_bmap, threshold, height, width, BLACK, WHITE)
 #endif
     for (int i = 1; i < height-1; i++) {
         for (int j = 1; j < width-1; j++)  {

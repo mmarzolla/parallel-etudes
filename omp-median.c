@@ -120,7 +120,7 @@ void median_filter( int radius, data_t *bmap, int width, int height )
     {
         data_t *tmp = (data_t*)malloc(tmp_len*sizeof(data_t));
         assert(tmp != NULL);
-#pragma omp for collapse(2)
+#pragma omp for
         for (int i=0; i<height; i++) {
             for (int j=0; j<width; j++) {
                 int k = 0;

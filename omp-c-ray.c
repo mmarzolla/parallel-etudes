@@ -490,7 +490,7 @@ void render(int xsz, int ysz, pixel_t *fb, int samples)
 #ifndef SERIAL
     /* You might want to play with the "schedule" clause */
 
-#pragma omp parallel for default(none) collapse(2) shared(samples, fb, xsz, ysz) schedule(dynamic, 32)
+#pragma omp parallel for default(none) shared(samples, fb, xsz, ysz) schedule(dynamic, 32)
 #endif
     for (int j=0; j<ysz; j++) {
         for (int i=0; i<xsz; i++) {

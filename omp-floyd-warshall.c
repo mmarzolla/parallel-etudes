@@ -164,7 +164,7 @@ int floyd_warshall( const graph_t *g, double *d, int *p )
 
 #pragma omp parallel
     {
-#pragma omp for collapse(2)
+#pragma omp for
         for (int u=0; u<n; u++) {
             for (int v=0; v<n; v++) {
                 d[IDX(u,v,n)] = (u == v ? 0.0 : HUGE_VAL);
@@ -179,7 +179,7 @@ int floyd_warshall( const graph_t *g, double *d, int *p )
         }
 
         for (int k=0; k<n; k++) {
-#pragma omp for collapse(2)
+#pragma omp for
             for (int u=0; u<n; u++) {
                 for (int v=0; v<n; v++) {
                     if (d[IDX(u,k,n)] + d[IDX(k,v,n)] < d[IDX(u,v,n)]) {

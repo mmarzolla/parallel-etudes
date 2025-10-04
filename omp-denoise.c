@@ -117,7 +117,7 @@ void denoise( unsigned char *bmap, int width, int height )
     memcpy(out, bmap, width*height);
     /* Note that the pixels on the border are left unchanged */
 #ifndef SERIAL
-#pragma omp parallel for collapse(2) default(none) shared(width, height, bmap, out) private(v)
+#pragma omp parallel for default(none) shared(width, height, bmap, out) private(v)
 #endif
     for (int i=1; i<height - 1; i++) {
         for (int j=1; j<width - 1; j++) {

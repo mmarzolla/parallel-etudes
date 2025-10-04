@@ -60,11 +60,10 @@ estimates](https://www.fractalus.com/kerry/articles/area/mandelbrot-area.html).
 Modify the serial program to use the shared-memory parallelism
 provided by OpenMP. To this aim, you can distribute the $N \times N$
 lattice points across $P$ OpenMP threads using the `omp parallel for`
-directive; you might want to use the `collapse` directive as
-well. Each thread computes the number of points that belong to the
-Mandelbrot set; the result is simply the sum-reduction of the partial
-counts from each thread. This can be achieved with the `reduction`
-clause.
+directive. Each thread computes the number of points that belong to
+the Mandelbrot set; the result is simply the sum-reduction of the
+partial counts from each thread. This can be achieved with the
+`reduction` clause.
 
 Compile with:
 
@@ -127,7 +126,7 @@ uint32_t inside( int xsize, int ysize )
 #else
     /* The "schedule(dynamic,64)" clause is here as an example only;
        the chunk size (64) might not be the best. */
-#pragma omp parallel for collapse(2) default(none) shared(xsize,ysize,XMIN,XMAX,YMIN,YMAX,MAXIT) reduction(+:ninside) schedule(dynamic, 64)
+#pragma omp parallel for default(none) shared(xsize,ysize,XMIN,XMAX,YMIN,YMAX,MAXIT) reduction(+:ninside) schedule(dynamic, 64)
 #endif
     for (int i=0; i<ysize; i++) {
         for (int j=0; j<xsize; j++) {
