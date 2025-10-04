@@ -513,7 +513,7 @@ void sclInitFromString( const char *source )
         size_t build_log_size;
         clGetProgramBuildInfo( scl_dev->program, scl_dev->device_id, CL_PROGRAM_BUILD_LOG, 0, NULL, &build_log_size);
 
-        char *build_log = (char*)malloc(build_log_size);
+        char *build_log = (char*)malloc(build_log_size); assert(build_log != NULL);
         clGetProgramBuildInfo( scl_dev->program, scl_dev->device_id, CL_PROGRAM_BUILD_LOG, build_log_size, build_log, NULL );
         fprintf(stderr, "\n\n----- COMPILATION ERROR for OpenCL program\n");
         fputs(build_log, stderr);
