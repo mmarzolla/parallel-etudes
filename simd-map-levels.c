@@ -48,7 +48,7 @@ Figure 1 shows the image produced by the command
 
         ./simd-map-levels 100 180 < simd-map-levels-in.pgm > out.pgm
 
-![Figure 1: Left: original image [simd-map-levels-in.pgm](simd-map-levels-in.pgm); Right: after level mapping with `./simd-map-levels 100 180 < simd-map-levels-in.pgm > out.pgm`](simd-map-levels.png)
+![Figure 1: Left: original image [simd-map-levels-in.pgm](simd-map-levels-in.pgm); Right: after level mapping with `./simd-map-levels 100 180 < simd-map-levels-in.pgm > out.pgm`.](simd-map-levels.png)
 
 We provide the image [C1648109](C1648109.pgm) taken by the [Voyager
 1](https://voyager.jpl.nasa.gov/) probe on March 8, 1979. The image
@@ -66,7 +66,7 @@ yourself by running the program
 
 and look at what appears next to the disc of Io at ten o'clock...
 
-![Figure 2: Image C1648109 taken by Voyager 1 ([source](https://opus.pds-rings.seti.org/#/mission=Voyager&target=Io&cols=opusid,instrument,planet,target,time1,observationduration&widgets=mission,planet,target&order=time1,opusid&view=detail&browse=gallery&cart_browse=gallery&startobs=481&cart_startobs=1&detail=vg-iss-1-j-c1648109))](C1648109.png)
+![Figure 2: Image C1648109 taken by Voyager 1 ([source](https://opus.pds-rings.seti.org/#/mission=Voyager&target=Io&cols=opusid,instrument,planet,target,time1,observationduration&widgets=mission,planet,target&order=time1,opusid&view=detail&browse=gallery&cart_browse=gallery&startobs=481&cart_startobs=1&detail=vg-iss-1-j-c1648109)).](C1648109.png)
 
 The file [simd-map-levels.c](simd-map-levels.c) contains a serial
 implementation of function `map_levels()` above. The goal of this

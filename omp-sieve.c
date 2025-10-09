@@ -24,7 +24,7 @@
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2025-10-09
 
-![Eratosthenes (276 BC--194 BC)](Eratosthenes.png "Etching of an ancient seal identified as Eartosthenes")
+![Eratosthenes (276 BC--194 BC).](Eratosthenes.png "Etching of an ancient seal identified as Eartosthenes")
 
 The _sieve of Erathostenes_ is an algorithm for identifying the prime
 numbers within the set $\{2, \ldots, n\}$. An integer $p \geq 2$ is

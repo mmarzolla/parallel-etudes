@@ -28,7 +28,7 @@ Write a parallel program that computes the _bounding box_ of a set of
 rectangles. The bounding box is the rectangle of minimal area that
 contains all the given rectangles (see Figure 1).
 
-![Figure 1: Bounding box of a set of rectangles](mpi-bbox.svg)
+![Figure 1: Bounding box of a set of rectangles.](mpi-bbox.svg)
 
 The progra reads the coordinates of the rectangles from a test
 file. The first row contains the number $N$ of rectangles; $N$ lines

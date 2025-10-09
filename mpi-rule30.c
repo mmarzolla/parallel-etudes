@@ -62,7 +62,7 @@ black, 0 = white). Time moves from top to bottom: the first line is
 the initial state (time 0), the second line is the state at time 1,
 and so on.
 
-![Figure 2: Evolution of Rule 30 CA](rule30.png)
+![Figure 2: Evolution of Rule 30 CA.](rule30.png)
 
 The pattern shown in Figure 2 is similar to the pattern on the [Conus
 textile](https://en.wikipedia.org/wiki/Conus_textile) shell, a highly
@@ -78,7 +78,7 @@ MPI, so that the computation of each step is distributed across MPI
 processes. The program should operate as follows (see Figure 4 and
 also [this document](mpi-rule30.pdf)):
 
-![Figure 4: Parallelization of the Rule 30 CA](mpi-rule30-fig4.svg)
+![Figure 4: Parallelization of the Rule 30 CA.](mpi-rule30-fig4.svg)
 
 1. The domain is distributed across the $P$ MPI processes using
    `MPI_Scatter()`; we assume that $N$ is an integer multiple of
@@ -126,7 +126,7 @@ MPI_Scatter( &cur[LEFT],        \/\* sendbuf    \*\/
 (the symbols `LEFT` and `LOCAL_LEFT` are defined in the source code to
 improve readability).
 
-![Figure 5: Using `MPI_Sendrecv()` to exchange ghost cells](mpi-rule30-fig5.svg)
+![Figure 5: Using `MPI_Sendrecv()` to exchange ghost cells.](mpi-rule30-fig5.svg)
 
 Filling the ghost cells is a bit tricky and requires two calls to
 `MPI_Sendrecv()` (see Figure 5). First, each process sends the value

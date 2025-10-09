@@ -36,7 +36,7 @@ positions are compared with the next element and swapped if not in the
 correct order. During odd steps, elements in odd position are compared
 (and possibly swapped) with their successors. See Figure 1.
 
-![Figure 1: Odd-Even Sort](opencl-odd-even.svg)
+![Figure 1: Odd-Even Sort.](opencl-odd-even.svg)
 
 The file [opencl-odd-even.c](opencl-odd-even.c) contains a serial
 implementation of Odd-Even transposition sort. The purpose of this

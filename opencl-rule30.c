@@ -35,7 +35,7 @@ assume cyclic boundary conditions, so that the neighbors of $x[0]$ are
 $x[N-1]$ and $x[1]$ and the neighbors of $x[N-1]$ are $x[N-2]$ and
 $x[0]$ (Figure 1).
 
-![Figure 1: Rule 30 CA](mpi-rule30-fig1.svg)
+![Figure 1: Rule 30 CA.](mpi-rule30-fig1.svg)
 
 Given the current values $pqr$ of three adjacent cells, the new value
 $q'$ of the middle cell is computed according to Table 1.
@@ -59,7 +59,7 @@ the number of steps _nsteps_ to simulate. At the end, the program
 produces the image `rule30.pbm` shown in Figure 2 of size $N \times
 \textit{nsteps}$.
 
-![Figure 2: Evolution of Rule 30 CA](rule30.svg)
+![Figure 2: Evolution of Rule 30 CA.](rule30.svg)
 
 Each row of the image represents the state of the automaton at a
 specific time step (1 = black, 0 = white). Time moves from top to
@@ -73,7 +73,7 @@ tropical seas (Figure 3).
 
 ![Figure 3: Conus Textile by Richard Ling - Own work; Location: Cod
 Hole, Great Barrier Reef, Australia, CC BY-SA 3.0,
-<https://commons.wikimedia.org/w/index.php?curid=293495>](conus-textile.jpg)
+<https://commons.wikimedia.org/w/index.php?curid=293495>.](conus-textile.jpg)
 
 The goal of this exercise is to write a parallel version where the
 computation of the new states are performed by OpenCL work-items. In
@@ -103,7 +103,7 @@ on the state of a cell and the state of the two neighbors. Be careful,
 since in this exercise we assume a cyclic domain, whereas in the
 stencil computation discussed in the class we did not.
 
-![Figure 3: Using local memory](opencl-rule30.svg)
+![Figure 3: Using local memory.](opencl-rule30.svg)
 
 Looking at Figure 2, you might proceed as follows:
 
