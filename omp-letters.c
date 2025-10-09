@@ -24,7 +24,7 @@
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2025-10-09
 
-![By Willi Heidelbach, CC BY 2.5, <https://commons.wikimedia.org/w/index.php?curid=1181525>](letters.jpg)
+![By Willi Heidelbach, CC BY 2.5, <https://commons.wikimedia.org/w/index.php?curid=1181525>.](letters.jpg)
 
 The file [omp-letters.c](omp-letters.c) contains a serial program that
 computes the number of occurrences of the letters 'a'...'z' in an

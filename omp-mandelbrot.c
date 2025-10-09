@@ -24,7 +24,7 @@
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2025-10-09
 
-![Benoit Mandelbrot (1924--2010)](Benoit_Mandelbrot.jpg)
+![Benoit Mandelbrot (1924--2010).](Benoit_Mandelbrot.jpg)
 
 The file [omp-mandelbrot.c](omp-mandelbrot.c) contains a serial
 program that draws the Mandelbrot set. The Mandelbrot set is the set

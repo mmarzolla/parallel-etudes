@@ -81,7 +81,7 @@ If both $i$ and $j$ are nonzero, we  have three possibilities (see Fig. 1):
         $s[0 \ldots i-2]$ into $t[0 \ldots j-2]$. Cost: $1 +
         L[i-1][j-1]$.
 
-![Figure 1: Computation of $L[i][j]$](omp-levenshtein.svg)
+![Figure 1: Computation of $L[i][j]$.](omp-levenshtein.svg)
 
 We choose the alternative that minimizes the cost, so we can summazize
 the cases above with the following expression:

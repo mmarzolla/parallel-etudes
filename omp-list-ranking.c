@@ -77,7 +77,7 @@ has a loop-carried dependency on `d[]`. Indeed, the pseudocode assumes
 that all processors _first_ compute `d[n] + d[n.next]`, and _then, all
 at the same time_, set the new value of `d[n]`.
 
-![Figure 1: Pointer jumping algorithm](omp-list-ranking.svg)
+![Figure 1: Pointer jumping algorithm.](omp-list-ranking.svg)
 
 To compile:
 

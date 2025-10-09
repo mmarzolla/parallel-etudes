@@ -29,7 +29,7 @@ algorithm for computing the approximate value of $\pi$. Monte Carlo
 algorithms use pseudo-random numbers to evaluate some function of
 interest.
 
-![Figure 1: Monte Carlo computation of the value of $\pi$](pi_Monte_Carlo.svg)
+![Figure 1: Monte Carlo computation of the value of $\pi$.](pi_Monte_Carlo.svg)
 
 The idea is simple (see Figure 1). We generate $N$ random points
 uniformly distributed over a square with corners at $(-1, -1)$ and

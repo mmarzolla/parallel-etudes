@@ -25,7 +25,7 @@
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2022-09-06
 
-![A frame of the Bolshoi simulation (source: <http://hipacc.ucsc.edu/Bolshoi/Images.html>)](bolshoi.png)
+![A frame of the Bolshoi simulation (source: <http://hipacc.ucsc.edu/Bolshoi/Images.html>).](bolshoi.png)
 
 Cosmological simulations study the large-scale evolution of the
 universe, and are based on the computation of the dynamics of $N$

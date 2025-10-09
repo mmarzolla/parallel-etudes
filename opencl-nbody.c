@@ -25,7 +25,7 @@
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2024-01-04
 
-![A frame of the Bolshoi simulation (source: <http://hipacc.ucsc.edu/Bolshoi/Images.html>)](bolshoi.png)
+![A frame of the Bolshoi simulation (source: <http://hipacc.ucsc.edu/Bolshoi/Images.html>).](bolshoi.png)
 
 Cosmological simulations study the large-scale evolution of the
 universe, and are based on the computation of the dynamics of $N$
@@ -117,7 +117,7 @@ memory $N$ times; indeed, each of the $N$ work-items scans the entire
 `p[]` array, so each element of `p[]` is accessed $N$ times by $N$
 different work-items.
 
-![Figure 1: Using _local memory_](opencl-nbody.svg)
+![Figure 1: Using _local memory_.](opencl-nbody.svg)
 
 In situations like this, it can be useful to try to use use local
 memory to reduce access to the device memory (Figure 1). To do this:

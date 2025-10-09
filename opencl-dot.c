@@ -72,7 +72,7 @@ work-items.  The algorithm works as follows:
    sum-reduction of `tmp[]` and computes the final result that can be
    transferred back to the host.
 
-![Figure 1](opencl-dot.svg)
+![Figure 1: Dot product with OpenCL.](opencl-dot.svg)
 
 Your program must work correctly for any value of $n$, even if it is
 not a multiple of _B_.
