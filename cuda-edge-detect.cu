@@ -2,7 +2,7 @@
  *
  * cuda-edge-detect.cu - Edge detection on grayscale images
  *
- * Copyright (C) 2024 Moreno Marzolla
+ * Copyright (C) 2024, 2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % HPC - Edge detection on grayscale images
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-09-02
+% Last updated: 2025-10-09
 
 ![Result of the Sobel operator](edge-detect.png)
 
@@ -174,7 +174,7 @@ int main( int argc, char* argv[] )
     const double tstart = hpc_gettime();
     edge_detect(&bmap, &out, threshold);
     const double elapsed = hpc_gettime() - tstart;
-    fprintf(stderr, "Execution time: %f\n", elapsed);
+    fprintf(stderr, "Execution time %.3f\n", elapsed);
     write_pgm(stdout, &out, "produced by opencl-edge-detect.c");
     free_pgm(&bmap);
     free_pgm(&out);

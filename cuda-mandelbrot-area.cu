@@ -18,7 +18,7 @@
 /***
 % HPC - Area of the Mandelbrot set
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-01-04
+% Last updated: 2025-10-09
 
 The Mandelbrot set is the set of black points in Figure 1.
 
@@ -208,7 +208,7 @@ int main( int argc, char *argv[] )
 
     printf("Area of Mandlebrot set = %f\n", area);
     printf("Correct answer should be around 1.50659\n");
-    printf("Execution time: %f\n", elapsed);
+    printf("Execution time %.3f\n", elapsed);
 
     return EXIT_SUCCESS;
 }

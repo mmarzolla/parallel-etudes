@@ -24,6 +24,55 @@
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2025-10-09
 
+![Eratosthenes (276 BC--194 BC)](Eratosthenes.png "Etching of an ancient seal identified as Eartosthenes")
+
+The _sieve of Erathostenes_ is an algorithm for identifying the prime
+numbers within the set $\{2, \ldots, n\}$. An integer $p \geq 2$ is
+prime if and only if its only divisors are 1 and $p$ itself (2 is
+prime).
+
+To illustrate how the sieve of Eratosthenes works, let us consider
+$n=20$. We start by listing all integers $2, \ldots n$:
+
+![](sieve1.svg)
+
+The first value in the list (2) is prime; we mark all its multiples,
+and get:
+
+![](sieve2.svg)
+
+The next unmarked value (3) is prime. We mark all its multiples
+starting from $3 \times 3$, since $3 \times 2$ has already been marked
+as a multiple of two. We get:
+
+![](sieve3.svg)
+
+The next unmarked value (5) is prime. The smaller unmarked multiple of
+5 is $5 \times 5$, because $5 \times 2$, $5 \times 3$ and $5 \times 4$
+have already been marked as multiples of 2 and 3. However, since $5
+\times 5$ is outside the upper bound of the interval, the algorithm
+terminates and all unmarked numbers are prime:
+
+![](sieve4.svg)
+
+The file [omp-sieve.c](omp-sieve.c) contains a serial program that
+takes as input an integer $n \geq 2$, and computes the number $\pi(n)$
+of primes in the set $\{2, \ldots n\}$ using the sieve of
+Eratosthenes[^1]. Although the serial program could be made more
+efficient, for the sake of this exercise we trade efficiency for
+readability.
+
+The set of unmarked numbers in $\{2, \ldots, n\}$ is represented by
+the `isprime[]` array of length $n+1$; during execution, `isprime[k]`
+is 0 if and only if $k$ has been marked, i.e., has been determined to
+be composite; `isprime[0]` and `isprime[1]` are not used.
+
+[^1]: $\pi(n)$ is the [prime-counting
+      function](https://en.wikipedia.org/wiki/Prime-counting_function)
+
+The goal of this exercise is to write a parallel version of the sieve
+of Erathostenes using OpenCL.
+
 ## Files
 
 - [opencl-sieve.c](opencl-sieve.c)

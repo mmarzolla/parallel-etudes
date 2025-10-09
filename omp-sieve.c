@@ -34,18 +34,18 @@ prime).
 To illustrate how the sieve of Eratosthenes works, let us consider
 $n=20$. We start by listing all integers $2, \ldots n$:
 
-![](omp-sieve1.svg)
+![](sieve1.svg)
 
 The first value in the list (2) is prime; we mark all its multiples,
 and get:
 
-![](omp-sieve2.svg)
+![](sieve2.svg)
 
 The next unmarked value (3) is prime. We mark all its multiples
 starting from $3 \times 3$, since $3 \times 2$ has already been marked
 as a multiple of two. We get:
 
-![](omp-sieve3.svg)
+![](sieve3.svg)
 
 The next unmarked value (5) is prime. The smaller unmarked multiple of
 5 is $5 \times 5$, because $5 \times 2$, $5 \times 3$ and $5 \times 4$
@@ -53,7 +53,7 @@ have already been marked as multiples of 2 and 3. However, since $5
 \times 5$ is outside the upper bound of the interval, the algorithm
 terminates and all unmarked numbers are prime:
 
-![](omp-sieve4.svg)
+![](sieve4.svg)
 
 The file [omp-sieve.c](omp-sieve.c) contains a serial program that
 takes as input an integer $n \geq 2$, and computes the number $\pi(n)$

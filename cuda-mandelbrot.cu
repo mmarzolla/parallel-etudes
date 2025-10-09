@@ -22,7 +22,7 @@
 /***
 % HPC - Mandelbrot set
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-03-23
+% Last updated: 2025-10-09
 
 ![Figure 1: The Mandelbrot set.](mandelbrot-set.png)
 
@@ -266,7 +266,7 @@ int main( int argc, char *argv[] )
     mandelbrot(xsize, ysize, bitmap);
     const double elapsed = hpc_gettime() - tstart;
 #endif
-    fprintf(stderr, "Execution time: %f\n", elapsed);
+    fprintf(stderr, "Execution time %.3f\n", elapsed);
 
     fwrite(bitmap, sizeof(*bitmap), xsize*ysize, out);
     fclose(out);
