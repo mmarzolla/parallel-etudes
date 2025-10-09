@@ -2,7 +2,7 @@
  *
  * opencl-sieve.c - Sieve of Eratosthenes
  *
- * Copyright (C) 2018--2024 Moreno Marzolla
+ * Copyright (C) 2018--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Sieve of Eratosthenes
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-09-02
+% Last updated: 2025-10-09
 
 ## Files
 
@@ -119,7 +119,7 @@ int main( int argc, char *argv[] )
 
     printf("There are %d primes in {2, ..., %d}\n", nprimes, n);
 
-    printf("Execution time: %f\n", elapsed);
+    printf("Execution time  %.3f\n", elapsed);
 
     sclFinalize();
 

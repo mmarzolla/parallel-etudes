@@ -2,7 +2,7 @@
  *
  * omp-merge-sort.c - Merge Sort with OpenMP tasks
  *
- * Copyright (C) 2017--2024 Moreno Marzolla
+ * Copyright (C) 2017--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Merge Sort with OpenMP tasks
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-10-23
+% Last updated: 2025-10-09
 
 The file [omp-merge-sort.c](omp-merge-sort.c) contains a recursive
 implementation of the _Merge Sort_ algorithm. The program uses
@@ -262,7 +262,7 @@ int main( int argc, char* argv[] )
     printf("done\n");
     const int ok = is_correct(a, n);
     printf("Check %s\n", (ok ? "OK" : "failed"));
-    printf("Execution time: %f\n", elapsed);
+    printf("Execution time %.3f\n", elapsed);
 
     free(a);
 

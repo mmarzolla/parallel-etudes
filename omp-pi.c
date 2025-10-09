@@ -2,7 +2,7 @@
  *
  * omp-pi.c - Monte Carlo approximation of PI
  *
- * Copyright (C) 2017--2024 Moreno Marzolla
+ * Copyright (C) 2017--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Monte Carlo approximation of $\pi$
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2023-10-25
+% Last updated: 2025-10-09
 
 The file [omp-pi.c](omp-pi.c) implements a serial Monte Carlo
 algorithm for computing the approximate value of $\pi$. Monte Carlo
@@ -236,7 +236,7 @@ int main( int argc, char *argv[] )
     const double elapsed = omp_get_wtime() - tstart;
     const double pi_approx = 4.0 * n_inside / (double)n_points;
     printf("PI approximation %f, exact %f, error %f%%\n", pi_approx, PI_EXACT, 100.0*fabs(pi_approx - PI_EXACT)/PI_EXACT);
-    printf("Execution time: %f\n", elapsed);
+    printf("Execution time %.3f\n", elapsed);
 
     return EXIT_SUCCESS;
 }

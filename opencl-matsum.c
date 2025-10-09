@@ -200,7 +200,7 @@ int main( int argc, char *argv[] )
     matsum(p, q, r, n);
     const double elapsed = hpc_gettime() - tstart;
 
-    printf("Execution time: %f\n", elapsed);
+    printf("Execution time %.3f\n", elapsed);
 
     /* Check result */
     check(r, n);

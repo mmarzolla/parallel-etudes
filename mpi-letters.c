@@ -2,7 +2,7 @@
  *
  * mpi-letters.c - Character counts
  *
- * Copyright (C) 2018--2023 Moreno Marzolla
+ * Copyright (C) 2018--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Character counts
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2023-01-19
+% Last updated: 2025-10-09
 
 |[By Willi Heidelbach, CC BY 2.5, <https://commons.wikimedia.org/w/index.php?curid=1181525>](letters.jpg)
 
@@ -208,7 +208,7 @@ int main( int argc, char *argv[] )
     if ( 0 == my_rank ) {
         const double elapsed = MPI_Wtime() - tstart;
         print_hist(hist);
-        fprintf(stderr, "Execution time: %f\n", elapsed);
+        fprintf(stderr, "Execution time %.3f\n", elapsed);
     }
 
     free(text);

@@ -2,7 +2,7 @@
  *
  * omp-knapsack.c - 0-1 knapsack problem
  *
- * Copyright (C) 2017--2023 Moreno Marzolla
+ * Copyright (C) 2017--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % 0-1 Knapsack problem
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2023-10-24
+% Last updated: 2025-10-09
 
 ![](knapsack.png)
 
@@ -274,8 +274,8 @@ int main(int argc, char* argv[])
     const double tstart = hpc_gettime();
     const float result = knapsack(&k);
     const double elapsed = hpc_gettime() - tstart;
-    printf("Optimal profit: %f\n", result);
-    printf("Execution time: %f\n", elapsed);
+    printf("Optimal profit %f\n", result);
+    printf("Execution time %.3f\n", elapsed);
     knapsack_free(&k);
     return EXIT_SUCCESS;
 }

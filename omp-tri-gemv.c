@@ -2,7 +2,7 @@
  *
  * omp-tri-gemv.c - Upper-triangular Matrix-Vector multiply
  *
- * Copyright (C) 2024 Moreno Marzolla
+ * Copyright (C) 2024, 2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Upper-triangular Matrix-Vector multiply
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-12-04
+% Last updated: 2025-10-09
 
 Given a square matrix $A$ in upper triangular form and a vector $b$,
 the function `tri_gemv(A, b, c)` computes $c = Ab$. The goal of this
@@ -110,7 +110,7 @@ int main( int argc, char *argv[] )
     const double tstart = omp_get_wtime();
     tri_gemv(A, b, c, n);
     const double elapsed = omp_get_wtime() - tstart;
-    printf("Execution time: %f\n", elapsed);
+    printf("Execution time %.3f\n", elapsed);
     check(c, n);
     free(A);
     free(b);

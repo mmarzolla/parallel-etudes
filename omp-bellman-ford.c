@@ -2,7 +2,7 @@
  *
  * omp-bellman-ford.c - Single-source shortest paths
  *
- * Copyright (C) 2017, 2018, 2023, 2024 Moreno Marzolla
+ * Copyright (C) 2017, 2018, 2023--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Single-Source Shortest Path
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-05-30
+% Last updated: 2025-10-09
 
 The purpose of this exercise is to implement a parallel version of
 Dijkstra's algorithm for computing shortest paths from a single source
@@ -533,24 +533,24 @@ int main( int argc, char* argv[] )
     tstart = omp_get_wtime();
     bellmanford(&g, src, d_serial);
     t_serial = omp_get_wtime() - tstart;
-    fprintf(stderr, "Serial execution time....... %f\n", t_serial);
+    fprintf(stderr, "Serial execution time....... %.3f\n", t_serial);
 
     tstart = omp_get_wtime();
     bellmanford_atomic(&g, src, d_parallel);
     t_atomic = omp_get_wtime() - tstart;
-    fprintf(stderr, "Bellman-Ford (atomic)....... %f (%.2fx)\n", t_atomic, t_serial/t_atomic);
+    fprintf(stderr, "Bellman-Ford (atomic)....... %.3f (%.2fx)\n", t_atomic, t_serial/t_atomic);
     checkdist(d_serial, d_parallel, g.n);
 
     tstart = omp_get_wtime();
     bellmanford_none(&g, src, d_parallel);
     t_none = omp_get_wtime() - tstart;
-    fprintf(stderr, "Bellman-Ford (no sync)...... %f (%.2fx)\n", t_none, t_serial/t_none);
+    fprintf(stderr, "Bellman-Ford (no sync)...... %.3f (%.2fx)\n", t_none, t_serial/t_none);
     checkdist(d_serial, d_parallel, g.n);
 
     tstart = omp_get_wtime();
     dijkstra(&g, src, d_parallel);
     t_dijkstra = omp_get_wtime() - tstart;
-    fprintf(stderr, "Dijkstra.................... %f (%.2fx)\n", t_dijkstra, t_serial/t_dijkstra);
+    fprintf(stderr, "Dijkstra.................... %.3f (%.2fx)\n", t_dijkstra, t_serial/t_dijkstra);
     checkdist(d_serial, d_parallel, g.n);
 
     /* print distances to stdout */

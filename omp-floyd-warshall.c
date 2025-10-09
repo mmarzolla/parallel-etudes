@@ -2,7 +2,7 @@
  *
  * omp-floyd-warshall.c - All-pair shortest paths
  *
- * Copyright (C) 2024 Moreno Marzolla
+ * Copyright (C) 2024, 2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % All-pair shortest paths
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-05-09
+% Last updated: 2025-10-09
 
 Il programma legge da standard input una descrizione del grafo in
 formato DIMACS. Vengono forniti alcuni esempi: [rome99.gr](rome99.gr)
@@ -223,7 +223,7 @@ int main( int argc, char* argv[] )
     const float tstart = omp_get_wtime();
     floyd_warshall(&g, d, p);
     const float elapsed = omp_get_wtime() - tstart;
-    fprintf(stderr, "Execution time: %f\n", elapsed);
+    fprintf(stderr, "Execution time %.3f\n", elapsed);
 
     printf("d[%d,%d] = %f\n", 0, g.n-1, d[IDX(0, g.n-1, g.n)]);
     free(d);

@@ -2,7 +2,7 @@
  *
  * simd-cat-map.c - Arnold's cat map
  *
- * Copyright (C) 2016--2024 Moreno Marzolla
+ * Copyright (C) 2016--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Ardnold's cat map
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-01-04
+% Last updated: 2025-10-09
 
 ![](cat-map.png)
 
@@ -405,7 +405,7 @@ int main( int argc, char* argv[] )
     fprintf(stderr, "    Iterations: %d\n", niter);
     fprintf(stderr, "  Width,Height: %d,%d\n", img.width, img.height);
     fprintf(stderr, "      Mops/sec: %.4f\n", 1.0e-6 * img.width * img.height * niter / elapsed);
-    fprintf(stderr, "Execution time: %f\n", elapsed);
+    fprintf(stderr, "Execution time  %.3f\n", elapsed);
 
     write_pgm(stdout, &img, "produced by simd-cat-map.c");
     free_pgm(&img);

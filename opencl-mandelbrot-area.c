@@ -2,7 +2,7 @@
  *
  * opencl-mandelbrot-area.c - Area of the Mandelbrot set
  *
- * Copyright (C) 2022--2024 Moreno Marzolla
+ * Copyright (C) 2022--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Area of the Mandelbrot set
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-01-04
+% Last updated: 2025-10-09
 
 The Mandelbrot set is the set of black points in Figure 1.
 
@@ -173,7 +173,7 @@ int main( int argc, char *argv[] )
 
     printf("Area of Mandlebrot set = %f\n", area);
     printf("Correct answer should be around 1.50659\n");
-    printf("Execution time: %f\n", elapsed);
+    printf("Execution time %.3f\n", elapsed);
 #ifndef SERIAL
     sclFinalize();
 #endif

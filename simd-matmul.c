@@ -2,7 +2,7 @@
  *
  * simd-matmul.c - Dense matrix-matrix product using vector datatypes
  *
- * Copyright (C) 2017--2023 Moreno Marzolla
+ * Copyright (C) 2017--2023, 2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Dense matrix-matric product using vector datatypes
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2023-03-07
+% Last updated: 2025-10-09
 
 The file [simd-matmul.c](simd-matmul.c) contains a serial version of
 the dense matrix-matrix product of two square matrices $p, q$, $r=p
@@ -239,21 +239,21 @@ int main( int argc, char* argv[] )
     tstart = hpc_gettime();
     scalar_matmul(p, q, r, n);
     tserial = elapsed = hpc_gettime() - tstart;
-    printf("Scalar\t\tr[0][0] = %f, Exec time = %f\n", r[0], elapsed);
+    printf("Scalar\t\tr[0][0] = %f, Execution time %.3f\n", r[0], elapsed);
 
     bzero(r, size);
 
     tstart = hpc_gettime();
     scalar_matmul_tr(p, q, r, n);
     elapsed = hpc_gettime() - tstart;
-    printf("Transposed\tr[0][0] = %f, Exec time = %f (speedup vs scalar %.2fx)\n", r[0], elapsed, tserial/elapsed );
+    printf("Transposed\tr[0][0] = %f, Execution time %.3f (speedup vs scalar %.2fx)\n", r[0], elapsed, tserial/elapsed );
 
     bzero(r, size);
 
     tstart = hpc_gettime();
     simd_matmul_tr(p, q, r, n);
     elapsed = hpc_gettime() - tstart;
-    printf("SIMD transposed\tr[0][0] = %f, Exec time = %f (speedup vs scalar %.2fx)\n", r[0], elapsed, tserial/elapsed);
+    printf("SIMD transposed\tr[0][0] = %f, Execution time %.3f (speedup vs scalar %.2fx)\n", r[0], elapsed, tserial/elapsed);
 
     free(p);
     free(q);

@@ -2,7 +2,7 @@
  *
  * mpi-circles.c - Monte Carlo estimation of the area of the union of circles
  *
- * Copyright (C) 2017--2023 Moreno Marzolla
+ * Copyright (C) 2017--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Monte Carlo estimation of the area of the union of circles
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2023-11-13
+% Last updated: 2025-10-09
 
 The ile [mpi-circles.c](mpi-circles.c) contains a serial
 implementation of a Monte Carlo algorithm that estimates the area of
@@ -235,7 +235,7 @@ int main( int argc, char* argv[] )
     if ( 0 == my_rank ) {
         printf("%d points, %d inside, area=%f\n", K, c, 1.0e6*c/K);
         const double elapsed = MPI_Wtime() - tstart;
-        printf("Execution time: %f\n", elapsed);
+        printf("Execution time %.3f\n", elapsed);
     }
 
     free(x);

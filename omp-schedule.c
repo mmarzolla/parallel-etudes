@@ -2,7 +2,7 @@
  *
  * omp-schedule.c - simulate the "schedule()" clause
  *
- * Copyright (C) 2017--2024 Moreno Marzolla
+ * Copyright (C) 2017--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Simulate the "schedule()" clause
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-10-28
+% Last updated: 2025-10-09
 
 OpenMP allows the use of the `schedule(static)` and
 `schedule(dynamic)` clauses to choose how to assign loop iterations to
@@ -285,7 +285,7 @@ int main( int argc, char* argv[] )
     elapsed = omp_get_wtime() - tstart;
     is_correct(vin, vout, n);
 
-    printf("Execution time (static schedule): %f\n", elapsed);
+    printf("Execution time (static schedule) %.3f\n", elapsed);
 
     /**
      ** Test dynamic schedule implementation
@@ -296,7 +296,7 @@ int main( int argc, char* argv[] )
     elapsed = omp_get_wtime() - tstart;
     is_correct(vin, vout, n);
 
-    printf("Execution time (dynamic schedule): %f\n", elapsed);
+    printf("Execution time (dynamic schedule) %.3f\n", elapsed);
 
     free(vin);
     free(vout);

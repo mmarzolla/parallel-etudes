@@ -2,7 +2,7 @@
  *
  * omp-dot.c - Dot product
  *
- * Copyright (C) 2018--2023 Moreno Marzolla
+ * Copyright (C) 2018--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Dot product
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2023-10-15
+% Last updated: 2025-10-09
 
 The file [omp-dot.c](omp-dot.c) contains a serial program that
 computes the dot product of two arrays `v1[]` and `v2[]`. The program
@@ -179,7 +179,7 @@ int main( int argc, char *argv[] )
     } else {
         printf("Test FAILED: expected %d, got %d\n", expect, result);
     }
-    printf("Execution time: %f\n", elapsed);
+    printf("Execution time %.3f\n", elapsed);
     free(v1);
     free(v2);
 

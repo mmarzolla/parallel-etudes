@@ -2,7 +2,7 @@
  *
  * mpi-bbox.c - Bounding box of a set of rectangles
  *
- * Copyright (C) 2017--2024 Moreno Marzolla
+ * Copyright (C) 2017--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Bounding box of a set of rectangles
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-10-05
+% Last updated: 2025-10-09
 
 Write a parallel program that computes the _bounding box_ of a set of
 rectangles. The bounding box is the rectangle of minimal area that
@@ -328,7 +328,7 @@ int main( int argc, char* argv[] )
     if ( 0 == my_rank ) {
         printf("bbox: %f %f %f %f\n", xb1, yb1, xb2, yb2);
         const double elapsed = MPI_Wtime() - tstart;
-        printf("Execution time: %f\n", elapsed);
+        printf("Execution time %.3f\n", elapsed);
     }
 #endif
 

@@ -2,7 +2,7 @@
  *
  * mpi-mandelbrot.c - Mandelbrot set
  *
- * Copyright (C) 2017--2023 Moreno Marzolla
+ * Copyright (C) 2017--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Mandelbrot set
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2023-11-13
+% Last updated: 2025-10-09
 
 ![Figure 1: The Mandelbrot set.](mandelbrot-set.png)
 
@@ -269,7 +269,7 @@ int main( int argc, char *argv[] )
         fwrite(bitmap, sizeof(*bitmap), xsize*ysize, out);
         fclose(out);
 
-        printf("Execution time: %f\n", elapsed);
+        printf("Execution time %.3f\n", elapsed);
     }
     free(bitmap);
     free(local_bitmap);
@@ -307,7 +307,7 @@ int main( int argc, char *argv[] )
         fwrite(bitmap, sizeof(*bitmap), xsize*ysize, out);
         fclose(out);
 
-        printf("Execution time: %f\n", elapsed);
+        printf("Execution time %.3f\n", elapsed);
     }
     free(bitmap);
     free(local_bitmap);

@@ -2,7 +2,7 @@
  *
  * opencl-anneal.c - ANNEAL cellular automaton
  *
- * Copyright (C) 2017--2024 Moreno Marzolla
+ * Copyright (C) 2017--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % ANNEAL cellular automaton
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-01-04
+% Last updated: 2025-10-09
 
 In this exercise we consider a simple two-dimensional, binary Cellular
 Automaton called _ANNEAL_ (also known as _twisted majority rule_). The
@@ -536,6 +536,6 @@ int main( int argc, char* argv[] )
     sclFree(d_next);
     sclFinalize();
 #endif
-    fprintf(stderr, "\n\nExecution time: %f (%f Mops/s)\n", elapsed, (width * height / 1.0e6)*nsteps/elapsed);
+    fprintf(stderr, "\n\nExecution time %.3f (%f Mops/s)\n", elapsed, (width * height / 1.0e6)*nsteps/elapsed);
     return EXIT_SUCCESS;
 }

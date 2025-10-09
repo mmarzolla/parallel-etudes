@@ -2,7 +2,7 @@
  *
  * omp-median.c - Image denoising using a median filter
  *
- * Copyright (C) 2018--2023 Moreno Marzolla
+ * Copyright (C) 2018--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Image denoising using a median filter
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2023-11-03
+% Last updated: 2025-10-09
 
 The file [omp-median.c](omp-median.c) contains a serial implementation
 of an _image denoising_ algorithm that can be used to clean color
@@ -165,7 +165,7 @@ int main( int argc, char *argv[] )
     const double tstart = omp_get_wtime();
     median_filter(RADIUS, img, WIDTH, HEIGHT);
     const double elapsed = omp_get_wtime() - tstart;
-    fprintf(stderr, "Execution time: %f\n", elapsed);
+    fprintf(stderr, "Execution time %.3f\n", elapsed);
 
     FILE* fileout = fopen(argv[2], "w");
     if (fileout == NULL) {

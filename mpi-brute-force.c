@@ -2,7 +2,7 @@
  *
  * mpi-brute-force.c - Brute-force password cracking
  *
- * Copyright (C) 2017--2024 Moreno Marzolla
+ * Copyright (C) 2017--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Brute-force password cracking
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-01-04
+% Last updated: 2025-10-09
 
 ![DES cracker board developed in 1998 by the Electronic Frontier Foundation (EFF); this device can be used to brute-force a DES key. The original uploader was Matt Crypto at English Wikipedia. Later versions were uploaded by Ed g2s at en.wikipedia - CC BY 3.0 us, <https://commons.wikimedia.org/w/index.php?curid=2437815>](des-cracker.jpg)
 
@@ -226,7 +226,7 @@ int main( int argc, char *argv[] )
     const double elapsed = MPI_Wtime() - tstart;
 
     if ( 0 == my_rank ) {
-        printf("Execution time: %f\n", elapsed);
+        printf("Execution time %.3f\n", elapsed);
         if (found < 0) {
             fprintf(stderr, "FATAL: key not found\n");
             MPI_Abort(MPI_COMM_WORLD, -1);

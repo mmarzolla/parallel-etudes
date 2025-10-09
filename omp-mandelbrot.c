@@ -22,7 +22,7 @@
 /***
 % Mandelbrot set
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-03-24
+% Last updated: 2025-10-09
 
 ![Benoit Mandelbrot (1924--2010)](Benoit_Mandelbrot.jpg)
 
@@ -201,7 +201,7 @@ int main( int argc, char *argv[] )
     fwrite(bitmap, sizeof(*bitmap), xsize*ysize, out);
     fclose(out);
     free(bitmap);
-    fprintf(stderr, "Execution time: %f\n", elapsed);
+    fprintf(stderr, "Execution time %.3f\n", elapsed);
 
     return EXIT_SUCCESS;
 }

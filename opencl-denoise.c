@@ -2,7 +2,7 @@
  *
  * opencl-denoise.c - Image denoising using the median filter
  *
- * Copyright (C) 2018--2024 Moreno Marzolla
+ * Copyright (C) 2018--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Image denoising using the median filter
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-01-04
+% Last updated: 2025-10-09
 
 ![By Simpsons contributor, CC BY-SA 3.0, <https://commons.wikimedia.org/w/index.
 php?curid=8904364>](denoise.png)
@@ -178,7 +178,7 @@ int main( void )
     denoise(img.g, img.width, img.height);
     denoise(img.b, img.width, img.height);
     const double elapsed = hpc_gettime() - tstart;
-    fprintf(stderr, "Execution time: %f\n", elapsed);
+    fprintf(stderr, "Execution time %.3f\n", elapsed);
     write_ppm(stdout, &img, "produced by opencl-denoise.c");
     free_ppm(&img);
 #ifndef SERIAL
