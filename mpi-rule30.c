@@ -36,7 +36,7 @@ neighbors. We assume cyclic boundary conditions, so that the neighbors
 of $x[0]$ are $x[N-1]$ and $x[1]$, and the neighbors of $x[N-1]$ are
 $x[N-2]$ and $x[0]$ (Figure 1).
 
-![Figure 1: Rule 30 CA](mpi-rule30-fig1.svg)
+![Figure 1: Rule 30 CA.](mpi-rule30-fig1.svg)
 
 Given the current values $pqr$ of three adjacent cells, the new value
 $q'$ of the cell in the middle is computed according to Table 1.
@@ -71,7 +71,7 @@ poisonous marine mollusk that can be found in tropical seas (Figure
 
 ![Figure 3: Conus Textile by Richard Ling - Own work; Location: Cod
 Hole, Great Barrier Reef, Australia, CC BY-SA 3.0,
-<https://commons.wikimedia.org/w/index.php?curid=293495>](conus-textile.jpg)
+<https://commons.wikimedia.org/w/index.php?curid=293495>.](conus-textile.jpg)
 
 The goal of this exercise is to parallelize the serial program using
 MPI, so that the computation of each step is distributed across MPI

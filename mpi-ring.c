@@ -50,7 +50,7 @@ communication should be as shown in Figure 1 (arrows are messages
 whose content is the number reported above them). There are $K = 2$
 turns of the ring; at the end, process 0 receives and prints 8.
 
-![Figure 1: Ring communication](mpi-ring.svg)
+![Figure 1: Ring communication.](mpi-ring.svg)
 
 To compile:
 
