@@ -46,8 +46,7 @@ $$
 
 See Figure 1 for some examples.
 
-![Figure 1: Computation of the new state of the central cell of a
- block of size $3 \times 3$](cuda-anneal1.svg)
+![Figure 1: Computation of the new state of the central cell of a block of size $3 \times 3$.](cuda-anneal1.svg)
 
 To simulate synchronous, concurrent updates of all cells, two domains
 must be used. The state of a cell is read from the "current" domain,
@@ -59,7 +58,7 @@ probability. Figure 2 shows the evolution of a grid of size $256
 \times 256$ after 10, 100 and 1024 steps. We observe the emergence of
 "blobs" that grow over time, with the exception of small "specks".
 
-![Figure 2: Evolution of the _ANNEAL_ CA](anneal-demo.png)
+![Figure 2: Evolution of the _ANNEAL_ CA.](anneal-demo.png)
 
 I made a short YouTube video to show the evolution of the automaton
 over time:
@@ -99,7 +98,7 @@ Some suggestions:
   \leq H$, $1 \leq j \leq W$, so that excess threads are
   deactivated.
 
-![Figure 3: Initializing the ghost area](cuda-anneal5.svg)
+![Figure 3: Initializing the ghost area.](cuda-anneal5.svg)
 
 ## Using local memory
 
@@ -129,7 +128,7 @@ buffer. The coordinates can be computes as follows:
     const int lj = 1 + threadIdx.x;
 ```
 
-![Figure 4: Copying data from global to shared memory](cuda-anneal3.svg)
+![Figure 4: Copying data from global to shared memory.](cuda-anneal3.svg)
 
 There are several ways to fill the ghost area, all of them rather
 cumbersome and potentially inefficient. The solution proposed below is
@@ -147,7 +146,7 @@ executed by all threads:
 where `ext_width = (W + 2)` is the width of the domain including the
 ghost area.
 
-![Figure 5: Active threads while filling the shared memory](cuda-anneal4.svg)
+![Figure 5: Active threads while filling the shared memory.](cuda-anneal4.svg)
 
 Filling the ghost area can be done as follows (see Figure 5):
 

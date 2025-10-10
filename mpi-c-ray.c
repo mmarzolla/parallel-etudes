@@ -2,7 +2,7 @@
  * mpi-c-ray - Ray tracing
  *
  * Copyright (C) 2006 John Tsiombikas <nuclear@siggraph.org>
- * Copyright (C) 2016, 2017, 2018, 2020, 2021, 2022, 2024 Moreno Marzolla
+ * Copyright (C) 2016--2025 Moreno Marzolla
  *
  * You are free to use, modify and redistribute this program under the
  * terms of the GNU General Public License v2 or (at your option) later.
@@ -25,7 +25,7 @@
 /***
 % Ray Tracing
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-10-05
+% Last updated: 2025-10-10
 
 The file [mpi-c-ray.c](mpi-c-ray.c) contains the implementation of a
 [simple ray tracing program](https://github.com/jtsiomb/c-ray) written
@@ -36,21 +36,23 @@ produce the images shown in Figure 1.
 
 ![Figure 1: Some images produced by the program; the input files are,
 from left to right: [sphfract.small.in](sphfract.small.in),
-[spheres.in](spheres.in), [dna.in](dna.in)](omp-c-ray-images.png)
+[spheres.in](spheres.in), [dna.in](dna.in).](omp-c-ray-images.png)
 
 Table 1 shows the approximate time (in seconds) needed on my PC
 (i7-4790 3.60GHz) to render each file using one core. The server is
 slower because it has a lower clock frequency, but it has many cores
 so the performance of the parallel version should be much better.
 
-:Table 1: Render time using default parameters, single core Intel i7-4790 3.60GHz, gcc 7.5.0
+:Table 1: Render time with default parameters (resolution $800 \times
+600$, no oversampling), Intel(R) Xeon(R) CPU E5-2603 1.7GHz using a
+single core, gcc 9.4.0.
 
-File                                     Time (s)
+File                                       Time (s)
 ---------------------------------------- ----------
-[sphfract.big.in](sphfract.big.in)       478
-[sphfract.small.in](sphfract.small.in)   19
-[spheres.in](spheres.in)                 15
-[dna.in](dna.in)                         9
+[sphfract.big.in](sphfract.big.in)            895.5
+[sphfract.small.in](sphfract.small.in)         36.5
+[spheres.in](spheres.in)                       27.9
+[dna.in](dna.in)                               17.8
 ---------------------------------------- ----------
 
 The purpose of this exercise is to develop an MPI version of the

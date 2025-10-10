@@ -2,7 +2,7 @@
  *
  * opencl-coupled-oscillators.c - One-dimensional coupled oscillators system
  *
- * Copyright (C) 2017--2023 Moreno Marzolla
+ * Copyright (C) 2017--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % One-dimensional coupled oscillators
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2023-06-08
+% Last updated: 2025-10-10
 
 ![](coupled_metronomes.jpg)
 
@@ -32,7 +32,7 @@ connected by a spring with elastic constant $k$ and rest length
 $L$. The first and last points (those in position $x_0$ and $x_{n-1}$
 occupy a fixed position and cannot move.
 
-![Figur3 1: Coupled oscillators](opencl-coupled-oscillators.svg)
+![Figure 1: Coupled oscillators.](opencl-coupled-oscillators.svg)
 
 Initially, one of the springs is displaced so that a wave of
 oscillations is triggered; due to the lack of friction, such
@@ -77,7 +77,7 @@ oscillators. The program produces a two-dimensional image
 `coupled-oscillators.ppm` where each line shows the potential energies
 of the springs at any time (Figure 2).
 
-![Figure 2: potential energy of the springs](coupled-oscillators.svg)
+![Figure 2: potential energy of the springs.](coupled-oscillators.svg)
 
 Your task is to parallelize function `step()` by defining additional
 OpenCL kernel(s).

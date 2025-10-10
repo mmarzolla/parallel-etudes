@@ -2,7 +2,7 @@
  *
  * mpi-rule30.c - Rule30 Cellular Automaton
  *
- * Copyright (C) 2017--2024 Moreno Marzolla
+ * Copyright (C) 2017--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Rule 30 Cellular Automaton
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-11-07
+% Last updated: 2025-10-10
 
 Cellular Automata (CAs) are examples of _stencil computations_. In
 this exercise we implement the [Rule 30 Cellular
@@ -69,8 +69,7 @@ textile](https://en.wikipedia.org/wiki/Conus_textile) shell, a highly
 poisonous marine mollusk that can be found in tropical seas (Figure
 3).
 
-![Figure 3: Conus Textile by Richard Ling - Own work; Location: Cod
-Hole, Great Barrier Reef, Australia, CC BY-SA 3.0,
+![Figure 3: Conus Textile by Richard Ling, CC BY-SA 3.0,
 <https://commons.wikimedia.org/w/index.php?curid=293495>.](conus-textile.jpg)
 
 The goal of this exercise is to parallelize the serial program using

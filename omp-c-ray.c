@@ -35,13 +35,14 @@ that can be produced by this program.
 
 ![Figure 1: Some images produced by the ray tracer; the input files are,
 from left to right: [sphfract.small.in](sphfract.small.in),
-[spheres.in](spheres.in), [dna.in](dna.in)](omp-c-ray-images.jpg)
+[spheres.in](spheres.in), [dna.in](dna.in).](omp-c-ray-images.jpg)
 
 Table 1 shows the approximate rendering time of each image on
 the lab machine (Xeon E5-2603 v4 1.70GHz), using a single core.
 
 :Table 1: Render time with default parameters (resolution $800 \times
-600$, no oversampling), lab machine using a single core, gcc 9.4.0.
+600$, no oversampling), Intel(R) Xeon(R) CPU E5-2603 1.7GHz using a
+single core, gcc 9.4.0.
 
 File                                       Time (s)
 ---------------------------------------- ----------
