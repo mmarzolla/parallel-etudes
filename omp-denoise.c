@@ -24,7 +24,7 @@
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2025-10-09
 
-![Figure 1: Denoising example (original image by Simpsons, CC BY-SA 3.0, <https://commons.wikimedia.org/w/index.php?curid=8904364>)](denoise.png)
+![Figure 1: Denoising example (original image by Simpsons, CC BY-SA 3.0, <https://commons.wikimedia.org/w/index.php?curid=8904364>).](denoise.png)
 
 The file [omp-denoise.c](omp-denoise.c) contains a serial
 implementation of an image denoising algorithm. The algorithm replaces

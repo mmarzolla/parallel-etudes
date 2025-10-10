@@ -24,11 +24,11 @@
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2025-10-09
 
-![By Simpsons contributor, CC BY-SA 3.0, <https://commons.wikimedia.org/w/index.
-php?curid=8904364>](denoise.png)
+![Figure 1: Denoising example (original image by Simpsons, CC BY-SA 3.0, <https://commons.wikimedia.org/w/index.
+php?curid=8904364>).](denoise.png)
 
 The file [opencl-denoise.c](opencl-denoise.c) contains a serial
-implementaiton of a program for _image denoising_, that is, to remove
+implementation of a program for _image denoising_, that is, to remove
 "noise" from a color image. The algorithm is based on a _median
 filter_: the color of each pixel is computed as the median of the
 colors of the four adjacent pixels, plus itself

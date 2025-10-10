@@ -45,7 +45,7 @@ whose elements correspond to the positions (indices) of `key` in
 - At the end, the result array must reside in the local memory of
   process 0.
 
-![Figure 1: Communication scheme](mpi-lookup.svg)
+![Figure 1: Communication scheme.](mpi-lookup.svg)
 
 The program should operate as shown in Figure 1; `comm_sz` is the
 number of MPI processes, and `my_rank` the rank of the process running

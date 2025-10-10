@@ -24,9 +24,9 @@
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2025-10-09
 
-![Figure 1: Denoising example (original image by Simpsons, CC BY-SA 3.0, <https://commons.wikimedia.org/w/index.php?curid=8904364>)](denoise.png)
+![Figure 1: Denoising example (original image by Simpsons, CC BY-SA 3.0, <https://commons.wikimedia.org/w/index.php?curid=8904364>).](denoise.png)
 
-The file [omp-denoise.c](omp-denoise.c) contains a serial
+The file [cuda-denoise.c](cuda-denoise.c) contains a serial
 implementation of an _image denoising_ algorithm that (to some extent)
 can be used to "cleanup" color images. The algorithm replaces the
 color of each pixel with the _median_ of the four adjacent pixels plus

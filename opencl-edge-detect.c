@@ -24,7 +24,7 @@
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2025-10-09
 
-![Result of the Sobel operator.](edge-detect.png)
+![Result of the application of the Sobel operator.](edge-detect.png)
 
 The [Sobel operator](https://en.wikipedia.org/wiki/Sobel_operator) is
 used to detect the edges on an grayscale image. The idea is to compute
