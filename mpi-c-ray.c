@@ -30,22 +30,19 @@
 The file [mpi-c-ray.c](mpi-c-ray.c) contains the implementation of a
 [simple ray tracing program](https://github.com/jtsiomb/c-ray) written
 by [John Tsiombikas](http://nuclear.mutantstargoat.com/) and released
-under the GPLv2+ license. The instructions for compilation and use are
-included in the comments. Some input files are provided, and should
-produce the images shown in Figure 1.
+under the GPLv2+ license. Figure 1 shows a few images
+that can be produced by this program.
 
 ![Figure 1: Some images produced by the program; the input files are,
 from left to right: [sphfract.small.in](sphfract.small.in),
 [spheres.in](spheres.in), [dna.in](dna.in).](omp-c-ray-images.png)
 
-Table 1 shows the approximate time (in seconds) needed on my PC
-(i7-4790 3.60GHz) to render each file using one core. The server is
-slower because it has a lower clock frequency, but it has many cores
-so the performance of the parallel version should be much better.
+Table 1 shows the approximate rendering time of each image on
+the lab machine (Xeon E5-2603 v4 1.70GHz), using a single core.
 
 :Table 1: Render time with default parameters (resolution $800 \times
-600$, no oversampling), Intel(R) Xeon(R) CPU E5-2603 1.7GHz using a
-single core, gcc 9.4.0.
+600$, no oversampling), Intel(R) Xeon(R) CPU E5-2603 v4 1.7GHz using a
+single core, gcc 9.4.0 without optimization.
 
 File                                       Time (s)
 ---------------------------------------- ----------
@@ -55,8 +52,8 @@ File                                       Time (s)
 [dna.in](dna.in)                               17.8
 ---------------------------------------- ----------
 
-The purpose of this exercise is to develop an MPI version of the
-program; I suggest to proceed as follows:
+Modify this program to use MPI parallelism. I suggest to proceed as
+follows:
 
 - All MPI processes handle the command line as done in the provided
   serial program; in particular, you can assume that all MPI processes
@@ -109,39 +106,36 @@ to get more information you can invoke the help:
 
         ./mpi-c-ray -h
 
-It might be helpful to know the basics of [how a ray tracer
-works](https://en.wikipedia.org/wiki/Ray_tracing_(graphics)) based on
-[Whitted recursive
-algorithm](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.156.1534)
-(Figure 2).
+Although not strictly necessary, it is helpful to know the basics of
+[how a ray tracer
+works](https://en.wikipedia.org/wiki/Ray_tracing_(graphics)) using
+Whitted's recursive algorithm (T. Whitted, _An improved illumination
+model for shaded display_, Commun. ACM 23, 6, June 1980,
+343–349. <https://doi.org/10.1145/358876.358882>). Refer to Figure 2.
 
-![Figure 2: Operation diagram of a recursive ray tracer](omp-c-ray.png)
+![Figure 2: Recursive ray tracer.](ray-tracing.png)
 
-The scene is represented by a set of geometric primitives (spheres, in
-our case). We generate a _primary ray_ (_V_) from the observer towards
-each pixel. For each ray we determine the intersections (if any) with
-the spheres in the scene. The point of intersection _p_ that is
-closest to the observer is selected, and one or more _secondary rays_
-are cast, depending on the material of the object _p_ belongs to:
+The scene is represented by a list of spheres. The program generates a
+_primary ray_ (_V_) from the observer towards each pixel. For each
+ray, the program determines the ray-sphere intersection point _p_ that
+is closest to the observer, and one or more _secondary rays_ are cast,
+depending on the material of the object _p_ belongs to:
 
-- a _light ray_ (_L_) in the direction of each of the light sources;
-  for each ray we compute intersections with the spheres to see
-  whether _p_ is directly illuminated;
+- A _light ray_ (_L_) towards each light source, to see whether _p_ is
+  directly illuminated.
 
-- if the surface of _p_ is reflective, we generate a _reflected ray_
-  (_R_) and repeat recursively the procedure;
+- If the surface is reflective, a _reflected ray_ (_R_) and repeat the
+  procedure recursively.
 
-- if the surface is translucent, we generate a _transmitted ray_ (_T_)
-  and repeat recursively the procedure (`omp-c-ray` does not support
-  translucent objects, so this case never happens).
+- If the surface is translucent, a _transmitted ray_ (_T_) and the
+  procedure is repeated recursively (`omp-c-ray` does not support
+  translucent objects, so this step never happens).
 
-The time required to compute the color of a pixel depends, among other
-things, on the number of spheres and lights, and on the material of
-the spheres, and whether the primary ray intersects a sphere and
-reflected rays are cast or not. This suggests that there could be a
-high variability in the time required to compute the color of each
-pixel, which leads to load imbalance that should be addressed in some
-way.
+The time required to compute the color of a pixel depends on the
+number of spheres and lights in the scene, and on the material of the
+spheres; reflective/translucent surfaces generate additional rays that
+must be handled. This suggests that the time required to compute a
+pixel color is highly variable, leading to load imbalance.
 
 ## Files
 

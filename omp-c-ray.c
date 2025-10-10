@@ -2,7 +2,7 @@
  * omp-c-ray - Ray tracing
  *
  * Copyright (C) 2006 John Tsiombikas <nuclear@siggraph.org>
- * Copyright (C) 2016, 2017, 2018, 2020--2024 Moreno Marzolla
+ * Copyright (C) 2016--2025 Moreno Marzolla
  *
  * You are free to use, modify and redistribute this program under the
  * terms of the GNU General Public License v2 or (at your option) later.
@@ -25,7 +25,7 @@
 /***
 % Ray tracing
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-10-24
+% Last updated: 2025-10-10
 
 The file [omp-c-ray.c](omp-c-ray.c) contains the implementation of a
 [simple ray tracer](https://github.com/jtsiomb/c-ray) written
@@ -41,8 +41,8 @@ Table 1 shows the approximate rendering time of each image on
 the lab machine (Xeon E5-2603 v4 1.70GHz), using a single core.
 
 :Table 1: Render time with default parameters (resolution $800 \times
-600$, no oversampling), Intel(R) Xeon(R) CPU E5-2603 1.7GHz using a
-single core, gcc 9.4.0.
+600$, no oversampling), Intel(R) Xeon(R) CPU E5-2603 v4 1.7GHz using a
+single core, gcc 9.4.0 without optimization.
 
 File                                       Time (s)
 ---------------------------------------- ----------
@@ -52,19 +52,20 @@ File                                       Time (s)
 [dna.in](dna.in)                               17.8
 ---------------------------------------- ----------
 
-The goal of this exercise is to parallelize the `render()` function
+The purpose of this exercise is to parallelize the `render()` function
 using OpenMP. The serial program is well structured: functions don't
 modify global variables, so there are not hidden dependences. If you
 have time, measure the _speedup_ and the _strong scaling efficienty_
 of the parallel version.
 
-Although not strictly necessary, it is useful to understand [how a ray
-tracer works](https://en.wikipedia.org/wiki/Ray_tracing_(graphics))
-using Whitted's recursive algorithm (T. Whitted, _An improved
-illumination model for shaded display_, Commun. ACM 23, 6, June 1980,
+Although not strictly necessary, it is helpful to understand [how a
+ray tracer
+works](https://en.wikipedia.org/wiki/Ray_tracing_(graphics)) using
+Whitted's recursive algorithm (T. Whitted, _An improved illumination
+model for shaded display_, Commun. ACM 23, 6, June 1980,
 343–349. <https://doi.org/10.1145/358876.358882>). Refer to Figure 2.
 
-![Figure 2: Recursive ray tracer](omp-c-ray.svg)
+![Figure 2: Recursive ray tracer.](ray-tracing.svg)
 
 The scene is represented by a list of spheres. The program generates a
 _primary ray_ (_V_) from the observer towards each pixel. For each
@@ -174,7 +175,7 @@ typedef struct __attribute__((__packed__)) {
 vec3_t trace(ray_t ray, int depth);
 vec3_t shade(sphere_t *obj, spoint_t *sp, int depth);
 
-#define MAX_LIGHTS	16		/* maximum number of lights     */
+#define MAX_LIGHTS 16                   /* maximum number of lights     */
 const double RAY_MAG = 1000.0;		/* trace rays of this magnitude */
 const int MAX_RAY_DEPTH	= 5;		/* raytrace recursion limit     */
 const double ERR_MARGIN	= 1e-6;		/* an arbitrary error margin to avoid surface acne */
@@ -189,8 +190,8 @@ vec3_t lights[MAX_LIGHTS];
 int lnum = 0; /* number of lights */
 camera_t cam;
 
-#define NRAN	1024
-#define MASK	(NRAN - 1)
+#define NRAN 1024
+#define MASK (NRAN - 1)
 vec3_t urand[NRAN];
 int irand[NRAN];
 
