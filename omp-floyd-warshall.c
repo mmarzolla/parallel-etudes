@@ -22,23 +22,22 @@
 /***
 % All-pair shortest paths
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-10-09
+% Last updated: 2025-10-15
 
-Il programma legge da standard input una descrizione del grafo in
-formato DIMACS. Vengono forniti alcuni esempi: [rome99.gr](rome99.gr)
-(porzione di mappa stradale di Roma), [DE.gr](DE.gr) (porzione di
-mappa del Delaware), [VT.gr](VT.gr) (porzione di mappa del Vermont),
-[ME.gr](ME.gr) (porzione di mappa del Maine) e [NV.gr](NV.gr)
-(porzione di mappa del Nevada). Suggerisco di iniziare con
-[rome99.gr](rome99.gr) perché rappresenta il grafo più
-piccolo. L'elaborazione del grafo del Nevada richiede molto tempo. Al
-termine dell'esecuzione vengono prodotte n righe di output della forma
+This program computes all-pair shortest path distances on a weighted.
+directed graph using Flyd and Warshall's algorithm.
 
-        d i j dist
+The input is in DIMACS format and is read from standard input.  Some
+test files are provided: [rome99.gr](rome99.gr) (part of the road map
+of Rome), [DE.gr](DE.gr) (part of the road map of Delaware),
+[VT.gr](VT.gr) (part of the road map of Vermont), [ME.gr](ME.gr) (part
+of the road map of Maine) and [NV.gr](NV.gr) (part of the road map of
+Nevada). I suggest to start with [rome99.gr](rome99.gr) since it is
+the smaller graph; processing the data from Nevada might require some
+time, depending on the hardware. The parameters for the graphs, and
+the distances between node $0$ and $n-1$, are shown in Table 1.
 
-che mostrano la distanza dist tra il nodo $i$ e il nodo $j$ ($i$ sarà
-sempre il nodo sorgente). Le caratteristiche dei grafi, e le distanze
-tra il nodo $0$ e il nodo $n-1$ sono indicati nella tabella seguente:
+:Table 1: Input datasets.
 
 Grafo                       Nodi (n)    Archi (m)    Distanza $0 \rightarrow n-1$
 -------------------------  --------- ------------ -------------------------------
@@ -48,21 +47,13 @@ Grafo                       Nodi (n)    Archi (m)    Distanza $0 \rightarrow n-1
 [ME.gr](ME.gr)                194505       429842                        108545.0
 [NV.gr](NV.gr)                261155       622086                        188894.0
 
-Scopo dell'esercizio è di parallelizzare la funzione
-`floyd_warshall()`.
-
-Alcuni suggerimenti implementativi. Dato che le distanze sono di tipo
-`double`, è possibile rappresentare il valore $\infty$ usando il
-simbolo `INFINITY` definito in `math.h`. Tale valore si comporta
-essenzialmente come il valore $\infty$, nel senso che risulta sempre
-maggiore di qualsiasi valore finito di tipo `double`. Per controllare
-se una variabile `x` ha valore infinito si usi la funzione `isinf(x)`,
-che ritorna _true_ (nonzero) se e solo se `x` ha valore `INFINITY`.
+The goal of this exercise is to parallelize the function
+`floyd_warshall()` using OpenMP.
 
 ## Files
 
 - [omp-floyd-warshall.c](omp-floyd-warshall.c)
-- Grafi di esempio: [rome99.gr](rome99.gr), [DE.gr](DE.gr), [VT.gr](VT.gr), [ME.gr](ME.gr), [NV.gr](NV.gr)
+- Input data: [rome99.gr](rome99.gr), [DE.gr](DE.gr), [VT.gr](VT.gr), [ME.gr](ME.gr), [NV.gr](NV.gr)
 
 ***/
 
