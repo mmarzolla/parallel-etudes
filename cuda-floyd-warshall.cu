@@ -73,7 +73,7 @@ The goal of this exercise is to parallelize the function
 
 typedef struct {
     int src, dst;
-    double w;
+    float w;
 } edge_t;
 
 /* A graph is represented as an array of edges. */
@@ -177,7 +177,7 @@ int IDX(int i, int j, int width)
 #define BLKDIM1D 1024
 
 __global__
-void fw_init( double *d, int *p, int n )
+void fw_init( float *d, int *p, int n )
 {
     const int u = threadIdx.y + blockIdx.y * blockDim.y;
     const int v = threadIdx.x + blockIdx.x * blockDim.x;
@@ -189,7 +189,7 @@ void fw_init( double *d, int *p, int n )
 }
 
 __global__
-void fw_init2(const edge_t *e, double *d, int *p, int n, int m)
+void fw_init2(const edge_t *e, float *d, int *p, int n, int m)
 {
     const int i = threadIdx.x + blockIdx.x * blockDim.x;
     if (i < m) {
@@ -199,7 +199,7 @@ void fw_init2(const edge_t *e, double *d, int *p, int n, int m)
 }
 
 __global__
-void fw_relax(double *d, int *p, int k, int n)
+void fw_relax(float *d, int *p, int k, int n)
 {
     const int u = threadIdx.y + blockIdx.y * blockDim.y;
     const int v = threadIdx.x + blockIdx.x * blockDim.x;
@@ -213,7 +213,7 @@ void fw_relax(double *d, int *p, int k, int n)
 }
 
 __global__
-void fw_check(double *d, int n, int *result)
+void fw_check(float *d, int n, int *result)
 {
     const int u = threadIdx.x + blockIdx.x * blockDim.x;
     if (u<n) {
@@ -224,10 +224,10 @@ void fw_check(double *d, int n, int *result)
     }
 }
 
-int floyd_warshall( const graph_t *g, double *d, int *p )
+int floyd_warshall( const graph_t *g, float *d, int *p )
 {
     assert(g != NULL);
-    double *d_d;
+    float *d_d;
     int *d_p;
     edge_t *d_edges;
     int result = 0;
@@ -272,7 +272,7 @@ int floyd_warshall( const graph_t *g, double *d, int *p )
 }
 
 #else
-int floyd_warshall( const graph_t *g, double *d, int *p )
+int floyd_warshall( const graph_t *g, float *d, int *p )
 {
     assert(g != NULL);
 
@@ -318,7 +318,7 @@ int floyd_warshall( const graph_t *g, double *d, int *p )
 int main( int argc, char* argv[] )
 {
     graph_t g;
-    double *d;
+    float *d;
     int *p;
 
     if ( argc > 1 ) {
@@ -330,7 +330,7 @@ int main( int argc, char* argv[] )
 
     /* Care must be taken to convert g.n to (size_t) to avoid
        overflows is the number of nodes is very large. */
-    d = (double*)malloc((size_t)g.n * (size_t)g.n * sizeof(*d)); assert(d);
+    d = (float*)malloc((size_t)g.n * (size_t)g.n * sizeof(*d)); assert(d);
     p = (int*)malloc((size_t)g.n * (size_t)g.n * sizeof(*p)); assert(p);
 
     const float tstart = hpc_gettime();

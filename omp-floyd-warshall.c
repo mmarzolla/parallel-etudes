@@ -69,15 +69,11 @@ The goal of this exercise is to parallelize the function
 #include <string.h>
 #include <math.h> /* for isinf(), fminf() and HUGE_VAL */
 #include <assert.h>
-#ifdef _OPENMP
-#include <omp.h>
-#else
-double omp_get_wtime( void ) { return 0.0; }
-#endif
+#include "hpc.h"
 
 typedef struct {
     int src, dst;
-    double w;
+    float w;
 } edge_t;
 
 /* A graph is represented as an array of edges. */
@@ -174,7 +170,7 @@ int IDX(int i, int j, int width)
  * Returns 1 if there are cycles of negative weights (in this case,
  * some shortest paths do not exists), 0 otherwise.
  */
-int floyd_warshall( const graph_t *g, double *d, int *p )
+int floyd_warshall( const graph_t *g, float *d, int *p )
 {
     assert(g != NULL);
 
@@ -232,7 +228,7 @@ int floyd_warshall( const graph_t *g, double *d, int *p )
 int main( int argc, char* argv[] )
 {
     graph_t g;
-    double *d;
+    float *d;
     int *p;
 
     if ( argc > 1 ) {
@@ -244,12 +240,12 @@ int main( int argc, char* argv[] )
 
     /* Care must be taken to convert g.n to (size_t) to avoid
        overflows is the number of nodes is very large. */
-    d = (double*)malloc((size_t)g.n * (size_t)g.n * sizeof(*d)); assert(d);
+    d = (float*)malloc((size_t)g.n * (size_t)g.n * sizeof(*d)); assert(d);
     p = (int*)malloc((size_t)g.n * (size_t)g.n * sizeof(*p)); assert(p);
 
-    const float tstart = omp_get_wtime();
+    const float tstart = hpc_gettime();
     floyd_warshall(&g, d, p);
-    const float elapsed = omp_get_wtime() - tstart;
+    const float elapsed = hpc_gettime() - tstart;
     fprintf(stderr, "Execution time %.3f\n", elapsed);
 
     printf("d[%d,%d] = %f\n", 0, g.n-1, d[IDX(0, g.n-1, g.n)]);
