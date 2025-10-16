@@ -44,15 +44,10 @@ and the distances between node $0$ and $n-1$, are shown in Table 1.
 
 Graph                        Nodes ($n$)    Edges ($m$)    Distance $0 \rightarrow n-1$
 -------------------------  ------------- -------------- -------------------------------
+[graph100.gr](graph100.gr)           100           4932                            16.0
+[graph1000.gr](graph1000.gr)        1000         499623                             4.0
+[graph2000.gr](graph2000.gr)        2000         800066                             4.0
 [rome99.gr](rome99.g)               3353           8870                         30290.0
-[DE.gr](DE.gr)                     49109         121024                         69204.0
-[VT.gr](VT.gr)                     97975         215116                        129866.0
-[ME.gr](ME.gr)                    194505         429842                        108545.0
-[NV.gr](NV.gr)                    261155         622086                        188894.0
-
-I suggest to start experimenting using [rome99.gr](rome99.gr) because
-it is the smaller one; processing the data from Nevada might require
-some time, depending on the hardware.
 
 The goal of this exercise is to parallelize the function
 `floyd_warshall()` using OpenMP. Note that the main nested loop of the
@@ -83,7 +78,6 @@ steps:
 ## Files
 
 - [omp-floyd-warshall.c](omp-floyd-warshall.c)
-- Input data: [rome99.gr](rome99.gr), [DE.gr](DE.gr), [VT.gr](VT.gr), [ME.gr](ME.gr), [NV.gr](NV.gr)
 
 ***/
 
