@@ -254,6 +254,7 @@ int floyd_warshall( const graph_t *g, float *d, int *p )
     sclFree(d_d);
     sclFree(d_p);
     sclFree(d_edges);
+    sclFree(d_result);
 
     return result;
 }
@@ -359,9 +360,9 @@ int main( int argc, char* argv[] )
     kernel_fw_relax2 = sclCreateKernel("fw_relax2");
     kernel_fw_check = sclCreateKernel("fw_check");
 #endif
-    const float tstart = hpc_gettime();
+    const double tstart = hpc_gettime();
     floyd_warshall(&g, d, p);
-    const float elapsed = hpc_gettime() - tstart;
+    const double elapsed = hpc_gettime() - tstart;
     fprintf(stderr, "Execution time %.3f\n", elapsed);
 
     printf("d[%d,%d] = %f\n", 0, g.n-1, d[IDX(0, g.n-1, g.n)]);
