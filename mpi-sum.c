@@ -136,7 +136,7 @@ float fill(float *v, int n)
 int main( int argc, char *argv[] )
 {
     int my_rank, comm_sz;
-    float *master_array = NULL, s = 0, expected;
+    float *master_array = NULL, s = 0, expected = 0.0f;;
     int n = 10000;
 
     MPI_Init( &argc, &argv );

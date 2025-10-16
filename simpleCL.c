@@ -880,7 +880,8 @@ sclKernel sclCreateKernel( const char* name )
     cl_int err;
     sclKernel kern;
 
-    strncpy(kern.kernel_name, name, sizeof(kern.kernel_name));
+    strncpy(kern.kernel_name, name, sizeof(kern.kernel_name)-1);
+    kern.kernel_name[sizeof(kern.kernel_name)-1] = '\0';
     kern.kernel = clCreateKernel( scl_dev->program, kern.kernel_name, &err );
     sclCheckError(err, "clCrateKernel error in sclCreateKernel for kernel %s: %s\n", name, sclGetErrorString(err));
     return kern;
