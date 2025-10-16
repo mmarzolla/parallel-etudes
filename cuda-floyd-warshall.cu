@@ -63,6 +63,23 @@ OpenMP directives according to the approach described in:
 
 > Tang, Peiyi. "Rapid development of parallel blocked all-pairs shortest paths code for multi-core computers", proc. IEEE SOUTHEASTCON 2014, <https://doi.org/10.21122/2309-4923-2022-3-57-65>
 
+![Figure 1: Data dependences for the Floyd-Warshall algorithm.](floyd-warshall.svg)
+
+Specifically, the dependences for the Floyd-Warshall algorithm are
+shown in Figure 1. We observe that:
+
+1. The distance $d_{kk}$ has no dependency;
+2. Distances of row and column $k$ depend on $d_{kk}$;
+3. All other distances depend on rown and column $k$.
+
+This suggests that the computation is broken into three sequential
+steps:
+
+1. During the first step, compute $d_{kk}$;
+2. During the second step, compute the distances on row and column $k$,
+   in parallel;
+3. During the third step, compute everything else, in parallel.
+
 ## Files
 
 - [omp-floyd-warshall.cu](omp-floyd-warshall.cu)
