@@ -33,12 +33,9 @@ read from standard input; the program computes all distances, and
 prints to stadandard ouptut the minimum distance from node $0$ to
 $n-1$, where $n$ is the number of nodes of the input.
 
-Some test files are provided: [rome99.gr](rome99.gr) (part of the road
-map of Rome), [DE.gr](DE.gr) (part of the road map of Delaware),
-[VT.gr](VT.gr) (part of the road map of Vermont), [ME.gr](ME.gr) (part
-of the road map of Maine) and [NV.gr](NV.gr) (part of the road map of
-Nevada). The number of nodes $n$ and edges $m$ of the input graphs,
-and the distances between node $0$ and $n-1$, are shown in Table 1.
+Some test files are provided; the number of nodes $n$ and edges $m$ of
+each one, and the distances between node $0$ and $n-1$, are shown in
+Table 1.
 
 :Table 1: Parameters of the input datasets.
 
