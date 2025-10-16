@@ -22,7 +22,7 @@
 /***
 % All-pair shortest paths
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-10-15
+% Last updated: 2025-10-16
 
 This program computes all-pair shortest path distances on a weighted.
 directed graph using Flyd and Warshall's algorithm.
@@ -55,7 +55,13 @@ it is the smaller one; processing the data from Nevada might require
 some time, depending on the hardware.
 
 The goal of this exercise is to parallelize the function
-`floyd_warshall()` using OpenMP.
+`floyd_warshall()` using OpenMP. Note that the main nested loop of the
+Floyd-Warshall algorithm is non embarrassingly parallel, since it has
+loop-carried dependences. The serial code is written in such a way to
+make the dependences more evident, and allows immediate application of
+OpenMP directives according to the approach described in:
+
+> Tang, Peiyi. "Rapid development of parallel blocked all-pairs shortest paths code for multi-core computers", proc. IEEE SOUTHEASTCON 2014, <https://doi.org/10.21122/2309-4923-2022-3-57-65>
 
 ## Files
 
@@ -157,6 +163,14 @@ int IDX(int i, int j, int width)
     return i * width + j;
 }
 
+void fw_relax(float *d, int *p, int u, int v, int k, int n)
+{
+    if (d[IDX(u,k,n)] + d[IDX(k,v,n)] < d[IDX(u,v,n)]) {
+        d[IDX(u,v,n)] = d[IDX(u,k,n)] + d[IDX(k,v,n)];
+        p[IDX(u,v,n)] = p[IDX(k,v,n)];
+    }
+}
+
 /**
  * The Floyd-Warshall algorithm for all-pair shortest paths.  `g` is
  * the input graph with `n` nodes and `m` edges. `d` is the matrix of
@@ -169,6 +183,8 @@ int IDX(int i, int j, int width)
  *
  * Returns 1 if there are cycles of negative weights (in this case,
  * some shortest paths do not exists), 0 otherwise.
+ *
+ * Tang, Peiyi. "Rapid development of parallel blocked all-pairs shortest paths code for multi-core computers." IEEE SOUTHEASTCON 2014 (2014): 1-7, https://doi.org/10.21122/2309-4923-2022-3-57-65
  */
 int floyd_warshall( const graph_t *g, float *d, int *p )
 {
@@ -199,14 +215,29 @@ int floyd_warshall( const graph_t *g, float *d, int *p )
 
     for (int k=0; k<n; k++) {
 #ifndef HANDOUT
+#pragma omp master
+#endif
+        fw_relax(d, p, k, k, k, n);
+
+#ifndef HANDOUT
+#pragma omp for
+#endif
+        for (int i=0; i<n; i++) {
+            if (i == k) continue;
+            fw_relax(d, p, k, i, k, n);
+            fw_relax(d, p, i, k, k, n);
+        }
+
+#ifndef HANDOUT
 #pragma omp for
 #endif
         for (int u=0; u<n; u++) {
+            if (u == k) continue;
+            /* u != k here */
             for (int v=0; v<n; v++) {
-                if (d[IDX(u,k,n)] + d[IDX(k,v,n)] < d[IDX(u,v,n)]) {
-                    d[IDX(u,v,n)] = d[IDX(u,k,n)] + d[IDX(k,v,n)];
-                    p[IDX(u,v,n)] = p[IDX(k,v,n)];
-                }
+                if (v == k) continue;
+                /* u != k /\ v != k here */
+                fw_relax(d, p, u, v, k, n);
             }
         }
     }

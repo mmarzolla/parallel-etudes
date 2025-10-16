@@ -205,6 +205,7 @@ void fw_relax(float *d, int *p, int k, int n)
     const int v = threadIdx.x + blockIdx.x * blockDim.x;
 
     if (u<n && v<n) {
+        /* TODO: fix race condition */
         if (d[IDX(u,k,n)] + d[IDX(k,v,n)] < d[IDX(u,v,n)]) {
             d[IDX(u,v,n)] = d[IDX(u,k,n)] + d[IDX(k,v,n)];
             p[IDX(u,v,n)] = p[IDX(k,v,n)];
