@@ -123,7 +123,7 @@ Table 1: List of exercises
 | Gaussian elimination        | X      |     |      |        | Reduction                                          |
 | SAT solver                  | X      | X   | X    | X      | Embarrassingly parallel, Reduction                 |
 | Single-Source Shortest Path | X      |     |      |        | Reduction                                          |
-| All-Pairs Shortest Paths    | X      |     |      |        | Embarrassingly parallel                            |
+| All-Pairs Shortest Paths    | X      |     | X    |        | Embarrassingly parallel                            |
 
 ## Prerequisites
 

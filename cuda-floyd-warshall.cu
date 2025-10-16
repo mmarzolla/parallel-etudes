@@ -1,8 +1,8 @@
 /******************************************************************************
  *
- * omp-floyd-warshall.c - All-pair shortest paths.
+ * cuda-floyd-warshall.cu - All-pair shortest paths.
  *
- * Copyright (C) 2024, 2025 Moreno Marzolla
+ * Copyright (C) 2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,11 +55,11 @@ it is the smaller one; processing the data from Nevada might require
 some time, depending on the hardware.
 
 The goal of this exercise is to parallelize the function
-`floyd_warshall()` using OpenMP.
+`floyd_warshall()` using CUDA.
 
 ## Files
 
-- [omp-floyd-warshall.c](omp-floyd-warshall.c)
+- [omp-floyd-warshall.cu](omp-floyd-warshall.cu)
 - Input data: [rome99.gr](rome99.gr), [DE.gr](DE.gr), [VT.gr](VT.gr), [ME.gr](ME.gr), [NV.gr](NV.gr)
 
 ***/
@@ -69,11 +69,7 @@ The goal of this exercise is to parallelize the function
 #include <string.h>
 #include <math.h> /* for isinf(), fminf() and HUGE_VAL */
 #include <assert.h>
-#ifdef _OPENMP
-#include <omp.h>
-#else
-double omp_get_wtime( void ) { return 0.0; }
-#endif
+#include "hpc.h"
 
 typedef struct {
     int src, dst;
@@ -154,6 +150,7 @@ void load_dimacs(FILE *f, graph_t* g)
  * j` of the array. To access this element, you simply write
  * `A[IDX(i,j,width)]`.
  */
+__host__ __device__
 int IDX(int i, int j, int width)
 {
     assert((i >= 0) && (i < width));
@@ -174,6 +171,107 @@ int IDX(int i, int j, int width)
  * Returns 1 if there are cycles of negative weights (in this case,
  * some shortest paths do not exists), 0 otherwise.
  */
+#ifndef HANDOUT
+
+#define BLKDIM2D 32
+#define BLKDIM1D 1024
+
+__global__
+void fw_init( double *d, int *p, int n )
+{
+    const int u = threadIdx.y + blockIdx.y * blockDim.y;
+    const int v = threadIdx.x + blockIdx.x * blockDim.x;
+
+    if (u<n && v<n) {
+        d[IDX(u,v,n)] = (u == v ? 0.0 : HUGE_VAL);
+        p[IDX(u,v,n)] = -1;
+    }
+}
+
+__global__
+void fw_init2(const edge_t *e, double *d, int *p, int n, int m)
+{
+    const int i = threadIdx.x + blockIdx.x * blockDim.x;
+    if (i < m) {
+        d[IDX(e[i].src,e[i].dst,n)] = e[i].w;
+        p[IDX(e[i].src,e[i].dst,n)] = e[i].src;
+    }
+}
+
+__global__
+void fw_relax(double *d, int *p, int k, int n)
+{
+    const int u = threadIdx.y + blockIdx.y * blockDim.y;
+    const int v = threadIdx.x + blockIdx.x * blockDim.x;
+
+    if (u<n && v<n) {
+        if (d[IDX(u,k,n)] + d[IDX(k,v,n)] < d[IDX(u,v,n)]) {
+            d[IDX(u,v,n)] = d[IDX(u,k,n)] + d[IDX(k,v,n)];
+            p[IDX(u,v,n)] = p[IDX(k,v,n)];
+        }
+    }
+}
+
+__global__
+void fw_check(double *d, int n, int *result)
+{
+    const int u = threadIdx.x + blockIdx.x * blockDim.x;
+    if (u<n) {
+        if ( d[IDX(u,u,n)] < 0.0 ) {
+            // no need to protect against race conditions here
+            *result = 1;
+        }
+    }
+}
+
+int floyd_warshall( const graph_t *g, double *d, int *p )
+{
+    assert(g != NULL);
+    double *d_d;
+    int *d_p;
+    edge_t *d_edges;
+    int result = 0;
+    int *d_result;
+
+    const int n = g->n;
+    const int m = g->m;
+    const dim3 BLOCK2D(BLKDIM2D, BLKDIM2D);
+    const dim3 GRID2D((n + BLKDIM2D-1)/BLKDIM2D, (n + BLKDIM2D-1)/BLKDIM2D);
+    const dim3 BLOCK1D(BLKDIM1D);
+    const dim3 GRID1D((m + BLKDIM1D-1)/BLKDIM1D);
+
+    cudaSafeCall(cudaMalloc((void**)&d_d, n * n * sizeof(*d_d)) );
+    cudaSafeCall(cudaMalloc((void**)&d_p, n * n * sizeof(*d_p)) );
+    cudaSafeCall(cudaMalloc((void**)&d_edges, m * sizeof(*d_edges)) );
+    cudaSafeCall(cudaMalloc((void**)&d_result, sizeof(*d_result)) );
+
+    cudaSafeCall(cudaMemcpy(d_d, d, n*n*sizeof(*d_d), cudaMemcpyHostToDevice));
+    cudaSafeCall(cudaMemcpy(d_p, p, n*n*sizeof(*d_p), cudaMemcpyHostToDevice));
+    cudaSafeCall(cudaMemcpy(d_edges, g->edges, m*sizeof(*d_edges), cudaMemcpyHostToDevice));
+    cudaSafeCall(cudaMemcpy(d_result, &result, sizeof(result), cudaMemcpyHostToDevice));
+
+    fw_init<<<GRID2D, BLOCK2D>>>(d_d, d_p, n); cudaCheckError();
+
+    fw_init2<<<GRID1D, BLOCK1D>>>(d_edges, d_d, d_p, n, m); cudaCheckError();
+
+    for (int k=0; k<n; k++) {
+        fw_relax<<<GRID2D, BLOCK2D>>>(d_d, d_p, k, n); cudaCheckError();
+    }
+
+    fw_check<<<(n + BLKDIM1D-1)/BLKDIM1D, BLKDIM1D>>>(d_d, n, d_result); cudaCheckError();
+
+    cudaSafeCall(cudaMemcpy(d, d_d, n*n*sizeof(*d), cudaMemcpyDeviceToHost));
+    cudaSafeCall(cudaMemcpy(p, d_p, n*n*sizeof(*p), cudaMemcpyDeviceToHost));
+    cudaSafeCall(cudaMemcpy(&result, d_result, sizeof(result), cudaMemcpyDeviceToHost));
+
+    cudaFree(d_d);
+    cudaFree(d_p);
+    cudaFree(d_edges);
+
+    return result;
+}
+
+#else
 int floyd_warshall( const graph_t *g, double *d, int *p )
 {
     assert(g != NULL);
@@ -181,11 +279,6 @@ int floyd_warshall( const graph_t *g, double *d, int *p )
     const int n = g->n;
     const int m = g->m;
 
-#ifndef HANDOUT
-#pragma omp parallel
-    {
-#pragma omp for
-#endif
     for (int u=0; u<n; u++) {
         for (int v=0; v<n; v++) {
             d[IDX(u,v,n)] = (u == v ? 0.0 : HUGE_VAL);
@@ -193,18 +286,12 @@ int floyd_warshall( const graph_t *g, double *d, int *p )
         }
     }
 
-#ifndef HANDOUT
-#pragma omp for
-#endif
     for (const edge_t *e = g->edges; e < g->edges + m; e++) {
         d[IDX(e->src,e->dst,n)] = e->w;
         p[IDX(e->src,e->dst,n)] = e->src;
     }
 
     for (int k=0; k<n; k++) {
-#ifndef HANDOUT
-#pragma omp for
-#endif
         for (int u=0; u<n; u++) {
             for (int v=0; v<n; v++) {
                 if (d[IDX(u,k,n)] + d[IDX(k,v,n)] < d[IDX(u,v,n)]) {
@@ -214,9 +301,7 @@ int floyd_warshall( const graph_t *g, double *d, int *p )
             }
         }
     }
-#ifndef HANDOUT
-    } // pragma omp parallel
-#endif
+
     /* Check for self-loops of negative cost. Of one is found, there
        are negative-weight cycles and return 1. */
     for (int u=0; u<n; u++) {
@@ -228,6 +313,7 @@ int floyd_warshall( const graph_t *g, double *d, int *p )
 
     return 0;
 }
+#endif
 
 int main( int argc, char* argv[] )
 {
@@ -247,9 +333,9 @@ int main( int argc, char* argv[] )
     d = (double*)malloc((size_t)g.n * (size_t)g.n * sizeof(*d)); assert(d);
     p = (int*)malloc((size_t)g.n * (size_t)g.n * sizeof(*p)); assert(p);
 
-    const float tstart = omp_get_wtime();
+    const float tstart = hpc_gettime();
     floyd_warshall(&g, d, p);
-    const float elapsed = omp_get_wtime() - tstart;
+    const float elapsed = hpc_gettime() - tstart;
     fprintf(stderr, "Execution time %.3f\n", elapsed);
 
     printf("d[%d,%d] = %f\n", 0, g.n-1, d[IDX(0, g.n-1, g.n)]);
