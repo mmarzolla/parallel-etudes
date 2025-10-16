@@ -183,8 +183,6 @@ void fw_relax(float *d, int *p, int u, int v, int k, int n)
  *
  * Returns 1 if there are cycles of negative weights (in this case,
  * some shortest paths do not exists), 0 otherwise.
- *
- * Tang, Peiyi. "Rapid development of parallel blocked all-pairs shortest paths code for multi-core computers." IEEE SOUTHEASTCON 2014 (2014): 1-7, https://doi.org/10.21122/2309-4923-2022-3-57-65
  */
 int floyd_warshall( const graph_t *g, float *d, int *p )
 {

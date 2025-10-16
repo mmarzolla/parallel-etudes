@@ -55,7 +55,13 @@ it is the smaller one; processing the data from Nevada might require
 some time, depending on the hardware.
 
 The goal of this exercise is to parallelize the function
-`floyd_warshall()` using CUDA.
+`floyd_warshall()` using CUDA. Note that the main nested loop of the
+Floyd-Warshall algorithm is non embarrassingly parallel, since it has
+loop-carried dependences. The serial code is written in such a way to
+make the dependences more evident, and allows immediate application of
+OpenMP directives according to the approach described in:
+
+> Tang, Peiyi. "Rapid development of parallel blocked all-pairs shortest paths code for multi-core computers", proc. IEEE SOUTHEASTCON 2014, <https://doi.org/10.21122/2309-4923-2022-3-57-65>
 
 ## Files
 
@@ -177,7 +183,7 @@ int IDX(int i, int j, int width)
 #define BLKDIM1D 1024
 
 __global__
-void fw_init( float *d, int *p, int n )
+void fw_init1( float *d, int *p, int n )
 {
     const int u = threadIdx.y + blockIdx.y * blockDim.y;
     const int v = threadIdx.x + blockIdx.x * blockDim.x;
@@ -198,19 +204,42 @@ void fw_init2(const edge_t *e, float *d, int *p, int n, int m)
     }
 }
 
-__global__
-void fw_relax(float *d, int *p, int k, int n)
+__device__
+void fw_relax(float *d, int *p, int u, int v, int k, int n)
 {
-    const int u = threadIdx.y + blockIdx.y * blockDim.y;
-    const int v = threadIdx.x + blockIdx.x * blockDim.x;
-
-    if (u<n && v<n) {
-        /* TODO: fix race condition */
-        if (d[IDX(u,k,n)] + d[IDX(k,v,n)] < d[IDX(u,v,n)]) {
-            d[IDX(u,v,n)] = d[IDX(u,k,n)] + d[IDX(k,v,n)];
-            p[IDX(u,v,n)] = p[IDX(k,v,n)];
-        }
+    if (d[IDX(u,k,n)] + d[IDX(k,v,n)] < d[IDX(u,v,n)]) {
+        d[IDX(u,v,n)] = d[IDX(u,k,n)] + d[IDX(k,v,n)];
+        p[IDX(u,v,n)] = p[IDX(k,v,n)];
     }
+}
+
+/* Executed by one thread only; relax (k,k). */
+__global__
+void fw_relax0(float *d, int *p, int k, int n)
+{
+    if (threadIdx.x == 0 && blockIdx.x == 0)
+        fw_relax(d, p, k, k, k, n);
+}
+
+/* Executed by n threads; relax (k, *) and (*, k). */
+__global__
+void fw_relax1(float *d, int *p, int k, int n)
+{
+    const int i = threadIdx.x + blockIdx.x * blockDim.x;
+    if (i < n && i != k) {
+        fw_relax(d, p, i, k, k, n);
+        fw_relax(d, p, k, i, k, n);
+    }
+}
+
+/* Executed by n x n threads; relax everything else. */
+__global__
+void fw_relax2(float *d, int *p, int k, int n)
+{
+    const int v = threadIdx.x + blockIdx.x * blockDim.x;
+    const int u = threadIdx.y + blockIdx.y * blockDim.y;
+    if (u < n && v < n && u != k && v != k)
+        fw_relax(d, p, u, v, k, n);
 }
 
 __global__
@@ -236,10 +265,12 @@ int floyd_warshall( const graph_t *g, float *d, int *p )
 
     const int n = g->n;
     const int m = g->m;
-    const dim3 BLOCK2D(BLKDIM2D, BLKDIM2D);
-    const dim3 GRID2D((n + BLKDIM2D-1)/BLKDIM2D, (n + BLKDIM2D-1)/BLKDIM2D);
-    const dim3 BLOCK1D(BLKDIM1D);
-    const dim3 GRID1D((m + BLKDIM1D-1)/BLKDIM1D);
+    const dim3 BLOCK_2D_NN(BLKDIM2D, BLKDIM2D);
+    const dim3 GRID_2D_NN((n + BLKDIM2D-1)/BLKDIM2D, (n + BLKDIM2D-1)/BLKDIM2D);
+    const dim3 BLOCK_1D_N(BLKDIM1D);
+    const dim3 GRID_1D_N((n + BLKDIM1D-1)/BLKDIM1D);
+    const dim3 BLOCK_1D_M(BLKDIM1D);
+    const dim3 GRID_1D_M((m + BLKDIM1D-1)/BLKDIM1D);
 
     cudaSafeCall(cudaMalloc((void**)&d_d, n * n * sizeof(*d_d)) );
     cudaSafeCall(cudaMalloc((void**)&d_p, n * n * sizeof(*d_p)) );
@@ -251,15 +282,17 @@ int floyd_warshall( const graph_t *g, float *d, int *p )
     cudaSafeCall(cudaMemcpy(d_edges, g->edges, m*sizeof(*d_edges), cudaMemcpyHostToDevice));
     cudaSafeCall(cudaMemcpy(d_result, &result, sizeof(result), cudaMemcpyHostToDevice));
 
-    fw_init<<<GRID2D, BLOCK2D>>>(d_d, d_p, n); cudaCheckError();
+    fw_init1<<<GRID_2D_NN, BLOCK_2D_NN>>>(d_d, d_p, n); cudaCheckError();
 
-    fw_init2<<<GRID1D, BLOCK1D>>>(d_edges, d_d, d_p, n, m); cudaCheckError();
+    fw_init2<<<GRID_1D_M, BLOCK_1D_M>>>(d_edges, d_d, d_p, n, m); cudaCheckError();
 
     for (int k=0; k<n; k++) {
-        fw_relax<<<GRID2D, BLOCK2D>>>(d_d, d_p, k, n); cudaCheckError();
+        fw_relax0<<<1, 1>>>(d_d, d_p, k, n); cudaCheckError();
+        fw_relax1<<<GRID_1D_N, BLOCK_1D_N>>>(d_d, d_p, k, n); cudaCheckError();
+        fw_relax2<<<GRID_2D_NN, BLOCK_2D_NN>>>(d_d, d_p, k, n); cudaCheckError();
     }
 
-    fw_check<<<(n + BLKDIM1D-1)/BLKDIM1D, BLKDIM1D>>>(d_d, n, d_result); cudaCheckError();
+    fw_check<<<GRID_1D_N, BLOCK_1D_N>>>(d_d, n, d_result); cudaCheckError();
 
     cudaSafeCall(cudaMemcpy(d, d_d, n*n*sizeof(*d), cudaMemcpyDeviceToHost));
     cudaSafeCall(cudaMemcpy(p, d_p, n*n*sizeof(*p), cudaMemcpyDeviceToHost));
@@ -273,6 +306,28 @@ int floyd_warshall( const graph_t *g, float *d, int *p )
 }
 
 #else
+
+void fw_relax(float *d, int *p, int u, int v, int k, int n)
+{
+    if (d[IDX(u,k,n)] + d[IDX(k,v,n)] < d[IDX(u,v,n)]) {
+        d[IDX(u,v,n)] = d[IDX(u,k,n)] + d[IDX(k,v,n)];
+        p[IDX(u,v,n)] = p[IDX(k,v,n)];
+    }
+}
+
+/**
+ * The Floyd-Warshall algorithm for all-pair shortest paths.  `g` is
+ * the input graph with `n` nodes and `m` edges. `d` is the matrix of
+ * distances, represented as an array of length `n * n` that must be
+ * allocated by the caller; `d[IDX(u,v,n)]` is the minimum distance
+ * from node `u` to node `v`. `p` is the matrix of predecessors,
+ * represented as an array of length `n * n` that must be allocated by
+ * the caller; `p[IDX(u,v,n)]` is the index of the node that precedes
+ * `v` on the shortest path from `u` to `v`.
+ *
+ * Returns 1 if there are cycles of negative weights (in this case,
+ * some shortest paths do not exists), 0 otherwise.
+ */
 int floyd_warshall( const graph_t *g, float *d, int *p )
 {
     assert(g != NULL);
@@ -293,12 +348,21 @@ int floyd_warshall( const graph_t *g, float *d, int *p )
     }
 
     for (int k=0; k<n; k++) {
+        fw_relax(d, p, k, k, k, n);
+
+        for (int i=0; i<n; i++) {
+            if (i == k) continue;
+            fw_relax(d, p, k, i, k, n);
+            fw_relax(d, p, i, k, k, n);
+        }
+
         for (int u=0; u<n; u++) {
+            if (u == k) continue;
+            /* u != k here */
             for (int v=0; v<n; v++) {
-                if (d[IDX(u,k,n)] + d[IDX(k,v,n)] < d[IDX(u,v,n)]) {
-                    d[IDX(u,v,n)] = d[IDX(u,k,n)] + d[IDX(k,v,n)];
-                    p[IDX(u,v,n)] = p[IDX(k,v,n)];
-                }
+                if (v == k) continue;
+                /* u != k /\ v != k here */
+                fw_relax(d, p, u, v, k, n);
             }
         }
     }
