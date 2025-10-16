@@ -99,9 +99,9 @@ Table 1: List of exercises
 | Sieve of Eratosthenes       | X      |     | X    | X      | Embarrassingly parallel, Reduction                 |
 | Character frequencies       | X      | X   | X    | X      | Embarrassingly parallel, Reduction                 |
 | Inclusive scan              | X      | X   |      |        | Scan                                               |
-| Dynamic task scheduling     | X      |     |      |        | Master-Worker                                      |
+| Dynamic task scheduling     | X      | NA  | NA   | NA     | Master-Worker                                      |
 | MergeSort                   | X      |     |      |        | Task-level parallelism                             |
-| Binary Tree traversal       | X      |     |      |        | Task-level parallelism                             |
+| Binary Tree traversal       | X      | NA  | NA   | NA     | Task-level parallelism                             |
 | Ray tracing                 | X      | X   |      |        | Embarrassingly parallel, Scatter/Gather            |
 | Levenstein's distance       | X      |     |      |        | 2D stencil, wavefront                              |
 | Arnold's cat map            | X      |     | X    | X      | Embarrassingly parallel                            |
