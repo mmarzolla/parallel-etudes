@@ -206,7 +206,7 @@ void fw_init1( float *d, int *p, int n )
     const int v = threadIdx.x + blockIdx.x * blockDim.x;
 
     if (u<n && v<n) {
-        d[IDX(u,v,n)] = (u == v ? 0.0 : HUGE_VAL);
+        d[IDX(u,v,n)] = (u == v ? 0 : HUGE_VALF);
         p[IDX(u,v,n)] = -1;
     }
 }
@@ -264,7 +264,7 @@ void fw_check(float *d, int n, int *result)
 {
     const int u = threadIdx.x + blockIdx.x * blockDim.x;
     if (u<n) {
-        if ( d[IDX(u,u,n)] < 0.0 ) {
+        if ( d[IDX(u,u,n)] < 0 ) {
             // no need to protect against race conditions here
             *result = 1;
         }
@@ -354,7 +354,7 @@ int floyd_warshall( const graph_t *g, float *d, int *p )
 
     for (int u=0; u<n; u++) {
         for (int v=0; v<n; v++) {
-            d[IDX(u,v,n)] = (u == v ? 0.0 : HUGE_VAL);
+            d[IDX(u,v,n)] = (u == v ? 0 : HUGE_VALF);
             p[IDX(u,v,n)] = -1;
         }
     }
@@ -387,7 +387,7 @@ int floyd_warshall( const graph_t *g, float *d, int *p )
     /* Check for self-loops of negative cost. Of one is found, there
        are negative-weight cycles and return 1. */
     for (int u=0; u<n; u++) {
-        if ( d[IDX(u,u,n)] < 0.0 ) {
+        if ( d[IDX(u,u,n)] < 0 ) {
             /* printf("d[%d][%d] = %f\n", u, u, d[u][u]); */
             return 1;
         }
