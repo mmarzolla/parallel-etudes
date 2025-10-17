@@ -266,16 +266,13 @@ parallel version using OpenMP.
 
 ## Files
 
-- [omp-cat-map.c](omp-cat-map.c) [hpc.h](hpc.h)
+- [omp-cat-map.c](omp-cat-map.c)
 - [omp-cat-map-rectime.c](omp-cat-map-rectime.c)
 - [cat1024.pgm](cat1024.pgm) (what is the minimum recurrence time of this image?)
 - [cat1368.pgm](cat1368.pgm) (verify that the minimum recurrence time of this image is 36)
 
 ***/
-#if _XOPEN_SOURCE < 600
-#define _XOPEN_SOURCE 600
-#endif
-#include "hpc.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -380,9 +377,9 @@ int main( int argc, char* argv[] )
     elapsed = 0.0;
     for (int i=0; i<NTESTS; i++) {
         fprintf(stderr, "Run %d of %d\n", i+1, NTESTS);
-        const double tstart = hpc_gettime();
+        const double tstart = omp_get_wtime();
         cat_map(&img, niter);
-        elapsed += hpc_gettime() - tstart;
+        elapsed += omp_get_wtime()- tstart;
         if (i==0)
             write_pgm(stdout, &img, "produced by omp-cat-map.c");
     }
@@ -405,9 +402,9 @@ int main( int argc, char* argv[] )
     elapsed = 0.0;
     for (int i=0; i<NTESTS; i++) {
         fprintf(stderr, "Run %d of %d\n", i+1, NTESTS);
-        const double tstart = hpc_gettime();
+        const double tstart = omp_get_wtime();
         cat_map_interchange(&img, niter);
-        elapsed += hpc_gettime() - tstart;
+        elapsed += omp_get_wtime() - tstart;
     }
     elapsed /= NTESTS;
 

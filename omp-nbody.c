@@ -123,14 +123,15 @@ Example:
 
 ## File
 
-- [omp-nbody.c](omp-nbody.c) [hpc.h](hpc.h)
+- [omp-nbody.c](omp-nbody.c)
 
 ***/
-#include "hpc.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h> /* for sqrtf() */
 #include <assert.h>
+#include <omp.h>
 
 const float EPSILON = 1.0e-9f;
 /* const float G = 6.67e-11; */
@@ -306,11 +307,11 @@ int main(int argc, char* argv[])
 
     double total_time = 0.0;
     for (int step = 1; step <= nsteps; step++) {
-        const double tstart = hpc_gettime();
+        const double tstart = omp_get_wtime();
         compute_force(x, y, z, vx, vy, vz, DT, N);
         integrate_positions(x, y, z, vx, vy, vz, DT, N);
         const float e = energy(x, y, z, vx, vy, vz, N);
-        const double elapsed = hpc_gettime() - tstart;
+        const double elapsed = omp_get_wtime() - tstart;
         total_time += elapsed;
         printf("Iteration %3d/%3d : energy=%f, %.3f seconds\n", step, nsteps, e, elapsed);
         fflush(stdout);

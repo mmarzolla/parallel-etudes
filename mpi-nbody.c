@@ -119,7 +119,7 @@ To execute:
 
 ## File
 
-- [mpi-nbody.c](mpi-nbody.c) [hpc.h](hpc.h)
+- [mpi-nbody.c](mpi-nbody.c)
 
 ***/
 #include <stdio.h>

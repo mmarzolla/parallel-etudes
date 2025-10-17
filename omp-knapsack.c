@@ -137,18 +137,18 @@ For example, to use $P=4$ OpenMP threads:
 
 ## Files
 
-- [omp-knapsack.c](omp-knapsack.c) [hpc.h](hpc.h)
+- [omp-knapsack.c](omp-knapsack.c)
 - [gen-knapsack.c](gen-knapsack.c) (to generate random input instances)
 - [knap-10-10.in](knap-10-10.in)
 - [knap-100-100.in](knap-100-100.in)
 
 ***/
 
-#include "hpc.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
+#include <omp.h>
 
 /* Problem instance */
 typedef struct {
@@ -271,9 +271,9 @@ int main(int argc, char* argv[])
     }
     knapsack_load(fin, &k);
     fclose(fin);
-    const double tstart = hpc_gettime();
+    const double tstart = omp_get_wtime();
     const float result = knapsack(&k);
-    const double elapsed = hpc_gettime() - tstart;
+    const double elapsed = omp_get_wtime() - tstart;
     printf("Optimal profit %f\n", result);
     printf("Execution time %.3f\n", elapsed);
     knapsack_free(&k);
