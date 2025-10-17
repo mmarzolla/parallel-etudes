@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * gensphfract.c - Generate input for omp-c-ray
+ * gen-sphfract.c - Generate input for omp-c-ray
  *
  * Copyright (C) 2018--2023 Moreno Marzolla
  *
@@ -32,19 +32,19 @@ provided with c-ray.
 
 Compile with:
 
-        gcc -std=c99 -Wall -Wpedantic gensphfract.c -o gensphfract
+        gcc -std=c99 -Wall -Wpedantic gen-sphfract.c -o gen-sphfract
 
 Run with:
 
-        ./gensphfract > sphfract.small.in
+        ./gen-sphfract > sphfract.small.in
 
 For an image with much more spheres:
 
-        ./gensphfract 7 > sphfract.big.in
+        ./gen-sphfract 7 > sphfract.big.in
 
 You can also pipe the output to c-ray:
 
-        ./gensphfract | ./omp-c-ray > out.pbm
+        ./gen-sphfract | ./omp-c-ray > out.pbm
 
 ***/
 

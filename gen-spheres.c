@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * genspheres.c - Generate input for omp-c-ray
+ * gen-spheres.c - Generate input for omp-c-ray
  *
  * Copyright (C) 2022, 2023 Moreno Marzolla
  *
@@ -28,11 +28,11 @@ Inspired by <https://twitter.com/pickover/status/1505350972641525765>.
 
 Compile with:
 
-        gcc -std=c99 -Wall -Wpedantic genspheres.c -o genspheres
+        gcc -std=c99 -Wall -Wpedantic gen-spheres.c -o gen-spheres
 
 Run with:
 
-        ./genspheres | ./omp-c-ray -o spheres.pbm
+        ./gen-spheres | ./omp-c-ray -o spheres.pbm
 
 ***/
 
