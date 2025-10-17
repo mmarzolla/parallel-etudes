@@ -36,7 +36,7 @@ void fw_init1( __global float *d, __global int *p, int n )
     const int v = get_global_id(0);
 
     if ((u < n) && (v < n)) {
-        d[IDX(u,v,n)] = (u == v ? 0.0 : HUGE_VAL);
+        d[IDX(u,v,n)] = (u == v ? 0.0f : HUGE_VAL);
         p[IDX(u,v,n)] = -1;
     }
 }
@@ -105,7 +105,7 @@ void fw_check(__global const float *d,
               __global int *result)
 {
     const int u = get_global_id(0);
-    if ((u < n) && (d[IDX(u,u,n)] < 0.0)) {
+    if ((u < n) && (d[IDX(u,u,n)] < 0.0f)) {
         // no need to protect against race conditions here
         *result = 1;
     }
