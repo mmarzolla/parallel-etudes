@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * gendna.c - Generate input for omp-c-ray
+ * gen-dna.c - Generate input for omp-c-ray
  *
  * Copyright (C) 2022, 2023 Moreno Marzolla
  *
@@ -28,15 +28,15 @@ Inspired by <https://twitter.com/pickover/status/1505350972641525765>
 
 Compile with:
 
-        gcc -std=c99 -Wall -Wpedantic gendna.c -o gendna
+        gcc -std=c99 -Wall -Wpedantic gen-dna.c -o gen-dna
 
 Run with:
 
-        ./gendna | ./omp-c-ray -o dna.pbm
+        ./gen-dna | ./omp-c-ray -o dna.pbm
 
 Better looking, but much slower:
 
-        ./gendna | ./omp-c-ray -s 1024x768 -r 10 -o dna.pbm
+        ./gen-dna | ./omp-c-ray -s 1024x768 -r 10 -o dna.pbm
 
 ***/
 

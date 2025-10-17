@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * bbox-gen.c - Generate an input file for the mpi-bbox.c program
+ * gen-bbox.c - Generate an input file for the mpi-bbox.c program
  *
  * Copyright (C) 2017, 2022 Moreno Marzolla
  *
@@ -20,10 +20,10 @@
  * --------------------------------------------------------------------------
  *
  * Compile with:
- * gcc -ansi -Wall -Wpedantic bbox-gen.c -o bbox-gen
+ * gcc -ansi -Wall -Wpedantic gen-bbox.c -o gen-bbox
  *
  * To generate 1000 random rectangles, run:
- * ./bbox-gen 1000 > bbox-1000.in
+ * ./gen-bbox 1000 > bbox-1000.in
  *
  ****************************************************************************/
 #include <stdio.h>

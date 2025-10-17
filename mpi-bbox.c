@@ -61,7 +61,7 @@ The parallel program should operated according to the following steps:
    reduction operators.
 
 To generate additional random inputs you can use
-[bbox-gen.c](bbox-gen.c); usage instructions are at the beginning of
+[gen-bbox.c](gen-bbox.c); usage instructions are at the beginning of
 the source code.
 
 When you have a working program, try to relax the assumption that $N$
@@ -82,7 +82,7 @@ Example:
 ## Files
 
 - [mpi-bbox.c](mpi-bbox.c)
-- [bbox-gen.c](bbox-gen.c) (this program generates random inputs for `mpi-bbox.c`)
+- [gen-bbox.c](gen-bbox.c) (this program generates random inputs for `mpi-bbox.c`)
 - [bbox-1000.in](bbox-1000.in)
 - [bbox-10000.in](bbox-10000.in)
 - [bbox-100000.in](bbox-100000.in)
