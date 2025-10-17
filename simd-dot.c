@@ -198,7 +198,7 @@ float simd_dot(const float *x, const float *y, int n)
 void fill(float* x, float* y, int n)
 {
     const float xx[] = {-2.0f, 0.0f, 4.0f, 2.0f};
-    const float yy[] = { 1.0f/2.0, 0.0f, 1.0/16.0, 1.0f/2.0f};
+    const float yy[] = { 1.0f/2.0f, 0.0f, 1.0f/16.0f, 1.0f/2.0f};
     const size_t N = sizeof(xx)/sizeof(xx[0]);
 
     for (int i=0; i<n; i++) {
@@ -213,7 +213,6 @@ int main(int argc, char* argv[])
     const int nruns = 10; /* number of replications */
     int r, n = 10*1024*1024;
     double serial_elapsed, simd_elapsed;
-    double tstart, tend;
     float *x, *y, serial_result, simd_result;
     int ret;
 
@@ -242,9 +241,9 @@ int main(int argc, char* argv[])
     /* Collect execution time of serial version */
     serial_elapsed = 0.0;
     for (r=0; r<nruns; r++) {
-        tstart = hpc_gettime();
+        const double tstart = hpc_gettime();
         serial_result = serial_dot(x, y, n);
-        tend = hpc_gettime();
+        const double tend = hpc_gettime();
         serial_elapsed += tend - tstart;
     }
     serial_elapsed /= nruns;
@@ -253,9 +252,9 @@ int main(int argc, char* argv[])
     /* Collect execution time of the parallel version */
     simd_elapsed = 0.0;
     for (r=0; r<nruns; r++) {
-        tstart = hpc_gettime();
+        const double tstart = hpc_gettime();
         simd_result = simd_dot(x, y, n);
-        tend = hpc_gettime();
+        const double tend = hpc_gettime();
         simd_elapsed += tend - tstart;
     }
     simd_elapsed /= nruns;
