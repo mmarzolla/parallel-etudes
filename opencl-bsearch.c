@@ -65,19 +65,19 @@ int seq_bsearch(const int *x, int n, int key)
 {
     const int P = 4096;
     int cmp[P];
-    size_t m[P];
-    size_t i;
+    int m[P];
+    int i;
     int start = 0, end = n-1;
     while (end-start > P) {
-        printf("start=%d end=%d\n", (int)start, (int)end);
+        printf("start=%d end=%d\n", start, end);
         for (i=0; i<P; i++) {
             m[i] = start + ((end-start)*i + P)/(P+1);
-            printf("m[%d]=%d ", (int)i, (int)m[i]);
+            printf("m[%d]=%d ", i, m[i]);
         }
         printf("\n");
         for (i=0; i<P; i++) {
             cmp[i] = (x[m[i]] < key ? 1 : -1);
-            printf("cmp[%d]=%d ", (int)m[i], cmp[i]);
+            printf("cmp[%d]=%d ", m[i], cmp[i]);
         }
         printf("\n");
         /* assertion:

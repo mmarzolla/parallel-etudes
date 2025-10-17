@@ -147,7 +147,7 @@ char *gen_encrypt( const char *msg, char *key, int keylen )
 }
 #endif
 
-int main( int argc, char *argv[] )
+int main( void )
 {
     const int KEY_LEN = 8;
     /* encrypted message */

@@ -186,7 +186,7 @@ int main(int argc, char* argv[])
     sclInitFromFile("opencl-nbody-simd.cl");
     sclDim grid, block;
     sclWGSetup1D(N, &grid, &block);
-    const size_t N_OF_BLOCKS = grid.sizes[0] / block.sizes[0];
+    const int N_OF_BLOCKS = grid.sizes[0] / block.sizes[0];
 
     cl_mem d_x = sclMallocCopy(size, x, CL_MEM_READ_WRITE);
     cl_mem d_v = sclMallocCopy(size, v, CL_MEM_READ_WRITE);

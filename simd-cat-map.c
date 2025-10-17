@@ -264,7 +264,7 @@ Example:
 #include "hpc.h"
 
 typedef int v4i __attribute__((vector_size(16)));
-#define VLEN (sizeof(v4i)/sizeof(int))
+#define VLEN ((int)(sizeof(v4i)/sizeof(int)))
 
 #include "pgmutils.h"
 

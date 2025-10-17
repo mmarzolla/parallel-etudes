@@ -112,7 +112,7 @@ data_t median(data_t *v, int n)
 
 void median_filter( int radius, data_t *bmap, int width, int height )
 {
-    const size_t tmp_len = (2*radius+1)*(2*radius+1);
+    const int tmp_len = (2*radius+1)*(2*radius+1);
     data_t *out = (data_t*)malloc(width*height*sizeof(data_t));
     assert(out != NULL);
 
@@ -158,7 +158,7 @@ int main( int argc, char *argv[] )
     }
 
     data_t *img = (data_t*)malloc(IMG_SIZE); assert(img != NULL);
-    const size_t nread = fread(img, WIDTH*HEIGHT, sizeof(data_t), filein);
+    const int nread = fread(img, WIDTH*HEIGHT, sizeof(data_t), filein);
     assert(nread == WIDTH*HEIGHT);
     fclose(filein);
 
@@ -173,7 +173,7 @@ int main( int argc, char *argv[] )
         return EXIT_FAILURE;
     }
 
-    const size_t nwritten = fwrite(img, WIDTH*HEIGHT, sizeof(data_t), fileout);
+    const int nwritten = fwrite(img, WIDTH*HEIGHT, sizeof(data_t), fileout);
     assert(nwritten == WIDTH*HEIGHT);
     fclose(fileout);
 

@@ -349,7 +349,7 @@ int main(int argc, char* argv[])
 
     const sclDim BLOCK = DIM1(SCL_DEFAULT_WG_SIZE);
     const sclDim GRID = DIM1(sclRoundUp(N, SCL_DEFAULT_WG_SIZE));
-    const size_t N_OF_BLOCKS = GRID.sizes[0] / BLOCK.sizes[0];
+    const int N_OF_BLOCKS = GRID.sizes[0] / BLOCK.sizes[0];
 
     d_x = sclMallocCopy(size, x, CL_MEM_READ_WRITE);
     d_y = sclMallocCopy(size, y, CL_MEM_READ_WRITE);

@@ -133,7 +133,7 @@ To execute:
 #include <assert.h>
 #include <mpi.h>
 
-#define MAXLITERALS (8*sizeof(int) - 2)
+#define MAXLITERALS ((int)(8*sizeof(int) - 2))
 #define MAXCLAUSES 512
 
 typedef struct {

@@ -106,7 +106,7 @@ Example:
    define a v2d vector datatype that contains two doubles in a SIMD
    array of 16 bytes (VLEN==2). */
 typedef double v2d __attribute__((vector_size(16)));
-#define VLEN (sizeof(v2d)/sizeof(double))
+#define VLEN ((int)(sizeof(v2d)/sizeof(double)))
 
 /* Fills n x n square matrix m */
 void fill( double* m, int n )

@@ -168,7 +168,7 @@ You can generate input images of arbitrary size with the command:
 #include <assert.h>
 
 typedef int v4i __attribute__((vector_size(16)));
-#define VLEN (sizeof(v4i)/sizeof(int))
+#define VLEN ((int)(sizeof(v4i)/sizeof(int)))
 
 typedef struct {
     int width;   /* Padded width of the image (in pixels); this is a multiple of VLEN */

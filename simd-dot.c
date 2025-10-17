@@ -155,7 +155,7 @@ Example:
 #include "hpc.h"
 
 typedef float v4f __attribute__((vector_size(16)));
-#define VLEN (sizeof(v4f)/sizeof(float))
+#define VLEN ((int)(sizeof(v4f)/sizeof(float)))
 
 /* Returns the dot product of arrays x[] and y[] of legnth n */
 float serial_dot(const float *x, const float *y, int n)

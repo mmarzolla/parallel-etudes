@@ -515,9 +515,15 @@ vec3_t trace(ray_t ray, int depth)
 }
 
 
-/* render a frame of xsz/ysz dimensions into the provided framebuffer */
+/* Render a frame of size (xsz * ysz), from line `from` (included) to
+   line `to` (excluded) into the provided framebuffer `fb`. `fb` must
+   point to a buffer of `(xsz * (to - from))` elements. */
 void render(int xsz, int ysz, int from, int to, pixel_t *fb, int samples)
 {
+    /* The `ysz` parameter is not used; the following dummy
+       instruction prevents the compiler from complaining with a
+       warning. */
+    (void)ysz;
     /*
      * for each subpixel, trace a ray through the scene, accumulate
      * the colors of the subpixels of each pixel, then put the colors

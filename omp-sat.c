@@ -133,7 +133,7 @@ To execute:
 #include <assert.h>
 #include <omp.h>
 
-#define MAXLITERALS (8*sizeof(int) - 2)
+#define MAXLITERALS ((int)(8*sizeof(int) - 2))
 #define MAXCLAUSES 512
 
 typedef struct {
@@ -154,7 +154,6 @@ int abs(int x)
 
 void print_solution(const problem_t *p, int v)
 {
-#if 0
 #ifndef SERIAL
 #pragma omp critical
     {
@@ -168,7 +167,6 @@ void print_solution(const problem_t *p, int v)
     printf("\n");
 #ifndef SERIAL
     }
-#endif
 #endif
 }
 

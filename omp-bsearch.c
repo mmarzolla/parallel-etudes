@@ -78,7 +78,7 @@ int omp_bsearch(const int *x, int n, int key)
 {
     const int P = omp_get_max_threads();
     int cmp[P];
-    size_t m[P];
+    int m[P];
     int start = 0, end = n-1;
 #pragma omp parallel default(none) shared(start, end, cmp, m, x, key, P)
     {
@@ -109,7 +109,7 @@ int omp_bsearch(const int *x, int n, int key)
         } // while
     } // parallel
 
-    for (size_t i=start; i<=end; i++) {
+    for (int i=start; i<=end; i++) {
         if (x[i] == key)
             return i;
     }

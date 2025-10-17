@@ -140,7 +140,7 @@ To execute:
 #include "simpleCL.h"
 #include "hpc.h"
 
-#define MAXLITERALS (8*sizeof(int) - 2)
+#define MAXLITERALS ((int)(8*sizeof(int) - 2))
 #define MAXCLAUSES 512
 
 typedef struct {

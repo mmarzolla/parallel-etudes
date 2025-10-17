@@ -783,7 +783,7 @@ void sclMemset( cl_mem dest, int val, size_t size )
     sclCheckError(err, "clEnqueueFillBuffer error in sclMemset: %s\n", sclGetErrorString(err));
 #else
     char *buf = (char*)malloc(size); assert(buf != NULL);
-    for (int i=0; i<size; i++)
+    for (size_t i=0; i<size; i++)
         buf[i] = val;
     sclMemcpyHostToDevice(dest, buf, size);
     free(buf);

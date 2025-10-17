@@ -96,6 +96,11 @@ void my_Scatter(const double *sendbuf,
 #else
     int my_rank, comm_sz;
 
+    /* The `recvcount` parameter is not used; the following dummy
+       instruction prevents the compiler from complaining with a
+       warning. */
+    (void)recvcount;
+
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
     if ( my_rank == root ) {
