@@ -296,9 +296,9 @@ int main( int argc, char* argv[] )
     d = (float*)malloc((size_t)g.n * (size_t)g.n * sizeof(*d)); assert(d);
     p = (int*)malloc((size_t)g.n * (size_t)g.n * sizeof(*p)); assert(p);
 
-    const float tstart = omp_get_wtime();
+    const double tstart = omp_get_wtime();
     floyd_warshall(&g, d, p);
-    const float elapsed = omp_get_wtime() - tstart;
+    const double elapsed = omp_get_wtime() - tstart;
     fprintf(stderr, "Execution time %.3f\n", elapsed);
 
     printf("d[%d,%d] = %f\n", 0, g.n-1, d[IDX(0, g.n-1, g.n)]);

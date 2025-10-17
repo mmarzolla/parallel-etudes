@@ -423,9 +423,9 @@ int main( int argc, char* argv[] )
     d = (float*)malloc((size_t)g.n * (size_t)g.n * sizeof(*d)); assert(d);
     p = (int*)malloc((size_t)g.n * (size_t)g.n * sizeof(*p)); assert(p);
 
-    const float tstart = hpc_gettime();
+    const double tstart = hpc_gettime();
     floyd_warshall(&g, d, p);
-    const float elapsed = hpc_gettime() - tstart;
+    const double elapsed = hpc_gettime() - tstart;
     fprintf(stderr, "Execution time %.3f\n", elapsed);
 
     printf("d[%d,%d] = %f\n", 0, g.n-1, d[IDX(0, g.n-1, g.n)]);
