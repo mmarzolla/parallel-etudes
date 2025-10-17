@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * circles-gen.c - Generate an input file for the mpi-circles.c program
+ * gen-circles.c - Generate an input file for the mpi-circles.c program
  *
  * Copyright (C) 2017--2023 Moreno Marzolla
  *
@@ -21,11 +21,11 @@
  *
  * Compile with:
  *
- *      gcc -ansi -Wall -Wpedantic circles-gen.c -o circles-gen
+ *      gcc -ansi -Wall -Wpedantic gen-circles.c -o gen-circles
  *
  * To generate 1000 random rectangles, run:
  *
- *      ./circles-gen 1000 > circles-1000.in
+ *      ./gen-circles 1000 > circles-1000.in
  *
  ****************************************************************************/
 #include <stdio.h>

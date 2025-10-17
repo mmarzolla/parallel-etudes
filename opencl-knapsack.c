@@ -117,7 +117,7 @@ command-line parameter. The input file has a simple structure:
 
 - After that, $n$ pairs $(w_i, v_i)$ are listed, separated by spaces or tabs.
 
-The program [knapsack-gen.c](knapsack-gen.c) generates random
+The program [gen-knapsack.c](gen-knapsack.c) generates random
 instances for additional experiments.
 
 The goal is to modify the program to make use of OpenCL
@@ -139,7 +139,7 @@ Run with:
 
 - [opencl-knapsack.c](opencl-knapsack.c)
 - [simpleCL.c](simpleCL.c) [simpleCL.h](simpelCL.h)
-- [knapsack-gen.c](knapsack-gen.c) (to generate random input instances)
+- [gen-knapsack.c](gen-knapsack.c) (to generate random input instances)
 - [knap-10-10.in](knap-10-10.in)
 - [knap-100-100.in](knap-100-100.in)
 

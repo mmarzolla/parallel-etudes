@@ -117,7 +117,7 @@ command-line parameter. The input files have a very simple structure:
 
 - After that, $n$ pairs $(w_i, v_i)$ are listed, separated by blanks.
 
-The program [knapsack-gen.c](knapsack-gen.c) can be used to generate
+The program [gen-knapsack.c](gen-knapsack.c) can be used to generate
 random instances for additional experiments.
 
 The goal is to modify the program to make use of shared-memory
@@ -138,7 +138,7 @@ For example, to use $P=4$ OpenMP threads:
 ## Files
 
 - [omp-knapsack.c](omp-knapsack.c) [hpc.h](hpc.h)
-- [knapsack-gen.c](knapsack-gen.c) (to generate random input instances)
+- [gen-knapsack.c](gen-knapsack.c) (to generate random input instances)
 - [knap-10-10.in](knap-10-10.in)
 - [knap-100-100.in](knap-100-100.in)
 

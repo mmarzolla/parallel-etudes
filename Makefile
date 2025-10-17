@@ -3,7 +3,7 @@ EXE_MPI := $(basename $(wildcard mpi-*.c))
 EXE_SIMD := $(basename $(wildcard simd-*.c))
 EXE_CUDA := $(basename $(wildcard cuda-*.cu)) cuda-anneal-shared cuda-nbody-shared
 EXE_OPENCL := $(basename $(wildcard opencl-*.c)) opencl-anneal-local opencl-nbody-local opencl-anneal-movie
-EXE_SERIAL := gensphfract genspheres gendna bbox-gen circles-gen knapsack-gen gengraph
+EXE_SERIAL := gen-sphfract gen-spheres gen-dna gen-bbox gen-circles gen-knapsack gen-graph
 EXE := $(EXE_OMP) $(EXE_MPI) $(EXE_SERIAL) $(EXE_SIMD) $(EXE_OPENCL) $(EXE_CUDA)
 SRC := $(wildcard *.c) $(wildcard *.cu) $(wildcard *.cl)
 INC := $(wildcard *.h)
@@ -102,7 +102,7 @@ mpi-c-ray: LDLIBS+=-lm
 
 mpi-mandelbrot-area: LDLIBS+=-lm
 
-gendna: LDLIBS+=-lm
+gen-dna: LDLIBS+=-lm
 
 omp-bellman-ford: LDLIBS+=-lm
 
@@ -122,15 +122,15 @@ handouts/%.html: %.md
 %.pdf: %.md
 	pandoc --from markdown $< -o $@
 
-sphfract.small.in sphfract.big.in: gensphfract
-	./gensphfract 4 > sphfract.small.in
-	./gensphfract 6 > sphfract.big.in
+sphfract.small.in sphfract.big.in: gen-sphfract
+	./gen-sphfract 4 > sphfract.small.in
+	./gen-sphfract 6 > sphfract.big.in
 
-spheres.in: genspheres
-	./genspheres > $@
+spheres.in: gen-spheres
+	./gen-spheres > $@
 
-dna.in: gendna
-	./gendna > $@
+dna.in: gen-dna
+	./gen-dna > $@
 
 omp-c-ray-images.jpg: omp-c-ray sphfract.small.in spheres.in dna.in
 	./omp-c-ray -r 10 < sphfract.small.in > c-ray1.tmp.ppm

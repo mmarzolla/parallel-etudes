@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * knapsack-gen.c - generate instances for the knapsack solver
+ * gen-knapsack.c - generate instances for the knapsack solver
  *
  * Written in 2016, 2017 Moreno Marzolla
  *

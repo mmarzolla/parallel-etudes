@@ -85,7 +85,7 @@ Example:
 ## Files
 
 - [mpi-circles.c](mpi-circles.c)
-- [circles-gen.c](circles-gen.c) (to generate random inputs)
+- [gen-circles.c](gen-circles.c) (to generate random inputs)
 - [circles-1000.in](circles-1000.in)
 - [circles-10000.in](circles-10000.in)
 
