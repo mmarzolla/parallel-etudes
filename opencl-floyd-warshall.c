@@ -92,7 +92,7 @@ Execute with:
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <math.h> /* for isinf(), fminf() and HUGE_VAL */
+#include <math.h> /* for isinf(), fminf() and HUGE_VALF */
 #include <assert.h>
 #include "simpleCL.h"
 
@@ -298,7 +298,7 @@ int floyd_warshall( const graph_t *g, float *d, int *p )
 
     for (int u=0; u<n; u++) {
         for (int v=0; v<n; v++) {
-            d[IDX(u,v,n)] = (u == v ? 0.0 : HUGE_VAL);
+            d[IDX(u,v,n)] = (u == v ? 0.0f : HUGE_VALF);
             p[IDX(u,v,n)] = -1;
         }
     }

@@ -89,7 +89,7 @@ Execute with:
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <math.h> /* for isinf(), fminf() and HUGE_VAL */
+#include <math.h> /* for isinf(), fminf() and HUGE_VALF */
 #include <assert.h>
 #include <omp.h>
 
