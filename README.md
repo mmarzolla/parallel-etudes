@@ -12,7 +12,7 @@ very complex.
 I strongly agree with Wetherell, and believe that the practice-based
 approach he suggests is very appropriate also for learning _parallel_
 programming. I incorporated this idea in the [High Performance
-Computing](https://www.moreno.marzolla.name/teaching/hpc/) course that
+Computing](https://www.moreno.marzolla.name/teaching/HPC/) course that
 I have been teaching over the past 10 years to Computer Science and
 Engineering students at the University of Bologna.
 
@@ -88,7 +88,7 @@ Table 1 lists, for each exercise, which parallel versions are
 available, and which parallel programming patterns are used to solve
 it.
 
-Table 1: List of exercises
+: Table 1: List of exercises
 
 | Kernel                      | OpenMP | MPI | CUDA | OpenCL | Pattern                                            |
 |-----------------------------|--------|-----|------|--------|----------------------------------------------------|
