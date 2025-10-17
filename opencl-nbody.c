@@ -32,32 +32,31 @@ universe, and are based on the computation of the dynamics of $N$
 masses subject to mutual gravitational attraction ($N$-body
 problem). The [Bolshoi
 simulation](http://hipacc.ucsc.edu/Bolshoi.html) required 6 million
-CPU hours on one of the most powerful supercomputers of the time. In
-this exercise we solve the problem for a small number $N$ of bodies
-using a very simple algorithm, based on a developed program by Mark
-Harris available at <https://github.com/harrism/mini-nbody> (the
-program proposed in this exercise is a modified version of the
-original).
+CPU hours on one of the most powerful supercomputers of 2010. In this
+exercise we solve a $N$-body problem for a small $N$ using a simple
+algorithm, based on a program developed by Mark Harris available at
+<https://github.com/harrism/mini-nbody>.
 
 The physical laws governing the dynamics of $N$ masses were discovered
-by [Isaac Newton](https://en.wikipedia.org/wiki/Isaac_Newton): this is
-the [second law of
+by [Isaac Newton](https://en.wikipedia.org/wiki/Isaac_Newton): these
+are the [second law of
 dynamic](https://en.wikipedia.org/wiki/Newton%27s_laws_of_motion#Newton's_second_law)
 and the [law of universal
-gravitation](https://en.wikipedia.org/wiki/Newton's_law_of_universal_gravitation). The
-second law of dynamics states that a force $\textbf{F}$ that acts on a
-particle of mass $m$ produces an acceleration $\textbf{a}$ such that
+gravitation](https://en.wikipedia.org/wiki/Newton's_law_of_universal_gravitation).
+
+The second law of dynamics states that a force $\textbf{F}$ acting on
+a point mass $m$ produces an acceleration $\textbf{a}$ such that
 $\textbf{F}=m\textbf{a}$. The law of universal gravitation states that
-two masses $m_1$ and $m_2$ at a distance $d$ are subject to an
+two point masses $m_1$ and $m_2$ at a distance $d$ are subject to an
 attractive force of magnitude $F = G m_1 m_2 / d^2$ where $G$ is the
 gravitational constant ($G \approx 6,674 \times 10^{-11}\ \mathrm{N}\
 \mathrm{m}^2\ \mathrm{kg}^{-2}$).
 
 The following explanation is not required for solving this exercise,
-but might be informative and only requires basic physics knowledge.
+but might be informative, and only requires basic physics knowledge.
 
-Let us consider $N$ point-like masses $m_0, \ldots, m_{n-1}$ that are
-subject to mutual gravitational attraction only. Since the masses are
+Let us consider $N$ point masses $m_0, \ldots, m_{n-1}$ that are
+subject to mutual gravitational attraction. Since the masses are
 point-like, they never collide with each other. Let $\textbf{x}_i =
 (x_i, y_i, z_i)$ be the position and $\textbf{v}_i = (vx_i, vy_i,
 vz_i)$ the velocity vector of mass $i$ at a given time $t$. To compute
@@ -69,20 +68,20 @@ $$
 \textbf{F}_i := \sum_{i \neq j} \frac{G m_i m_j} {d_{ij}^2} \textbf {n}_{ij}
 $$
 where $G$ is the gravitational constant, $d_{ij}^2$ is the
-square of the distance between particles $i$ and $j$, and
-$\textbf{n}_{ij}$ is the unit vector from particle $i$ to particle $j$
+squared distance between particles $i$ and $j$, and
+$\textbf{n}_{ij}$ is the unit vector from particle $i$ to $j$
 
 2. Compute the acceleration $\textbf{a}_i$ acting on mass $i$:
 $$
 \textbf{a}_i := \textbf{F}_i / m_i
 $$
 
-3. Compute the _new_ velocity $\textbf{v}'_i$ of mass $i$ at time $t'$:
+3. Compute the new velocity $\textbf{v}'_i$ of mass $i$ at time $t'$:
 $$
 \textbf{v}'_i := \textbf{v}_i + \textbf{a}_i \Delta t
 $$
 
-4. Compute the _new_ position $\textbf{x}'_i$ of mass $i$ at time $t'$:
+4. Compute the new position $\textbf{x}'_i$ of mass $i$ at time $t'$:
 $$
 \textbf{x}'_i := \textbf{x}_i + \textbf{v}'_i \Delta t
 $$
@@ -90,9 +89,9 @@ $$
 The previous steps solve the equations of motion using
 Euler's scheme[^1].
 
-[^1]: Euler's integration is numerically unstable on this problem, and
-      therefore more accurate but more complex schemes are used in
-      practice.
+[^1]: Euler's integration is not recommended on this kind or problem,
+      since it might be numerically unstable; more accurate and
+      complex schemes are used in practice.
 
 In this program we trade accuracy for simplicity by ignoring the
 factor $G m_i m_j$ and rewriting the sum as:
@@ -103,8 +102,7 @@ $$
 
 where $\textbf{d}_{ij}$ is the vector from particle $i$ to particle
 $j$, i.e., $\textbf{d}_{ij} := (\textbf{x}_j - \textbf{x}_i)$, and
-$\epsilon > 0$ is used to avoid a division by zero when $i = j$, that
-is, when computing the interaction of a particle with itself.
+$\epsilon > 0$ is used to avoid a division by zero when $i = j$.
 
 ***/
 
@@ -113,7 +111,7 @@ Modify the provided program to use the GPU. A first version can be
 easily obtained from the serial version.
 
 Then, observe that the data of each particle is (re)read from device
-memory $N$ times; indeed, each of the $N$ work-items scans the entire
+memory $N$ times; indeed, each of the $N$ work-items scans the whole
 `p[]` array, so each element of `p[]` is accessed $N$ times by $N$
 different work-items.
 
