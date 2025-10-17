@@ -171,7 +171,7 @@ void do_static(const int *vin, int *vout, int n)
        ensure that we never exceed the upper bound `n-1`.
     */
     const int chunk_size = 1; /* can be set to any value >= 1 */
-#pragma omp parallel for schedule(static, chunk_size);
+#pragma omp parallel for schedule(static, chunk_size)
     for (int i=0; i<n; i++) {
         vout[i] = fib_rec(vin[i]);
         /* printf("vin[%d]=%d vout[%d]=%d\n", i, vin[i], i, vout[i]); */

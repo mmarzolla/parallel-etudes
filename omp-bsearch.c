@@ -45,7 +45,7 @@ Example:
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "hpc.h"
+#include <omp.h>
 
 void vec_init( int *x, int n )
 {
@@ -131,7 +131,7 @@ void test( bsearch_fun_t f, const int *x, int n )
         keys[i] = randab(-1, n+1);
     }
 
-    const double tstart = hpc_gettime();
+    const double tstart = omp_get_wtime();
     for (int r = 0; r<R; r++) {
         for (int i = 0; i<K; i++) {
             const int key = keys[i];
@@ -142,7 +142,7 @@ void test( bsearch_fun_t f, const int *x, int n )
             assert(result == expected);
         }
     }
-    const double elapsed = K * R / (hpc_gettime()-tstart) / 1e6;
+    const double elapsed = K * R / (omp_get_wtime()-tstart) / 1e6;
     printf("%f Msearches/s\n", elapsed);
 }
 

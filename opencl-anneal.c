@@ -282,7 +282,7 @@ void copy_top_bottom(cell_t *grid, int ext_width, int ext_height)
 
     for (int j=0; j<ext_width; j++) {
         grid[IDX(ext_width, BOTTOM_GHOST, j)] = grid[IDX(ext_width, TOP, j)]; /* top to bottom halo */
-        grid[IDX(ext_width, TOP_GHOST, j)] = grid[IDX(ext_widthn, BOTTOM, j)]; /* bottom to top halo */
+        grid[IDX(ext_width, TOP_GHOST, j)] = grid[IDX(ext_width, BOTTOM, j)]; /* bottom to top halo */
     }
 }
 

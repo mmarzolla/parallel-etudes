@@ -3,7 +3,7 @@
  * opencl-nbody.c - N-body simulation
  *
  * Copyright (C) Mark Harris
- * Copyright (C) 2021--2024 Moreno Marzolla
+ * Copyright (C) 2021--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 /***
 % N-body simulation
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-01-04
+% Last updated: 2025-10-17
 
 ![A frame of the Bolshoi simulation (source: <http://hipacc.ucsc.edu/Bolshoi/Images.html>).](bolshoi.png)
 
@@ -143,11 +143,11 @@ on the memory of the device, improving the performance of the program.
 
 To compile without using local memory:
 
-        cc opencl-nbody.c simpleCL.c -o opencl-nbody -lm -lOpenCL
+        gcc -std=c99 -Wall -Wpedantic opencl-nbody.c simpleCL.c -o opencl-nbody -lm -lOpenCL
 
 To compile using local memory:
 
-        cc -DUSE_LOCAL opencl-nbody.c simpleCL.c -o opencl-nbody-local -lm -lOpenCL
+        gcc -std=c99 -Wall -Wpedantic -DUSE_LOCAL opencl-nbody.c simpleCL.c -o opencl-nbody-local -lm -lOpenCL
 
 To execute:
 
@@ -224,7 +224,7 @@ void compute_force(const float *x, const float *y, const float *z,
             const float dy = y[j] - y[i];
             const float dz = z[j] - z[i];
             const float distSqr = dx*dx + dy*dy + dz*dz + EPSILON;
-            const float invDist = 1.0f / sqrtff(distSqr);
+            const float invDist = 1.0f / sqrtf(distSqr);
             const float invDist3 = invDist * invDist * invDist;
 
             Fx += dx * invDist3;
@@ -345,7 +345,6 @@ int main(int argc, char* argv[])
 #endif
     sclKernel integrate_positions_kernel = sclCreateKernel("integrate_positions_kernel");
     sclKernel energy_kernel = sclCreateKernel("energy_kernel");
-#endif
 
     const sclDim BLOCK = DIM1(SCL_DEFAULT_WG_SIZE);
     const sclDim GRID = DIM1(sclRoundUp(N, SCL_DEFAULT_WG_SIZE));
@@ -371,7 +370,7 @@ int main(int argc, char* argv[])
     const size_t size_energies = N_OF_BLOCKS * sizeof(*energies);
     energies = (float*)malloc(size_energies); assert(energies != NULL);
     d_energies = sclMalloc(size_energies, CL_MEM_WRITE_ONLY);
-
+#endif
     double total_time = 0.0;
     for (int step = 1; step <= nsteps; step++) {
         const double tstart = hpc_gettime();
