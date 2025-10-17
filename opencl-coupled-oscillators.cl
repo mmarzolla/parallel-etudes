@@ -44,6 +44,6 @@ step_kernel( __global const float *x,
     } else {
         /* First and last values of x and v are just copied to the new arrays; */
         xnext[i] = x[i];
-        vnext[i] = 0.0;
+        vnext[i] = 0.0f;
     }
 }

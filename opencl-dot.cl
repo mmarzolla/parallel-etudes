@@ -26,7 +26,7 @@ dot_kernel( __global const float *x,
             __global float *result )
 {
     __local float tmp[SCL_DEFAULT_WG_SIZE];
-    float local_sum = 0.0;
+    float local_sum = 0.0f;
 
     const int tid = get_local_id(0);
     const int nitems = get_local_size(0);
@@ -39,7 +39,7 @@ dot_kernel( __global const float *x,
     barrier(CLK_LOCAL_MEM_FENCE);
     /* Work-item 0 makes the final reduction */
     if ( 0 == tid ) {
-        float sum = 0.0;
+        float sum = 0.0f;
         for (int i=0; i<nitems; i++) {
             sum += tmp[i];
         }
