@@ -72,6 +72,14 @@ steps:
    in parallel;
 3. During the third step, compute everything else, in parallel.
 
+Compile with:
+
+        gcc -std=c99 -Wall -Wpedantic opencl-floyd-warshall.c simpleCL.c -o opencl-floyd-warshall -lOpenCL
+
+Execute with:
+
+        ./opencl-floyd-warshall < graph100.gr
+
 ## Files
 
 - [omp-floyd-warshall.cu](omp-floyd-warshall.cu) [simpleCL.h](simpleCL.h) [simpleCL.c](simpleCL.c)

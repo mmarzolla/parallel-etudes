@@ -257,8 +257,9 @@ vec3_t cross_product(vec3_t v1, vec3_t v2)
 vec3_t jitter(int x, int y, int s)
 {
     vec3_t pt;
-    pt.x = urand[(x + (y << 2) + irand[(x + s) & MASK]) & MASK].x;
-    pt.y = urand[(y + (x << 2) + irand[(y + s) & MASK]) & MASK].y;
+    pt.x = urand[(x + ((unsigned)y << 2) + irand[(x + s) & MASK]) & MASK].x;
+    pt.y = urand[(y + ((unsigned)x << 2) + irand[(y + s) & MASK]) & MASK].y;
+    pt.z = 0;
     return pt;
 }
 
@@ -312,14 +313,15 @@ int ray_sphere(const sphere_t *sph, ray_t ray, spoint_t *sp)
 vec3_t get_sample_pos(int x, int y, int sample)
 {
     vec3_t pt;
-    static double sf = 0.0;
+    static double sf = -1.0;
 
-    if (sf == 0.0) {
+    if (sf < 0.0) {
         sf = 2.0 / (double)xres;
     }
 
     pt.x = ((double)x / (double)xres) - 0.5;
     pt.y = -(((double)y / (double)yres) - 0.65) / aspect;
+    pt.z = 0;
 
     if (sample) {
         vec3_t jt = jitter(x, y, sample);
@@ -334,7 +336,7 @@ vec3_t get_sample_pos(int x, int y, int sample)
 ray_t get_primary_ray(int x, int y, int sample)
 {
     ray_t ray;
-    float m[3][3];
+    double m[3][3];
     vec3_t i, j = {0, 1, 0}, k, dir, orig, foo;
 
     k.x = cam.targ.x - cam.pos.x;
@@ -492,7 +494,7 @@ void render(int xsz, int ysz, pixel_t *fb, int samples)
 #ifndef SERIAL
     /* You might want to play with the "schedule" clause */
 
-#pragma omp parallel for default(none) shared(samples, fb, xsz, ysz) schedule(dynamic, 32)
+#pragma omp parallel for default(none) shared(samples, fb, xsz, ysz) schedule(dynamic)
 #endif
     for (int j=0; j<ysz; j++) {
         for (int i=0; i<xsz; i++) {
@@ -601,7 +603,7 @@ int main(int argc, char *argv[])
     int rays_per_pixel = 1;
     FILE *infile = stdin, *outfile = stdout;
     int opt;
-    char *sep;
+    char *sep = NULL;
 
     while ((opt = getopt(argc, argv, "s:i:o:r:h")) != -1) {
         switch (opt) {

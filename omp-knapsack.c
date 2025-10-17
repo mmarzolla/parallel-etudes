@@ -230,11 +230,11 @@ float knapsack(knapsack_t *k)
    can be deallocated with `knapsack_free()` */
 void knapsack_load(FILE *fin, knapsack_t* k)
 {
-    int i;
+    int i, nread;
     assert(fin != NULL);
     assert(k != NULL);
-    fscanf(fin, "%d", &(k->C)); assert( k->C > 0 );
-    fscanf(fin, "%d", &(k->n)); assert( k->n > 0 );
+    nread = fscanf(fin, "%d", &(k->C)); assert(nread == 1); assert( k->C > 0 );
+    nread = fscanf(fin, "%d", &(k->n)); assert(nread == 1); assert( k->n > 0 );
     k->w = (int*)malloc((k->n)*sizeof(int)); assert(k->w != NULL);
     k->v = (float*)malloc((k->n)*sizeof(float)); assert(k->v != NULL);
     for (i=0; i<(k->n); i++) {

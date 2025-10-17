@@ -199,7 +199,7 @@ void dumpenergy(FILE *fout, const float *x, int n, float maxen)
 int main( int argc, char *argv[] )
 {
     int cur = 0, next;
-    float maxen;
+    float maxen = 0;
     int N = 1024;
     const char* fname = "coupled-oscillators.ppm";
 #ifdef SERIAL

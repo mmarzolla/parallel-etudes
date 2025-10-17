@@ -173,7 +173,7 @@ int main( int argc, char *argv[] )
     assert(out != NULL);
 
     for (k=0; k < n && !found; k++) {
-        snprintf(key, KEY_LEN+1, "%08d", k);
+        snprintf(key, KEY_LEN+1, "%08u", (unsigned)k);
         xorcrypt(enc, out, msglen, key, KEY_LEN);
         /* `out` contains the decrypted text; if the key is not
            correct, `out` will contain garbage */
@@ -213,7 +213,7 @@ int main( int argc, char *argv[] )
            because in the worst case it forces the other threads to
            execute one more iteration than necessary. */
         for ( int k=my_start; k<my_end && !found; k++) {
-            sprintf(key, "%08d", k);
+            snprintf(key, KEY_LEN+1, "%08u", (unsigned)k);
             xorcrypt(enc, out, msglen, key, 8);
             if ( 0 == memcmp(out, check, CHECK_LEN) ) {
                 printf("Key found: %s\n", key);

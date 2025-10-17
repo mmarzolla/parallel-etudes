@@ -72,6 +72,14 @@ steps:
    in parallel;
 3. During the third step, compute everything else, in parallel.
 
+Compile with:
+
+        gcc -std=c99 -Wall -Wpedantic -fopenmp omp-floyd-warshall.c -o omp-floyd-warshall
+
+Execute with:
+
+        ./omp-floyd-warshall < graph100.gr
+
 ## Files
 
 - [omp-floyd-warshall.c](omp-floyd-warshall.c)

@@ -25,7 +25,7 @@
 /***
 % Ray Tracing
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-10-10
+% Last updated: 2025-10-17
 
 The file [mpi-c-ray.c](mpi-c-ray.c) contains the implementation of a
 [simple ray tracing program](https://github.com/jtsiomb/c-ray) written
@@ -148,6 +148,7 @@ pixel color is highly variable, leading to load imbalance.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <getopt.h>
 #include <math.h>
 #include <ctype.h>
 #include <errno.h>
@@ -631,60 +632,53 @@ int main(int argc, char *argv[])
     int rays_per_pixel = 1;
     FILE *infile = stdin, *outfile = stdout;
     int my_rank, comm_sz;
+    int opt;
+    char *sep = NULL;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
 
     /* Every process parses the command line */
-    for (int i=1; i<argc; i++) {
-        if (argv[i][0] == '-' && argv[i][2] == 0) {
-            char *sep;
-            switch(argv[i][1]) {
-            case 's':
-                if (!isdigit(argv[++i][0]) || !(sep = strchr(argv[i], 'x')) || !isdigit(*(sep + 1))) {
-                    fputs("-s must be followed by something like \"640x480\"\n", stderr);
-                    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
-                }
-                xres = atoi(argv[i]);
-                yres = atoi(sep + 1);
-                aspect = (double)xres / (double)yres;
-                break;
-
-            case 'i':
-                if ((infile = fopen(argv[++i], "r")) == NULL) {
-                    fprintf(stderr, "failed to open input file %s: %s\n", argv[i], strerror(errno));
-                    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
-                }
-                break;
-
-            case 'o':
-                if ((outfile = fopen(argv[++i], "w")) == NULL) {
-                    fprintf(stderr, "failed to open output file %s: %s\n", argv[i], strerror(errno));
-                    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
-                }
-                break;
-
-            case 'r':
-                if (!isdigit(argv[++i][0])) {
-                    fputs("-r must be followed by a number (rays per pixel)\n", stderr);
-                    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
-                }
-                rays_per_pixel = atoi(argv[i]);
-                break;
-
-            case 'h':
-                fputs(usage, stdout);
-                MPI_Finalize();
-                return EXIT_SUCCESS;
-
-            default:
-                fprintf(stderr, "unrecognized argument: %s\n", argv[i]);
-                fputs(usage, stderr);
+    while ((opt = getopt(argc, argv, "s:i:o:r:h")) != -1) {
+        switch (opt) {
+        case 's':
+            if (!isdigit(optarg[0]) || !(sep = strchr(optarg, 'x')) || !isdigit(*(sep + 1))) {
+                fprintf(stderr, "FATAL: -s must be followed by something like \"640x480\"\n");
                 MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
             }
-        } else {
-            fprintf(stderr, "unrecognized argument: %s\n", argv[i]);
+            xres = atoi(optarg); assert(xres > 0);
+            yres = atoi(sep + 1); assert(yres > 0);
+            break;
+
+        case 'i':
+            if ((infile = fopen(optarg, "r")) == NULL) {
+                fprintf(stderr, "FATAL: failed to open input file %s: %s\n", optarg, strerror(errno));
+                MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+            }
+            break;
+
+        case 'o':
+            if ((outfile = fopen(optarg, "w")) == NULL) {
+                fprintf(stderr, "FATAL: failed to open output file %s: %s\n", optarg, strerror(errno));
+                MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+            }
+            break;
+
+        case 'r':
+            rays_per_pixel = atoi(optarg);
+            if (rays_per_pixel < 0 || rays_per_pixel > NRAN) {
+                fprintf(stderr, "FATAL: the number of rays must be in 0-%d\n", NRAN);
+                MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+            }
+            break;
+
+        case 'h':
+            fputs(usage, stdout);
+            MPI_Finalize();
+            return EXIT_SUCCESS;
+
+        default:
             fputs(usage, stderr);
             MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
         }
