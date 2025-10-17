@@ -78,7 +78,7 @@ Compile with:
 
 Execute with:
 
-        ./cuda-floyd-warshall < graph100.gr
+        ./cuda-floyd-warshall graph100.gr
 
 
 ## Files
@@ -402,13 +402,21 @@ int main( int argc, char* argv[] )
     graph_t g;
     float *d;
     int *p;
+    FILE *filein;
 
-    if ( argc > 1 ) {
-        fprintf(stderr, "Usage: %s < problem_file\n", argv[0]);
+    if ( argc != 2 ) {
+        fprintf(stderr, "Usage: %s problem_file\n", argv[0]);
+        return EXIT_FAILURE;
+    }
+
+    if ((filein = fopen(argv[1], "r")) == NULL) {
+        fprintf(stderr, "Can not open file \"%s\"\n", argv[1]);
         return EXIT_FAILURE;
     }
 
     load_dimacs(stdin, &g);
+
+    fclose(filein);
 
     /* Care must be taken to convert g.n to (size_t) to avoid
        overflows is the number of nodes is very large. */
