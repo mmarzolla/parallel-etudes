@@ -48,7 +48,9 @@ the computation above.
    `schedule(dynamic, chunk_size)` clause. Again, use the `omp
    parallel` directive (not `omp for`).
 
-See the source code for suggestions.
+See the source code for suggestions, referring to Figure 1.
+
+![Figure 1: Static scheduling.](omp-schedule.svg)
 
 To compile:
 
@@ -160,15 +162,15 @@ void do_static(const int *vin, int *vout, int n)
 
        START = my_id * chunk_size;
        STRIDE = num_threads * chunk_size;
-       for (int i=START; i<n; i+=STRIDE) {
-         for (int j=i; j<i+chunk_size && j<n; j++) {
+       for (int my_block_start = START; my_block_start < n; my_block_start += STRIDE) {
+         for (int i = my_block_start; (i < my_block_start+chunk_size) && (i < n); i++) {
            loop body
          }
        }
 
-       Note that `n` is not necessarily an integer multiple of the
-       number of threads, therefore addtional checks are necessary to
-       ensure that we never exceed the upper bound `n-1`.
+       Since `n` is not necessarily a multiple of the number of
+       threads, additional checks are necessary to ensure that we
+       never exceed the upper bound `n-1`.
     */
     const int chunk_size = 1; /* can be set to any value >= 1 */
 #pragma omp parallel for schedule(static, chunk_size)
@@ -187,10 +189,10 @@ void do_static(const int *vin, int *vout, int n)
         const int START = my_id * chunk_size;
         const int STRIDE = num_threads * chunk_size;
 
-        for (int i=START; i<n; i += STRIDE) {
-            for (int j=i; j<i+chunk_size && j<n; j++) {
-                vout[j] = fib_rec(vin[j]);
-                /* printf("Thread %d vin[%d]=%d vout[%d]=%d\n", tid, j, vin[j], j, vout[j]); */
+        for (int my_block_start = START; my_block_start < n; my_block_start += STRIDE) {
+            for (int i = my_block_start; (i < my_block_start+chunk_size) && (i < n); i++) {
+                vout[i] = fib_rec(vin[i]);
+                /* printf("Thread %d vin[%d]=%d vout[%d]=%d\n", tid, i, vin[i], i, vout[i]); */
             }
         }
     }
@@ -204,22 +206,22 @@ void do_dynamic(const int *vin, int *vout, int n)
        "schedule(dynamic,chunk_size)" clause. You should do so using
        "omp parallel" only, without "omp for".
 
-       Hint: keep a shared variable `idx` representing the index of
-       the beginning of the first unprocessed chunk, i.e., the first
-       chunk that will be assigned to a thread.
+       Hint: keep a shared variable `shared_idx` representing the
+       index of the beginning of the first unprocessed chunk, i.e.,
+       the first chunk that will be assigned to a thread.
 
        Each OpenMP thread _atomically_ fetches the current value of
-       `idx` into a local (private) variable `my_idx`, and then
-       increments `idx` by `chunk_size`.
+       `shared_idx` into a local (private) variable `my_block_start`,
+       and then increments `shared_idx` by `chunk_size`.
 
        Therefore, each thread executes the following pseudocode:
 
        do {
-         atomically copy idx into my_idx and increment idx by chunk_size
-         for (i=my_idx; i<my_idx + chunk_size && i<n; i++) {
+         atomically copy shared_idx into my_block_start and increment shared_idx by chunk_size
+         for (i=my_block_start; i<my_block_start + chunk_size && i<n; i++) {
            loop body
          }
-       } while (my_idx < n);
+       } while (my_block_start < n);
     */
     const int chunk_size = 1; /* can be set to any value >= 1 */
 #pragma omp parallel for schedule(dynamic, chunk_size)
@@ -228,25 +230,25 @@ void do_dynamic(const int *vin, int *vout, int n)
         /* printf("vin[%d]=%d vout[%d]=%d\n", i, vin[i], i, vout[i]); */
     }
 #else
-    int idx = 0; /* shared index */
+    int shared_idx = 0; /* shared index */
     const int chunk_size = 1; /* can be set to any value >= 1 */
-#pragma omp parallel default(none) shared(idx,vin,vout,n,chunk_size)
+#pragma omp parallel default(none) shared(shared_idx,vin,vout,n,chunk_size)
     {
         /* This implementation simulates the behavior of a
            schedule(dynamic,chunk_size) clause for any chunk_size>=1. */
-        int my_idx;
+        int my_block_start;
         do {
             /* atomically grab current index, and increment */
 #pragma omp critical
             {
-                my_idx = idx;
-                idx += chunk_size;
+                my_block_start = shared_idx;
+                shared_idx += chunk_size;
             }
-            for (int i=my_idx; i<my_idx+chunk_size && i<n; i++) {
+            for (int i = my_block_start; (i < my_block_start+chunk_size) && (i < n); i++) {
                 vout[i] = fib_rec(vin[i]);;
-                /* printf("Thread %d vin[%d]=%d vout[%d]=%d\n", tid, i, vin[j], j, vout[j]); */
+                /* printf("Thread %d vin[%d]=%d vout[%d]=%d\n", tid, i, vin[i], i, vout[i]); */
             }
-        } while (my_idx < n);
+        } while (my_block_start < n);
     }
 #endif
 }
