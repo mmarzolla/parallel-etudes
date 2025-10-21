@@ -247,11 +247,11 @@ void load_dimacs( FILE *f, problem_t *p )
 
     if ( nl > MAXLITERALS-1 ) {
         fprintf(stderr, "FATAL: too many literals (%d); please set MAXLITERALS to at least %d\n", nl, nl+1);
-        exit(EXIT_FAILURE);
+        MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
     }
     if ( nc > MAXCLAUSES-1 ) {
         fprintf(stderr, "FATAL: too many clauses (%d); please set MAXCLAUSES to at least %d\n", nc, nc+1);
-        exit(EXIT_FAILURE);
+        MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
     }
     p->nlit = -1; /* we compute the number of literals from those actually used in the file */
     p->nclauses = nc;
@@ -294,7 +294,7 @@ int main( int argc, char *argv[] )
 
         if ((f = fopen(argv[1], "r")) == NULL) {
             fprintf(stderr, "FATAL: can not open %s\n", argv[1]);
-            return EXIT_FAILURE;
+            MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
         }
         load_dimacs(f, &p);
         fclose(f);
