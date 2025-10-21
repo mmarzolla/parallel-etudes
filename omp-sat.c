@@ -2,7 +2,7 @@
  *
  * omp-sat.c - Brute-force SAT solver
  *
- * Copyright (C) 2018, 2023, 2024 Moreno Marzolla
+ * Copyright (C) 2018, 2023--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Brute-force SAT solver
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-11-29
+% Last updated: 2025-10-21
 
 The Boolean Satisfability Problem (SAT Problem) asks whether there
 exists an assignment of boolean variables $x_1, \ldots, x_n$ that
@@ -117,7 +117,7 @@ To compile:
 
 To execute:
 
-        ./omp-sat < queens-05.cnf
+        ./omp-sat queens-05.cnf
 
 ## Files
 
@@ -285,18 +285,24 @@ void load_dimacs( FILE *f, problem_t *p )
 int main( int argc, char *argv[] )
 {
     problem_t p;
+    FILE *f;
 
     assert(MAXLITERALS <= 8*sizeof(int)-2);
 
-    if (argc != 1) {
-        fprintf(stderr, "Usage: %s < input\n", argv[0]);
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s input\n", argv[0]);
         return EXIT_FAILURE;
     }
-    load_dimacs(stdin, &p);
+    if ((f = fopen(argv[1], "r")) == NULL) {
+        fprintf(stderr, "FATAL: can not open %s\n", argv[1]);
+        return EXIT_FAILURE;
+    }
+    load_dimacs(f, &p);
+    fclose(f);
     pretty_print(&p);
     const double tstart = omp_get_wtime();
     int nsolutions = sat(&p);
     const double elapsed = omp_get_wtime() - tstart;
-    printf("%d solutions in %f seconds\n", nsolutions, elapsed);
+    printf("%d solutions in %.3f seconds\n", nsolutions, elapsed);
     return EXIT_SUCCESS;
 }

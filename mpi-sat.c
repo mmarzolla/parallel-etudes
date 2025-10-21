@@ -2,7 +2,7 @@
  *
  * mpi-sat.c - Brute-force SAT solver
  *
- * Copyright (C) 2018, 2023, 2024 Moreno Marzolla
+ * Copyright (C) 2018, 2023--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Brute-force SAT solver
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-11-29
+% Last updated: 2025-10-21
 
 The Boolean Satisfability Problem (SAT Problem) asks whether there
 exists an assignment of boolean variables $x_1, \ldots, x_n$ that
@@ -117,7 +117,7 @@ To compile:
 
 To execute:
 
-        mpirun -n 4 ./mpi-sat < queens-05.cnf
+        mpirun -n 4 ./mpi-sat queens-05.cnf
 
 ## Files
 
@@ -284,13 +284,20 @@ int main( int argc, char *argv[] )
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
 
-    if (argc != 1 && my_rank == 0) {
-        fprintf(stderr, "Usage: %s < input\n", argv[0]);
+    if (argc != 2 && my_rank == 0) {
+        fprintf(stderr, "Usage: %s input\n", argv[0]);
         MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
     }
 
     if (my_rank == 0) {
-        load_dimacs(stdin, &p);
+        FILE *f;
+
+        if ((f = fopen(argv[1], "r")) == NULL) {
+            fprintf(stderr, "FATAL: can not open %s\n", argv[1]);
+            return EXIT_FAILURE;
+        }
+        load_dimacs(f, &p);
+        fclose(f);
         pretty_print(&p);
     }
 
