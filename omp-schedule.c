@@ -22,7 +22,7 @@
 /***
 % Simulate the "schedule()" clause
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-10-09
+% Last updated: 2025-10-21
 
 OpenMP allows the use of the `schedule(static)` and
 `schedule(dynamic)` clauses to choose how to assign loop iterations to
@@ -210,14 +210,17 @@ void do_dynamic(const int *vin, int *vout, int n)
        index of the beginning of the first unprocessed chunk, i.e.,
        the first chunk that will be assigned to a thread.
 
-       Each OpenMP thread _atomically_ fetches the current value of
-       `shared_idx` into a local (private) variable `my_block_start`,
-       and then increments `shared_idx` by `chunk_size`.
+       Each OpenMP thread _atomically_:
+       - fetches the current value of `shared_idx` into a local (private) variable `my_block_start`;
+       - then, increments `shared_idx` by `chunk_size`.
 
        Therefore, each thread executes the following pseudocode:
 
        do {
-         atomically copy shared_idx into my_block_start and increment shared_idx by chunk_size
+         atomically {
+           copy shared_idx into my_block_start
+           increment shared_idx by chunk_size
+         }
          for (i=my_block_start; i<my_block_start + chunk_size && i<n; i++) {
            loop body
          }
