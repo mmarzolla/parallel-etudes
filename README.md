@@ -99,7 +99,8 @@ it.
 | Sieve of Eratosthenes       | X      |     | X    | X      | Embarrassingly parallel, Reduction                 |
 | Character frequencies       | X      | X   | X    | X      | Embarrassingly parallel, Reduction                 |
 | Inclusive scan              | X      | X   |      |        | Scan                                               |
-| Dynamic task scheduling     | X      | NA  | NA   | NA     | Master-Worker                                      |
+| OpenMP `schedule()`         | X      | NA  | NA   | NA     | Master-Worker                                      |
+| OpenMP `collapse()`         | X      | NA  | NA   | NA     | 2D Stentil, indexing                               |
 | MergeSort                   | X      |     |      |        | Task-level parallelism                             |
 | Binary Tree traversal       | X      | NA  | NA   | NA     | Task-level parallelism                             |
 | Ray tracing                 | X      | X   |      |        | Embarrassingly parallel, Scatter/Gather            |

@@ -1,3 +1,5 @@
+#include <string.h>
+
 typedef struct {
     int width;   /* Width of the image (in pixels) */
     int height;  /* Height of the image (in pixels) */
