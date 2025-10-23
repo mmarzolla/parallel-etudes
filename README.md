@@ -99,17 +99,17 @@ it.
 | Sieve of Eratosthenes       | X      |     | X    | X      | Embarrassingly parallel, Reduction                 |
 | Character frequencies       | X      | X   | X    | X      | Embarrassingly parallel, Reduction                 |
 | Inclusive scan              | X      | X   |      |        | Scan                                               |
-| OpenMP `schedule()`         | X      | NA  | NA   | NA     | Master-Worker                                      |
-| OpenMP `collapse()`         | X      | NA  | NA   | NA     | 2D Stentil, indexing                               |
-| MergeSort                   | X      |     |      |        | Task-level parallelism                             |
+| OpenMP `schedule()`         | X      | NA  | NA   | NA     | OpenMP loop scheduling                             |
+| "Erode" operator            | X      | NA  | NA   | NA     | 2D Stentil, OpenMP loop collapse                   |
+| MergeSort                   | X      | NA  | NA   | NA     | Task-level parallelism                             |
 | Binary Tree traversal       | X      | NA  | NA   | NA     | Task-level parallelism                             |
 | Ray tracing                 | X      | X   |      |        | Embarrassingly parallel, Scatter/Gather            |
 | Levenstein's distance       | X      |     |      |        | 2D stencil, wavefront                              |
 | Arnold's cat map            | X      |     | X    | X      | Embarrassingly parallel                            |
 | Mandelbrot set              | X      | X   | X    | X      | Embarrassingly parallel, Load balancing            |
-| Area of the Mandelbrot set  | X      | X   |      | X      | Embarrassingly parallel, Load balancing, Reduction |
+| Area of the Mandelbrot set  | X      | X   | X    | X      | Embarrassingly parallel, Load balancing, Reduction |
 | Image denoising             | X      |     | X    | X      | 2D Stencil                                         |
-| List ranking                | X      |     |      |        | Pointer Jumping                                    |
+| List ranking                | X      | NA  |      |        | Pointer Jumping                                    |
 | Area of union of circles    |        | X   |      |        | Embarrassingly parallel, Scatter/Gather, Reduction |
 | Bounding Box                |        | X   |      |        | Scatter/Gather, Reduction                          |
 | Rule 30 CA                  | X      | X   | X    | X      | 1D Stencil, Point-to-point                         |
@@ -124,7 +124,7 @@ it.
 | Gaussian elimination        | X      |     |      |        | Reduction                                          |
 | SAT solver                  | X      | X   | X    | X      | Embarrassingly parallel, Reduction                 |
 | Single-Source Shortest Path | X      |     |      |        | Reduction                                          |
-| All-Pairs Shortest Paths    | X      |     | X    | X      | Embarrassingly parallel                            |
+| All-Pairs Shortest Paths    | X      |     | X    | X      | (Almost) Embarrassingly parallel                   |
 
 ## Prerequisites
 

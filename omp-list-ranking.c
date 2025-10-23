@@ -25,24 +25,23 @@
 % Last updated: 2024-09-24
 
 The goal of this exercise is to implement the _list ranking_
-algorithm. The algorithm takes a list of length $n$ as input. Each
-node contains the following attributes:
+algorithm. The algorithm takes a list of length $n$ as input; the list
+is encoded into an array of length `n` of items of type
+`list_node_t`. Each node contains the following attributes:
 
 - An arbitrary value `val`, representing some information stored at
   each node;
 
 - An integer `rank`, initially undefined;
 
-- A pointer to the next element of the list (or `NULL`, if the node has
-  no successor).
+- An integer `next` that is the index of the successor, or -1 if there
+  is no successor..
 
-Upon termination, the algorithm must set the `rank` atribute of a node
-to its distance (number of links) to the _end_ of the list. Therefore,
-the last node has `rank = 0`, the previous one has `rank = 1`, and so
-forth up to the head of the list that has `rank = n-1`. It is not
-required that the algorithm keeps the original values of the `next`
-attribute, i.e., upon termination the relationships between nodes may
-be undefined.
+Upon termination, the algorithm must set the `rank` of each node to
+its distance to the _end_ of the list: the last node has `rank = 0`,
+the previous one has `rank = 1`, and so forth up to the head of the
+list that has `rank = n-1`. Upon termination, the algorithm must
+preserve the `val` and `next` attributes of all nodes of the list.
 
 List ranking can be implemented using a technique called _pointer
 jumping_. The following pseudocode (source:
@@ -61,19 +60,19 @@ Initialize: for each processor/list node n, in parallel:
              Set n.next ← n.next.next.
 ```
 
-First of all, right before the `While` cycle there must be a barrier
+First of all, right before the `While` loop there must be a barrier
 synchronization so that all distances are properly initialized before
 the actual pointer jumping algorithm starts.
 
-Then, the pseudocode above assumes that all instructions are executed
-in a SIMD way, which is something that does not happen with OpenMP.
-In particular, the instruction
+Then, the pseudocode assumes that all instructions are executed in a
+SIMD way, which is something that does not happen with OpenMP.  In
+particular, the instruction
 
 ```
 Set d[n] ← d[n] + d[n.next].
 ```
 
-has a loop-carried dependency on `d[]`. Indeed, the pseudocode assumes
+has a loop-carried dependence on `d[]`. Indeed, the pseudocode assumes
 that all processors _first_ compute `d[n] + d[n.next]`, and _then, all
 at the same time_, set the new value of `d[n]`.
 
@@ -94,13 +93,6 @@ nodes:
 
         OMP_NUM_THREADS=4 ./omp-list-ranking 1000
 
-> **Note** The list ranking algorithm requires that each thread has
-> direct access to some node(s) of the list (it does not matter which
-> nodes). To allow $O(1)$ access time, nodes are stored in an array of
-> length $n$. Note that the first element of the array is _not_
-> necessarily the head of the list, and element at position $i+1$ is
-> _not_ necessarily the successor of element at posizion $i$.
-
 ## Files
 
 - [omp-list-ranking.c](omp-list-ranking.c)
@@ -114,9 +106,9 @@ nodes:
 #include <omp.h>
 
 typedef struct list_node_t {
-    int val;    /* arbitrary value at this node */
-    int rank;   /* rank of this node            */
-    struct list_node_t *next;
+    int val;    /* arbitrary value at this node                 */
+    int rank;   /* rank of this node                            */
+    int next;   /* Position of the next element; -1 if null     */
 } list_node_t;
 
 /* Print the content of array `nodes` of length `n` */
@@ -129,78 +121,96 @@ void list_print(const list_node_t *nodes, int n)
     printf("\n");
 }
 
-/* Compute the rank of the `n` nodes in the array `nodes`.  Note that
-   the array contains nodes that are connected in a singly linked-list
-   fashion, so `nodes[0]` is not necessarily the head of the list, and
-   `nodes[i+1]` is not necessarily the successor of `nodes[i]`. The
-   array serves only as a conveniente way to allow each OpenMP thread
-   to grab an element of the list in constant time.
+/* Compute the rank of the `n` nodes in the array `nodes`.  The nodes
+   in the array are connected as a linked-list; the first node of the
+   list is `nodes[start]`; the successor of `nodes[i]` is
+   `nodes[nodes[i].next]`. The array serves as a conveniente way to
+   allow each OpenMP thread to grab an element of the list in constant
+   time.
 
-   Upon return, all nodes have their `rank` field correctly set. Note
-   that the `next` field will be set to NULL, hence the structure of
-   the list will essentially be destroyed. This could be avoided with
-   a bit more care. */
-void rank( list_node_t *nodes, int n )
+   Upon termination, `ranks[i]` is the rank of `nodes[i]`. */
+void rank( list_node_t *nodes, int start, int *ranks, int n )
 {
+#ifdef SERIAL
+    int rank = n;
+    for (i = start; i >= 0; i = nodes[i].next) {
+        ranks[i] = --rank;
+    }
+#else
     int done = 0;
-    int *new_rank = (int*)malloc(n * sizeof(*new_rank));
-    list_node_t **new_next = (list_node_t**)malloc(n * sizeof(*new_next));
+    int *cur_rank = (int*)malloc(n * sizeof(*cur_rank)); assert(cur_rank);
+    int *new_rank = (int*)malloc(n * sizeof(*new_rank)); assert(new_rank);
+    int *cur_next = (int*)malloc(n * sizeof(*cur_next)); assert(cur_next);
+    int *new_next = (int*)malloc(n * sizeof(*new_next)); assert(new_next);
+    assert(ranks);
 
-    /* initialize ranks */
-#pragma omp parallel for default(none) shared(nodes,n)
+    /* Initialization */
+#pragma omp parallel for default(none) shared(nodes,cur_rank,cur_next,n)
     for (int i=0; i<n; i++) {
-        if (nodes[i].next == NULL)
-            nodes[i].rank = 0;
+        if (nodes[i].next < 0)
+            cur_rank[i] = 0;
         else
-            nodes[i].rank = 1;
+            cur_rank[i] = 1;
+        cur_next[i] = nodes[i].next;
     }
 
-    /* compute ranks */
+    /* Compute ranks */
     while (!done) {
         done = 1;
-#pragma omp parallel default(none) shared(done,n,nodes,new_rank,new_next)
+#pragma omp parallel default(none) shared(done,n,nodes,cur_rank,cur_next,new_rank,new_next)
         {
 #pragma omp for
             for (int i=0; i<n; i++) {
-                if (nodes[i].next != NULL) {
-                    done = 0; // not a real race condition
-                    new_rank[i] = nodes[i].rank + nodes[i].next->rank;
-                    new_next[i] = nodes[i].next->next;
+                if (cur_next[i] >= 0) {
+                    done = 0;
+                    new_rank[i] = cur_rank[i] + cur_rank[cur_next[i]];
+                    new_next[i] = cur_next[cur_next[i]];
                 } else {
-                    new_rank[i] = nodes[i].rank;
-                    new_next[i] = nodes[i].next;
+                    new_rank[i] = cur_rank[i];
+                    new_next[i] = cur_next[i];
                 }
             }
-            /* Update ranks */
-#pragma omp for
-            for (int i=0; i<n; i++) {
-                nodes[i].rank = new_rank[i];
-                nodes[i].next = new_next[i];
+            /* Swap cur and next */
+#pragma omp single
+            {
+                int *tmp;
+                tmp = cur_rank;
+                cur_rank = new_rank;
+                new_rank = tmp;
+
+                tmp = cur_next;
+                cur_next = new_next;
+                new_next = tmp;
             }
         }
     }
+    memcpy(ranks, cur_rank, n * sizeof(*ranks));
+    free(cur_rank);
     free(new_rank);
+    free(cur_next);
     free(new_next);
+#endif
 }
 
 /* Inizializza il contenuto della lista. Per agevolare il controllo di
    correttezza, il valore presente in ogni nodo coincide con il rango
    che ci aspettiamo venga calcolato. */
-void init(list_node_t *nodes, int n)
+void init(list_node_t *nodes, int n, int *start)
 {
     for (int i=0; i<n; i++) {
         nodes[i].val = n-1-i;
         nodes[i].rank = -1;
-        nodes[i].next = (i+1<n ? nodes + (i + 1) : NULL);
+        nodes[i].next = (i+1<n ? i + 1 : -1);
     }
+    *start = 0;
 }
 
 /* Controlla la correttezza del risultato */
-int check(const list_node_t *nodes, int n)
+int check(const list_node_t *nodes, const int *ranks, int n)
 {
     for (int i=0; i<n; i++) {
-        if (nodes[i].rank != nodes[i].val) {
-            fprintf(stderr, "FAILED: rank[%d]=%d, expected %d\n", i, nodes[i].rank, nodes[i].val);
+        if (ranks[i] != nodes[i].val) {
+            fprintf(stderr, "FAILED: rank[%d]=%d, expected %d\n", i, ranks[i], nodes[i].val);
             return 0;
         }
     }
@@ -211,6 +221,7 @@ int check(const list_node_t *nodes, int n)
 int main( int argc, char *argv[] )
 {
     int n = 1000;
+    int start;
 
     if (argc > 2) {
         fprintf(stderr, "Usage: %s [n]\n", argv[0]);
@@ -222,10 +233,11 @@ int main( int argc, char *argv[] )
     }
 
     list_node_t *nodes = (list_node_t*)malloc(n * sizeof(*nodes));
+    int *ranks = (int*)malloc(n * sizeof(*ranks));
     assert(nodes != NULL);
-    init(nodes, n);
-    rank(nodes, n);
-    check(nodes, n);
+    init(nodes, n, &start);
+    rank(nodes, start, ranks, n);
+    check(nodes, ranks, n);
     free(nodes);
     return EXIT_SUCCESS;
 }

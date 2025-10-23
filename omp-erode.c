@@ -88,6 +88,7 @@ Example:
 
 #include "pgmutils.h"
 
+/* Returns the maximum value in `v[]` */
 unsigned char max9(const unsigned char v[9])
 {
     unsigned char result = v[0];
@@ -99,20 +100,22 @@ unsigned char max9(const unsigned char v[9])
 }
 
 /**
- * Edge detection using the Sobel operator
+ * Apply the "erosion" morphological operator to `in`, store the
+ * result in `out`. The erosion operator sets each pixel value to the
+ * maximum of the 3x3 neighborhood.
  */
 void erode( const PGM_image* in, PGM_image* out )
 {
-    const int width = in->width;
-    const int height = in->height;
+    const int WIDTH = in->width;
+    const int HEIGHT = in->height;
 
 #ifdef SERIAL
-#pragma omp parallel for collapse(2) default(none) shared(height, width, in, out)
-    for (int i = 1; i < height-1; i++) {
-        for (int j = 1; j < width-1; j++)  {
-            const int CENTER = i * width + j;
-            const int NORTH = CENTER - width;
-            const int SOUTH = CENTER + width;
+#pragma omp parallel for collapse(2) default(none) shared(HEIGHT, WIDTH, in, out)
+    for (int i = 1; i < HEIGHT-1; i++) {
+        for (int j = 1; j < WIDTH-1; j++)  {
+            const int CENTER = i * WIDTH + j;
+            const int NORTH = CENTER - WIDTH;
+            const int SOUTH = CENTER + WIDTH;
             const int EAST  = CENTER - 1;
             const int WEST  = CENTER + 1;
             const int NE    = NORTH - 1;
@@ -132,16 +135,18 @@ void erode( const PGM_image* in, PGM_image* out )
         }
     }
 #else
-    #pragma omp parallel for default(none) shared(height, width, in, out)
-    for (int idx = 0; idx < (height-1)*(width-1); idx++) {
+    #pragma omp parallel for default(none) shared(HEIGHT, WIDTH, in, out)
+    for (int idx = 0; idx < (HEIGHT-2)*(WIDTH-2); idx++) {
         int tmp = idx;
-        const int j = 1 + tmp % width;
-        tmp /= width;
+        const int j = 1 + tmp % (WIDTH-2);
+        tmp /= WIDTH;
         const int i = 1 + tmp;
-
-        const int CENTER = i * width + j;
-        const int NORTH = CENTER - width;
-        const int SOUTH = CENTER + width;
+        assert(i>=1); assert(i < HEIGHT-1);
+        assert(j>=1); assert(j < WIDTH-1);
+        
+        const int CENTER = i * WIDTH + j;
+        const int NORTH = CENTER - WIDTH;
+        const int SOUTH = CENTER + WIDTH;
         const int EAST  = CENTER - 1;
         const int WEST  = CENTER + 1;
         const int NE    = NORTH - 1;
