@@ -229,7 +229,7 @@ int floyd_warshall( const graph_t *g, float *d, int *p )
 
     for (int k=0; k<n; k++) {
 #ifndef HANDOUT
-#pragma omp master
+#pragma omp single
 #endif
         fw_relax(d, p, k, k, k, n);
 
