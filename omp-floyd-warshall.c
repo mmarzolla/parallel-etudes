@@ -208,7 +208,7 @@ int floyd_warshall( const graph_t *g, float *d, int *p )
     const int m = g->m;
 
 #ifndef HANDOUT
-#pragma omp parallel
+#pragma omp parallel default(none) shared(g, d, p, n, m)
     {
 #pragma omp for
 #endif
