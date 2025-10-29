@@ -22,7 +22,7 @@
 /***
 % Brute-force password cracking
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-10-09
+% Last updated: 2025-10-29
 
 ![[DES cracker board](https://en.wikipedia.org/wiki/EFF_DES_cracker) developed in 1998 by the Electronic Frontier Foundation (EFF); this device can be used to brute-force a DES key. The original uploader was Matt Crypto at English Wikipedia. Later versions were uploaded by Ed g2s at en.wikipedia - CC BY 3.0 us, <https://commons.wikimedia.org/w/index.php?curid=2437815>.](des-cracker.jpg)
 
@@ -80,8 +80,48 @@ key space among threads. Remember that `omp parallel` can be applied
 to a _structured block_, i.e., a block with a single entry and a
 single exit point. Therefore, the thread who finds the correct key can
 not exit the block using `return`, `break` or `goto` (the compiler
-should give a compile-time error). Howver, we need to terminate the
-program at most shortly after the correct key is found. How?
+gives a compile-time error). Howver, we need to terminate the program
+at most shortly after the correct key is found. How?
+
+One possible solution is to use a shared variable `found`, whose
+initial value is 0; the thread that finds the key sets `found = 1` so
+everybody knows that the computation can terminate.
+
+## The OpenMP memory model
+
+Unfortunately, to do so correctly we need to understand the _OpenMP
+memory model_. In short, OpenMP threads share a common memory, but
+each one may have a _local view_ of the common memory, which is not
+necessarily consistent with the global view. For example, a thread may
+see a different value of some shared variable `a` than that in the
+common memory.
+
+The local view is just an abstraction, and does not necessarily refer
+to some piece of software or hardware that handles the local view. The
+abstraction accounts for possible compiler optimizations: for example,
+the compiler may keep the value of `a` into a register instead of
+fetching it from RAM. Therefore, a thread might update `a`, but the
+update might not be propagated to all threads keeping `a` into a
+register.
+
+To address the problem above, OpenMP provides an explicit `omp flush`
+directive that ensures that the local and global views are the same.
+Specifically, the directive:
+
+        #pragma omp flush(a)
+
+ensures that the value of `a` is either written to or read from the
+common memory. The
+
+        #pragma omp flush
+
+directive does the same for all shared variables currently in the
+scope.
+
+Flush operations are implied at synchronization points, e.g., at the
+end of parallel regions, after a `omp barrier` construct, at the entry
+or exit of `critical` or `atomic` regions, and so on. In other cases,
+it might be necessary to insert an explicit flush.
 
 Compile with:
 
@@ -168,7 +208,7 @@ int main( void )
     const int n = 100000000; /* number of possible keys */
     char key[KEY_LEN+1]; /* sprintf will output the trailing \0, so we need one byte more for the key */
     int k; /* numeric value of the key to try */
-    volatile int found = 0;
+    int found = 0;
     char* out = (char*)malloc(msglen); /* where to put the decrypted message */
     assert(out != NULL);
 
@@ -192,7 +232,7 @@ int main( void )
     const int msglen = strlen(msg)+1; /* length of the encrypted message, including the trailing \0 */
     char enc_key[] = "40224426"; /* encryption key */
     const int n = 100000000;    /* total number of possible keys */
-    volatile int found = 0;
+    int found = 0;
     const char check[] = "0123456789"; /* the decrypted message starts with this string */
     const int CHECK_LEN = strlen(check);
 
@@ -220,6 +260,9 @@ int main( void )
                 printf("Decrypted message: \"%s\"\n", out);
                 found = 1;
             }
+            /* We need to ensure that any modification to `found` is
+               correctly propagated to all local views. */
+#pragma omp flush(found)
         }
         free(out);
     }
