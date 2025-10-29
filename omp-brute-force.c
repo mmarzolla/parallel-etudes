@@ -261,7 +261,13 @@ int main( void )
                 found = 1;
             }
             /* We need to ensure that any modification to `found` is
-               correctly propagated to all local views. */
+               correctly propagated to all local views. You can avoid
+               using this construct by using the `volatile` attribute
+               for variable `found`. The `volatile` attribute
+               instructs the compiler that a variable may change for
+               reasons outside the control of the current executing
+               thread (in our case, because it is updated by another
+               thread). */
 #pragma omp flush(found)
         }
         free(out);
