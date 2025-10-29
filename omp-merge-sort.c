@@ -22,42 +22,56 @@
 /***
 % Merge Sort with OpenMP tasks
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-10-09
+% Last updated: 2025-10-29
 
 The file [omp-merge-sort.c](omp-merge-sort.c) contains a recursive
-implementation of the _Merge Sort_ algorithm. The program uses
-_Selection Sort_ when the size of the subvector is less than a
-user-defined cutoff value; this is a standard optimization that avoids
-the overhead of recursive calls on small vectors.
+implementation of the _Merge Sort_ algorithm. The idea of Merge Sort
+is quite simple; to sort an array $a$:
 
-The program generates and sorts a random permutation of $0, 1, \ldots,
+- Split the array into two halves, $a_\textrm{left}$ and
+  $a_\textrm{right}$;
+
+- Recursively sor $a_\textrm{left}$ and $a_\textrm{right}$;
+
+- Merge the sorted subarrays.
+
+The program uses _Selection Sort_ when the size of the subvector is
+less than a user-defined cutoff value; this is a standard optimization
+that avoids the overhead of recursive calls on small vectors. Merge
+Sort requires sequential time $\Theta(n \log n)$ to sort an array of
+length $n$.
+
+The program generates and sorts a random permutation of $0, \ldots,
 n-1$; it if therefore easy to check the correctness of the result,
-since it must be the sequence $0, 1, \ldots, n-1$.
+since it must be the sequence $0, \ldots, n-1$.
 
-The goal is to parallelize the Merge Sort algorithm using OpenMP
-tasks as follows:
+Parallelize the Merge Sort algorithm using OpenMP tasks as follows:
 
 - The recursion starts inside a parallel region; only one process
   starts the recursion.
 
-- Create two tasks for the two recursive calls; pay attention to the
-  visibility (scope) of variables.
+- Each recursive call is delegated to an OpenMP task; pay attention to
+  the visibility (scope) of variables.
 
-- Wait for the two sub-tasks to complete before starting the _merge_
-  step.
+- The sub-tasks must complete before starting the _merge_ step; this
+  requires a `taskwait` directive.
 
-Measure the execution time of the parallel program and compare it with
-the serial implementation. To get meaningful results, choose an input
-size that requires at least a few seconds to be sorted using all
-available cores.
+You may want to study the scalability (speedup and strong scaling
+efficiency) of the parallel program as a function of the number $p$ of
+OpenMP threads. To get meaningful results, you should choose the input
+size so that the program takes at least a few seconds to complete.
 
 To compile:
 
         gcc -std=c99 -Wall -Wpedantic -fopenmp omp-merge-sort.c -o omp-merge-sort
 
-To execute:
+To sort an array of length $n$:
 
-        ./omp-merge-sort 50000
+        ./omp-merge-sort [n]
+
+Example:
+
+        ./omp-merge-sort 500000
 
 ## Files
 
@@ -85,7 +99,7 @@ void swap(int* a, int* b)
 
 /**
  * Sort v[low..high] using selection sort. This function will be used
- * for small vectors only. Do not parallelize this.
+ * for small vectors. Do not parallelize this.
  */
 void selectionsort(int* v, int low, int high)
 {
@@ -99,13 +113,13 @@ void selectionsort(int* v, int low, int high)
 }
 
 /**
- * Merge src[low..mid] with src[mid+1..high], put the result in
- * dst[low..high].
+ * Merge `src[low..mid]` with `src[mid+1..high]`, put the result in
+ * `dst[low..high]`.
  *
  * Do not parallelize this function (it could be done, but is very
  * difficult, see
- * http://www.drdobbs.com/parallel/parallel-merge/229204454
- * https://en.wikipedia.org/wiki/Merge_algorithm#Parallel_merge )
+ * <http://www.drdobbs.com/parallel/parallel-merge/229204454>
+ * <https://en.wikipedia.org/wiki/Merge_algorithm#Parallel_merge> )
  */
 void merge(int* src, int low, int mid, int high, int* dst)
 {
