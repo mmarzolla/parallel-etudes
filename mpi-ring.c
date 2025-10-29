@@ -2,7 +2,7 @@
  *
  * mpi-ring.c - Ring communication with MPI
  *
- * Copyright (C) 2017--2023 Moreno Marzolla
+ * Copyright (C) 2017--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,16 +22,18 @@
 /***
 % Ring communication with MPI
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2023-11-06
+% Last updated: 2025-10-29
 
-Write a MPI program [mpi-ring.c](mpi-ring.c) that implements a message
-exchange along a ring. Let $P$ be the number of MPI processes; the
-program should behave according to the following specification:
+Write a MPI program [mpi-ring.c](mpi-ring.c) that implements message
+exchange along a ring.
+
+Let $P$ be the number of MPI processes; the program should behave as
+follows:
 
 - The program receives an integer $K \geq 1$ from the command
   line. $K$ is the number of "turns" of the ring. Since all MPI
-  processes have access to the command line parameters, they know the
-  value $K$ without the need to communicate.
+  processes have access to the command line parameters, they can know
+  the value $K$ without the need to communicate.
 
 - Process 0 (the master) sends process 1 an integer, whose
   initial value is 1.
@@ -58,7 +60,11 @@ To compile:
 
 To execute:
 
-        mpirun -n 4 ./mpi-ring
+        mpirun -n [P] ./mpi-ring [K]
+
+Example:
+
+        mpirun -n 4 ./mpi-ring 5
 
 ## Files
 
@@ -92,7 +98,13 @@ int main( int argc, char *argv[] )
 
     if ( 0 == my_rank ) {
         val = 1;
-        MPI_Send(&val, 1, MPI_INT, next, 0, MPI_COMM_WORLD);
+        MPI_Send(&val,                  /* buf          */
+                 1,                     /* count        */
+                 MPI_INT,               /* datatype     */
+                 next,                  /* dest         */
+                 0,                     /* tag          */
+                 MPI_COMM_WORLD         /* communicator */
+                 );
     }
 
     for (int k=0; k<K; k++) {
@@ -122,7 +134,7 @@ int main( int argc, char *argv[] )
         if ( expected == val ) {
             printf("Test OK\n");
         } else {
-            printf("Test FAILED: expected value %d at rank 0, got %d\n", expected, val);
+            printf("Test FAILED\n");
         }
     }
 #endif
