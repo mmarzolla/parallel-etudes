@@ -22,7 +22,7 @@
 /***
 % Character counts
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-10-09
+% Last updated: 2025-10-30
 
 ![By Willi Heidelbach, CC BY 2.5, <https://commons.wikimedia.org/w/index.php?curid=1181525>.](letters.jpg)
 
@@ -84,18 +84,17 @@ Also, don't forget that there is a reduction on `nlet` that reports
 the number of letters; this might be done using the `reduction()`
 clause of the `omp for` directive.
 
-A simpler solution involves the use of the `omp parallel for`
-directive with array reduction that is available since OpenMP 4.5. To
-perform the sum-reduction on each element of `hist[ALPHA_SIZE]` use
-the following syntax:
+A simpler solution involves the use of the `omp parallel for` to
+distribute the loop iterations across OpenMP threads, and `omp atomic`
+to ensure that the increment of the array element is done atomically:
 
-        #pragma omp parallel for ... reduction(+:hist[:ALPHA_SIZE])
+```C
+#pragma omp atomic
+   hist[idx]++;   
+```
 
-(`ALPHA_SIZE` is a symbol defined at the beginning of the program,
-with value 26; you can use the literal `26` as well). This works like
-a scalar reductions, with the differences that the compiler actually
-computes `ALPHA_SIZE` sum-reductions on `hist[0]`,
-... `hist[ALPHA_SIZE - 1]`.
+Care must be taken to the update of the shared variable `nlet`
+using a `reduction(+:nlet)` clause.
 
 Compile with:
 
@@ -147,8 +146,9 @@ int make_hist( const char *text, int hist[ALPHA_SIZE] )
     for (int i=0; i<TEXT_LEN; i++) {
         const char c = text[i];
         if (isalpha(c)) {
+            const int idx = tolower(c) - 'a';
             nlet++;
-            hist[ tolower(c) - 'a' ]++;
+            hist[idx]++;
         }
     }
 #else
@@ -170,8 +170,9 @@ int make_hist( const char *text, int hist[ALPHA_SIZE] )
         for (int i=my_start; i < my_end; i++) {
             const char c = text[i];
             if (isalpha(c)) {
+                const int idx = tolower(c) - 'a';
                 nlet++;
-                local_hist[my_id][ tolower(c) - 'a' ]++;
+                local_hist[my_id][idx]++;
             }
         }
     }
@@ -195,14 +196,14 @@ int make_hist( const char *text, int hist[ALPHA_SIZE] )
     }
 
     /* Count occurrences. */
-#pragma omp parallel for default(none) shared(text, TEXT_LEN) \
-    reduction(+:nlet) \
-    reduction(+:hist[:ALPHA_SIZE])
+#pragma omp parallel for default(none) shared(text, TEXT_LEN) reduction(+:nlet)
     for (int i=0; i<TEXT_LEN; i++) {
         const char c = text[i];
         if (isalpha(c)) {
+            const int idx = tolower(c) - 'a';
             nlet++;
-            hist[ tolower(c) - 'a' ]++;
+#pragma omp atomic
+            hist[idx]++;
         }
     }
 #endif
