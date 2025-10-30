@@ -22,7 +22,7 @@
 /***
 % Brute-force password cracking
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-10-29
+% Last updated: 2025-10-30
 
 ![[DES cracker board](https://en.wikipedia.org/wiki/EFF_DES_cracker) developed in 1998 by the Electronic Frontier Foundation (EFF); this device can be used to brute-force a DES key. The original uploader was Matt Crypto at English Wikipedia. Later versions were uploaded by Ed g2s at en.wikipedia - CC BY 3.0 us, <https://commons.wikimedia.org/w/index.php?curid=2437815>.](des-cracker.jpg)
 
@@ -89,29 +89,29 @@ everybody knows that the computation can terminate.
 
 ## The OpenMP memory model
 
-Unfortunately, to do so correctly we need to understand the _OpenMP
-memory model_. In short, OpenMP threads share a common memory, but
-each one may have a _local view_ of the common memory, which is not
-necessarily consistent with the global view. For example, a thread may
-see a different value of some shared variable `a` than that in the
-common memory.
+To do so correctly we need to understand the [OpenMP memory
+model](https://www.openmp.org/spec-html/5.2/openmpse4.html#x17-160001.4). In
+short, OpenMP threads share a common memory, but each thread may have
+a different _temporary view_ of the common memory, which is not
+required to be always consistent with the content of the common
+memory. This implies that when a thread updates a variable, the update
+may reside for some time into the temporary view; likewise, when a
+thread reads the content of a variable, the data might come from the
+temporary view rather than the common memory.
 
-The local view is just an abstraction, and does not necessarily refer
-to some piece of software or hardware that handles the local view. The
-abstraction accounts for possible compiler optimizations: for example,
-the compiler may keep the value of `a` into a register instead of
-fetching it from RAM. Therefore, a thread might update `a`, but the
-update might not be propagated to all threads keeping `a` into a
-register.
+The temporary view is just an abstraction that accounts for possible
+compiler optimizations. For example, the compiler may keep the value
+of some variable `a` into a register; therefore, a thread might update
+`a`, but the update might not be propagated to other threads keeping
+`a` into a register.
 
-To address the problem above, OpenMP provides an explicit `omp flush`
-directive that ensures that the local and global views are the same.
-Specifically, the directive:
+OpenMP provides an explicit `omp flush` directive that ensures that
+the temporary view is consistent. Specifically, the directive:
 
         #pragma omp flush(a)
 
-ensures that the value of `a` is either written to or read from the
-common memory. The
+ensures that the value of `a` is consistent on both the temporary view
+and shared memory. The
 
         #pragma omp flush
 
@@ -261,13 +261,16 @@ int main( void )
                 found = 1;
             }
             /* We need to ensure that any modification to `found` is
-               correctly propagated to all local views. You can avoid
-               using this construct by using the `volatile` attribute
-               for variable `found`. The `volatile` attribute
-               instructs the compiler that a variable may change for
+               correctly propagated to all local views. The
+               recommended way of doing so is using the `omp flush`
+               directive; alternatively, it is possible to use the
+               `volatile` attribute for variable `found`.
+
+               The `volatile` attribute is part of the C standard, and
+               tells the compiler that a variable may change for
                reasons outside the control of the current executing
-               thread (in our case, because it is updated by another
-               thread). */
+               thread, i.e., because it is updated by another
+               thread. */
 #pragma omp flush(found)
         }
         free(out);
