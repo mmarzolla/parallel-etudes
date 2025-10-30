@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * mpi-rotate-right.c - Circular rotation of an array
+ * mpi-shift-right.c - Circular shift of an array
  *
  * Copyright (C) 2022 Moreno Marzolla
  *
@@ -20,41 +20,31 @@
  ****************************************************************************/
 
 /***
-% Rotazione circolare di un array
+% Circular shift of an array
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Ultimo aggiornamento: 2022-11-09
+% Last updated: 2025-10-30
 
-[Domanda d'esame appello 2022-01-19]
+Write an MPI program that performs a _right circular shift_ of an
+array `v[N]`. Specifically, given an array $v = [v_0, v_1, \ldots,
+v_{N-1}]$, its right circular shift is the array $v' = [v_{N-1}, v_0,
+v_1, \ldots, v_{N-2}]$. In other words, each element of $v$ is moved
+one position to the right, and the last element of $v$ becomes the
+first element.
 
-Realizzare un programma MPI che effettua una _rotazione circolare a
-destra_ di un array `v[N]`.  Dato un array $v = [v_0, v_1, \ldots,
-v_{N-1}]$, la sua rotazione circolare a destra è l'array $v' =
-[v_{N-1}, v_0, v_1, \ldots, v_{N-2}]$.  In altre parole, ogni elemento
-di $v$ viene spostato di una posizione a destra, e l'ultimo elemento a
-destra diventa il primo elemento a sinistra.
+Assume that the length $N$ of $v$ is an integer multiple of the number
+$P$ of MPI processes.
 
-Si assuma che la lunghezza $N$ sia multipla esatta del numero $P$ di
-processi MPI.
-
-> Dato che all'esame non viene chiesto di scrivere codice, la domanda
-> proseguiva con: "Si descriva nel modo più preciso possibile il
-> comportamento di ciascun processo MPI. Non è richiesto di scrivere
-> codice; è possibile usare pseudocodice e/o linguaggio naturale,
-> purché la spiegazione sia il più precisa possibile. In particolare,
-> si indichi quale/i funzioni MPI si userebbero nei vari passi, e
-> quali buffer di memoria è necessario usare/allocare."
-
-Per compilare:
+Compile with:
 
         mpicc -std=c99 -Wall -Wpedantic mpi-rotate-right.c -o mpi-rotate-right
 
-Per eseguire:
+Execute with:
 
         mpirun -n 4 ./mpi-rotate-right [N]
 
 ## File
 
-- [mpi-rotate-right.c](mpi-rotate-right.c)
+- [mpi-shift-right.c](mpi-shift-right.c)
 
 ***/
 
@@ -83,10 +73,7 @@ int main( int argc, char *argv[] )
         MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
     }
 
-    const int prev = my_rank > 0 ? my_rank - 1 : comm_sz - 1;
-    const int succ = my_rank < comm_sz-1 ? my_rank + 1 : 0;
-
-    /* Il master inizializza l'array */
+    /* The master initializes the input array. */
     if ( 0 == my_rank ) {
         v = (int*)malloc(N * sizeof(*v));
         assert(v != NULL);
@@ -98,12 +85,27 @@ int main( int argc, char *argv[] )
         printf("]\n");
     }
 
-    /* Tutti i processi inizializzano il buffer locale */
+#ifdef SERIAL
+    /* TODO: this is not a true parallel version, since the master
+       does everything. */
+    if ( 0 == my_rank ) {
+        const int last_v = v[N-1];
+        for (int i=N-2; i>=0; i--) {
+            v[i+1] = v[i];
+        }
+        v[0] = last_v;
+    }
+#else
+
+    const int prev = my_rank > 0 ? my_rank - 1 : comm_sz - 1;
+    const int succ = my_rank < comm_sz-1 ? my_rank + 1 : 0;
+
+    /* All processes initialize the local buffer. */
     const int local_N = N / comm_sz;
     int *local_v = (int*)malloc(local_N * sizeof(*local_v));
     assert(local_v != NULL);
 
-    /* Il master distribuisce l'array `v[]` agli altri processi */
+    /* The master distributes the array `v[]`. */
     MPI_Scatter( v,             /* senfbuf      */
                  local_N,       /* sendcount    */
                  MPI_INT,       /* sendtype     */
@@ -114,29 +116,19 @@ int main( int argc, char *argv[] )
                  MPI_COMM_WORLD /* comm         */
                  );
 
-    /* Ogni processo effettua una rotazione locale; prima di questo
-       occorre salvare l'ultimo elemento di local_v[], dato che andrà
-       inviato al processo successivo. */
+    /* Each process performs a local rotation; before the rotation, it
+       is necessary to save the last element of `local_v[]`, since it
+       needs to be sent to the next process. */
     const int last = local_v[local_N - 1];
     for (int i = local_N-1; i > 0; i--) {
         local_v[i] = local_v[i-1];
     }
 
-    /* Ogni processo invia `last` al processo successivo. Questo è il
-       punto critico dell'esercizio, perché se non viene realizzato
-       correttamente può causare deadlock. La comunicazione può essere
-       effettuata, in ordine decrescente di preferenza:
-
-       1. Usando MPI_Sendrecv
-
-       2. Usando send/recv asincrone (almeno una delle due)
-
-       3. Invertendo l'ordine di una send/recv in modo da impedire
-          l'eventuale deadlock.
-
-       Nota: la soluzione 3 andrebbe evitata perché rende il codice
-       difficile da leggere e fragile.
-    */
+    /* Each process sends `last` to the next process. Care must be
+       taken here, since this involves both a send and receive
+       operation and may produce a deadlock is not done correctly.
+       The preferred way to do so is through the `MPI_Sendrecv()`
+       primitive, that is guaranteed to be deadlock-free. */
     MPI_Sendrecv(&last,         /* sendbuf      */
                  1,             /* sendcount    */
                  MPI_INT,       /* sendtype     */
@@ -151,7 +143,7 @@ int main( int argc, char *argv[] )
                  MPI_STATUS_IGNORE /* status    */
                  );
 
-    /* Il master riassembla le porzioni locali */
+    /* The master assembles the local arrays. */
     MPI_Gather(local_v,         /* sendbuf      */
                local_N,         /* sendcount    */
                MPI_INT,         /* sendtype     */
@@ -162,6 +154,9 @@ int main( int argc, char *argv[] )
                MPI_COMM_WORLD   /* comm         */
                );
 
+    free(local_v);
+
+#endif
     if ( 0 == my_rank ) {
         printf("After: [");
         for (int i=0; i<N; i++) {
@@ -171,7 +166,6 @@ int main( int argc, char *argv[] )
     }
 
     free(v);
-    free(local_v);
     MPI_Finalize();
     return EXIT_SUCCESS;
 }

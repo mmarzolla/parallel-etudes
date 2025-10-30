@@ -94,13 +94,14 @@ it.
 |-----------------------------|--------|-----|------|--------|----------------------------------------------------|
 | Password cracking           | X      | X   |      |        | Embarrassingly parallel                            |
 | Dot product                 | X      | X   | X    | X      | Reduction, Scatter/Gather                          |
+| Circular shift of array     | X      | X   |      |        | Point-to-point                                     |
 | Array sum                   |        | X   |      |        | Reduction, Scatter/Gather                          |
 | Monte Carlo Pi              | X      | X   |      |        | Embarrassingly parallel, Reduction                 |
 | Sieve of Eratosthenes       | X      |     | X    | X      | Embarrassingly parallel, Reduction                 |
 | Character frequencies       | X      | X   | X    | X      | Embarrassingly parallel, Reduction                 |
 | Inclusive scan              | X      | X   |      |        | Scan                                               |
 | OpenMP `schedule()`         | X      | NA  | NA   | NA     | OpenMP loop scheduling                             |
-| "Erode" operator            | X      | NA  | NA   | NA     | 2D Stentil, OpenMP loop collapse                   |
+| Image erosion               | X      | NA  | NA   | NA     | 2D Stentil, OpenMP loop collapse                   |
 | MergeSort                   | X      | NA  | NA   | NA     | Task-level parallelism                             |
 | Binary Tree traversal       | X      | NA  | NA   | NA     | Task-level parallelism                             |
 | Ray tracing                 | X      | X   |      |        | Embarrassingly parallel, Scatter/Gather            |
