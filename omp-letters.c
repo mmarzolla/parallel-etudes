@@ -152,7 +152,7 @@ int make_hist( const char *text, int hist[ALPHA_SIZE] )
         }
     }
 #else
-#if 1
+#if 0
     /* This version does not use OpenMP build-in array reduction. */
     const int num_threads = omp_get_max_threads();
     int local_hist[num_threads][ALPHA_SIZE]; /* one histogram per OpenMP thread */
@@ -196,7 +196,7 @@ int make_hist( const char *text, int hist[ALPHA_SIZE] )
     }
 
     /* Count occurrences. */
-#pragma omp parallel for default(none) shared(text, TEXT_LEN) reduction(+:nlet)
+#pragma omp parallel for default(none) shared(hist, text, TEXT_LEN) reduction(+:nlet)
     for (int i=0; i<TEXT_LEN; i++) {
         const char c = text[i];
         if (isalpha(c)) {
