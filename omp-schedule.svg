@@ -44,7 +44,6 @@
    <font-face font-family="OpenSymbol embedded" units-per-em="2048" font-weight="normal" font-style="normal" ascent="1418" descent="445"/>
    <missing-glyph horiz-adv-x="2048" d="M 0,0 L 2047,0 2047,2047 0,2047 0,0 Z"/>
    <glyph unicode="" horiz-adv-x="1189" d="M 221,70 L 743,592 221,1114 293,1184 813,662 1337,1184 1405,1114 883,592 1405,70 1337,0 813,522 293,0 221,70 Z"/>
-   <glyph unicode=" " horiz-adv-x="1016"/>
   </font>
  </defs>
  <defs class="EmbeddedBulletChars">
@@ -233,7 +232,7 @@
    <g class="TextShape">
     <g id="id23">
      <rect class="BoundingBox" stroke="none" fill="none" x="2750" y="2000" width="5592" height="731"/>
-     <text class="SVGTextShape"><tspan class="TextParagraph"><tspan class="TextPosition" x="3000" y="2510"><tspan font-family="Liberation Sans, sans-serif" font-size="423px" font-weight="400" fill="rgb(0,0,0)" stroke="none" style="white-space: pre">STRIDE = P </tspan><tspan font-family="OpenSymbol" font-size="423px" font-weight="400" fill="rgb(0,0,0)" stroke="none" style="white-space: pre"> </tspan><tspan font-family="Liberation Sans, sans-serif" font-size="423px" font-weight="400" fill="rgb(0,0,0)" stroke="none" style="white-space: pre">chunk_size</tspan></tspan></tspan></text>
+     <text class="SVGTextShape"><tspan class="TextParagraph"><tspan class="TextPosition" x="3000" y="2510"><tspan font-family="Liberation Sans, sans-serif" font-size="423px" font-weight="400" fill="rgb(0,0,0)" stroke="none" style="white-space: pre">STRIDE = P</tspan><tspan font-family="OpenSymbol" font-size="423px" font-weight="400" fill="rgb(0,0,0)" stroke="none" style="white-space: pre"></tspan><tspan font-family="Liberation Sans, sans-serif" font-size="423px" font-weight="400" fill="rgb(0,0,0)" stroke="none" style="white-space: pre">chunk_size</tspan></tspan></tspan></text>
     </g>
    </g>
   </g>
