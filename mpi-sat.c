@@ -22,7 +22,7 @@
 /***
 % Brute-force SAT solver
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-10-21
+% Last updated: 2025-11-05
 
 The Boolean Satisfability Problem (SAT Problem) asks whether there
 exists an assignment of boolean variables $x_1, \ldots, x_n$ that
@@ -39,7 +39,7 @@ $$
 (\neg x_1 \vee x_2 \vee \neg x_4)
 $$
 
-The expression above has three _clauses_, namely, $(x_1 \vee \neg x_2
+The expression above has three clauses, namely, $(x_1 \vee \neg x_2
 \vee x_4)$, $(\neg x_2 \vee x_3)$ and $(\neg x_1 \vee x_2 \vee \neg
 x_4)$.
 
@@ -119,10 +119,50 @@ To execute:
 
         mpirun -n 4 ./mpi-sat queens-05.cnf
 
+## Input format
+
+The program reads a SAT problem in DIMACS CNF format (the
+specification can be found
+[here](https://www.cs.ubc.ca/~hoos/SATLIB/Benchmarks/SAT/satformat.ps)).
+In essence, it is a text file with the following strcture:
+
+```
+% comment
+% another comment
+p cnf L C
+clause_0
+clause_1
+...
+clause_C-1
+```
+
+where `L` is the number of unique literals used in the clauses, `C` is
+the number of clauses, and each clause is a list of integers
+representing the base-1 index of literals in the clause; a negative
+index means that the literal is negated.
+
+For example, the CNF:
+
+$$
+(x_1 \vee \neg x_2 \vee x_4) \wedge
+(\neg x_2 \vee x_3) \wedge
+(\neg x_1 \vee x_2 \vee \neg x_4)
+$$
+
+is described in DIMACS CNF format as:
+
+```
+p cnf 4 3
+1 -2 4 0
+-2 3 0
+-1 2 -4 0
+```
+
 ## Files
 
 - [mpi-sat.c](mpi-sat.c)
-- Some input files: <queens-05.cnf>, <uf20-01.cnf>, <uf20-077.cnf>
+- Some input files: [queens-05.cnf](queens05.cnf), [uf20-01.cnf](uf20-01.cnf), [uf20-077.cnf](uf20-077.cnf)
+
 ***/
 
 #include <stdio.h>
@@ -171,7 +211,9 @@ bool eval(const problem_t* p, const int v)
 }
 
 /**
- * Returns the number of solutions to the SAT problem `p`.
+ * Solve the SAT problem `p`. The return value for rank 0 is the
+ * number of solutions; for the other processes, the return value is
+ * undefined.
  */
 int sat( const problem_t *p)
 {
@@ -180,7 +222,7 @@ int sat( const problem_t *p)
     const int my_start = ((MAX_VALUE+1)*my_rank) / comm_sz;
     const int my_end = ((MAX_VALUE+1)*(my_rank+1)) / comm_sz;
 
-    int my_nsat = 0, nsat;
+    int my_nsat = 0, nsat = -1;
 
     for (int cur_value=my_start; cur_value < my_end; cur_value++) {
         my_nsat += eval(p, cur_value);
