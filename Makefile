@@ -215,5 +215,5 @@ clean:
 distclean: clean
 	\rm -rf handouts/* solutions/*
 
-count-locs.tex: count-locs.awk
+count-locs:
 	cloc --quiet --hide-rate --by-file --csv *.c *.cl *.cu | gawk -f count-locs.awk > count-locs.tex

@@ -129,7 +129,7 @@ Filling the ghost cells requires two calls to `MPI_Sendrecv()` (Figure
 5). First, each process sends the value of the _rightmost_ domain cell
 to the successor, and receives the value of the left ghost cell from
 the predecessor. Then, each process sends the contents of the
-_leftmost_ cell to the predecessr, and receives the value of the right
+_leftmost_ cell to the predecessor, and receives the value of the right
 ghost cell from the successor. All processes execute the same
 communication: therefore, each one should call `MPI_Sendrecv()` twice.
 
@@ -165,8 +165,8 @@ typedef signed char cell_t;
    1. */
 const int HALO = 1;
 
-/* To make the code more readable, in the following we make frequent
-   use of the following variables:
+/* To make the code more readable, we make frequent use of the
+   following variables:
 
     LEFT_GHOST = index of first element of left halo
           LEFT = index of first element of actual domain
@@ -293,10 +293,10 @@ int main( int argc, char* argv[] )
         /* Initialize the domain
 
            NOTE: the parallel version does not need ghost cells in the
-           cur[] array, but only in the local_cur[] blocks that are
-           stored within each MPI process. For simplicity we keep the
-           ghost cells in cur[]; after getting a working version,
-           modify your program to remove them. */
+           `cur[]` array, but only in `local_cur[]` that is stored
+           within each MPI process. For simplicity we keep the ghost
+           cells in `cur[]`; after getting a working version, modify
+           your program to remove them. */
         cur = (cell_t*)malloc( ext_width * sizeof(*cur) ); assert(cur != NULL);
 #ifdef SERIAL
         /* Note: the parallel version does not need the `next`
@@ -306,8 +306,8 @@ int main( int argc, char* argv[] )
         init_domain(cur, ext_width);
     }
 
-    /* compute the rank of the next and previous process on the
-       chain. These will be used to exchange the boundary */
+    /* Compute the rank of the next and previous processes. These will
+       be used to exchange the boundary. */
 #ifndef SERIAL
     const int rank_next = (my_rank + 1) % comm_sz;
     const int rank_prev = (my_rank - 1 + comm_sz) % comm_sz;
@@ -331,8 +331,8 @@ int main( int argc, char* argv[] )
     */
 #endif
 
-    /* `local_cur` and `local_next` are the local domains, handled by
-       each MPI process. They both have `local_ext_width` elements each */
+    /* `local_cur` and `local_next` are the local domains; they both
+       have `local_ext_width` elements each */
 #ifndef SERIAL
     cell_t *local_cur = (cell_t*)malloc(local_ext_width * sizeof(*local_cur)); assert(local_cur != NULL);
     cell_t *local_next = (cell_t*)malloc(local_ext_width * sizeof(*local_next)); assert(local_next != NULL);
@@ -350,9 +350,9 @@ int main( int argc, char* argv[] )
     const int RIGHT_GHOST = RIGHT + HALO;
 #endif
 
-    /* The master distributes the domain cur[] to the other MPI
-       processes. Each process receives `width/comm_sz` elements of
-       type MPI_CHAR. Note: the parallel version does not require ghost
+    /* The master distributes `cur[]` to the other MPI processes. Each
+       process receives `width/comm_sz` elements of type
+       MPI_CHAR. Note: the parallel version does not require ghost
        cells in cur[], so it would be possible to allocate exactly
        `width` elements in cur[].
 
@@ -416,7 +416,7 @@ int main( int argc, char* argv[] )
             dump_state(out, cur, ext_width);
         }
 
-        /* Send right boundary to right neighbor; receive left
+        /* Send the right boundary to right neighbor; receive the left
            boundary from left neighbor (X=halo)
 
                  _________          _________
@@ -468,7 +468,6 @@ int main( int argc, char* argv[] )
                  |X|     |X|        |X|     |X|
            ...---+-+     +-+--------+-+     +-+---...
                            local_cur
-
         */
 #ifndef SERIAL
         MPI_Sendrecv( &local_cur[LOCAL_LEFT], /* sendbuf      */
@@ -515,9 +514,9 @@ int main( int argc, char* argv[] )
 #endif
 
         /* Gather the updated local domains at the root; it is
-           possible to gather the result at cur[] instead than next[];
-           actually, in the parallel version, next[] is not needed at
-           all.
+           possible to gather the result at `cur[]` instead of
+           `next[]`; indeed, in the parallel version, `next[]` is not
+           needed at all.
 
         LEFT_SHOT                           RIGHT_GHOST
         | LEFT                                  RIGHT |
@@ -536,9 +535,6 @@ int main( int argc, char* argv[] )
                    | |        LOCAL_RIGHT
                    | LOCAL_LEFT
                    LOCAL_LEFT_GHOST
-
-
-
         */
 #ifndef SERIAL
         MPI_Gather( &local_next[LOCAL_LEFT],/* sendbuf      */
