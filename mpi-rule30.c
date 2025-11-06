@@ -22,21 +22,20 @@
 /***
 % Rule 30 Cellular Automaton
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-10-10
+% Last updated: 2025-11-06
 
-Cellular Automata (CAs) are examples of _stencil computations_. In
-this exercise we implement the [Rule 30 Cellular
+In this exercise we implement the [Rule 30 Cellular
 Automaton](https://en.wikipedia.org/wiki/Rule_30).
 
-The Rule 30 CA is a 1D cellular aotmaton that consists of an array
-`x[N]` of $N$ integers that can be either 0 or 1. The state of the CA
-evolves at discrete time steps: the new state of a cell depends on its
-current state, and on the current state of the left and right
-neighbors. We assume cyclic boundary conditions, so that the neighbors
-of $x[0]$ are $x[N-1]$ and $x[1]$, and the neighbors of $x[N-1]$ are
-$x[N-2]$ and $x[0]$ (Figure 1).
+The Rule 30 CA is a 1D Cellular Autmaton (CA) that consists of an
+array `x[N]` of $N$ integers that can be either 0 or 1. The state of
+the CA evolves at discrete time steps: the new state of a cell depends
+on the current state of itself and the left and right neighbors. We
+assume cyclic boundary conditions, so that the neighbors of $x[0]$ are
+$x[N-1]$ and $x[1]$, and the neighbors of $x[N-1]$ are $x[N-2]$ and
+$x[0]$ (Figure 1).
 
-![Figure 1: Rule 30 CA.](mpi-rule30-fig1.svg)
+![Figure 1: Rule 30 CA.](mpi-rule30-fig1.svg "Rule 30 CA.")
 
 Given the current values $pqr$ of three adjacent cells, the new value
 $q'$ of the cell in the middle is computed according to Table 1.
@@ -52,35 +51,34 @@ The sequence □□□■■■■□ = 00011110 on the second row is the binary
 representation of decimal 30, from which the name ("Rule 30 CA").
 
 The file [mpi-rule30.c](mpi-rule30.c) contains a serial program that
-computes the evolution of the Rule 30 CA, from an initial condition
+computes the evolution of the Rule 30 CA, assuming initial condition
 where only the central cell is 1. The program accepts two optional
 command line parameters: the domain size $N$ and the number of steps
-_nsteps_. At the end, rank 0 saves an image `rule30.pbm` of size $N
+_nsteps_. At the end, rank 0 produces an image `rule30.pbm` of size $N
 \times \textit{nsteps}$ like the one shown in Figure 2. Each row
 represents the state of the automaton at a specific time step (1 =
 black, 0 = white). Time moves from top to bottom: the first line is
 the initial state (time 0), the second line is the state at time 1,
 and so on.
 
-![Figure 2: Evolution of Rule 30 CA.](rule30.png)
+![Figure 2: Evolution of Rule 30 CA.](rule30.png "Evolution of Rule 30 CA.")
 
 The pattern shown in Figure 2 is similar to the pattern on the [Conus
-textile](https://en.wikipedia.org/wiki/Conus_textile) shell, a highly
-poisonous marine mollusk that can be found in tropical seas (Figure
-3).
+textile](https://en.wikipedia.org/wiki/Conus_textile) shell (Figure
+3), a highly poisonous marine mollusk that lives in tropical seas.
 
 ![Figure 3: Conus Textile by Richard Ling, CC BY-SA 3.0,
-<https://commons.wikimedia.org/w/index.php?curid=293495>.](conus-textile.jpg)
+<https://commons.wikimedia.org/w/index.php?curid=293495>.](conus-textile.jpg "The Conus Textile shell.")
 
 The goal of this exercise is to parallelize the serial program using
 MPI, so that the computation of each step is distributed across MPI
-processes. The program should operate as follows (see Figure 4 and
-also [this document](mpi-rule30.pdf)):
+processes. The program should operate as follows (refer to Figure 4
+and also to [this document](mpi-rule30.pdf)):
 
-![Figure 4: Parallelization of the Rule 30 CA.](mpi-rule30-fig4.svg)
+![Figure 4: Parallelization of the Rule 30 CA.](mpi-rule30-fig4.svg "Parallelization of the Rule 30 CA.")
 
 1. The domain is distributed across the $P$ MPI processes using
-   `MPI_Scatter()`; we assume that $N$ is an integer multiple of
+   `MPI_Scatter()`; assume that $N$ is an integer multiple of
    $P$. Each partition is augmented with two ghost cells, that are
    required to compute the next states.
 
@@ -127,14 +125,13 @@ improve readability).
 
 ![Figure 5: Using `MPI_Sendrecv()` to exchange ghost cells.](mpi-rule30-fig5.svg)
 
-Filling the ghost cells is a bit tricky and requires two calls to
-`MPI_Sendrecv()` (see Figure 5). First, each process sends the value
-of the _rightmost_ domain cell to the successor, and receives the
-value of the left ghost cell from the predecessor. Then, each process
-sends the contents of the _leftmost_ cell to the predecessr, and
-receives the value of the right ghost cell from the successor. All
-processes execute the same communication: therefore, each one should
-call `MPI_Sendrecv()` twice.
+Filling the ghost cells requires two calls to `MPI_Sendrecv()` (Figure
+5). First, each process sends the value of the _rightmost_ domain cell
+to the successor, and receives the value of the left ghost cell from
+the predecessor. Then, each process sends the contents of the
+_leftmost_ cell to the predecessr, and receives the value of the right
+ghost cell from the successor. All processes execute the same
+communication: therefore, each one should call `MPI_Sendrecv()` twice.
 
 To compile:
 
@@ -148,7 +145,7 @@ Example:
 
         mpirun -n 4 ./mpi-rule30 1024 1024
 
-The output is stored to a file `rule30.pbm`
+The output is stored into a file `rule30.pbm`
 
 ## Files
 
@@ -357,7 +354,26 @@ int main( int argc, char* argv[] )
        processes. Each process receives `width/comm_sz` elements of
        type MPI_CHAR. Note: the parallel version does not require ghost
        cells in cur[], so it would be possible to allocate exactly
-       `width` elements in cur[]. */
+       `width` elements in cur[].
+
+        LEFT_SHOT                           RIGHT_GHOST
+        | LEFT                                  RIGHT |
+        | |                                         | |
+        V V                                         V V
+       +-+----------+----------+----------+----------+-+
+       |X|          |          |          |          |X| cur[]
+       +-+----------+----------+----------+----------+-+
+                     VVVVVVVVVV
+                  +-+----------+-+
+                  |X|          |X| local_cur[]
+                  +-+----------+-+
+                   ^ ^        ^ ^
+                   | |        | |
+                   | |        | LOCAL_RIGHT_GHOST
+                   | |        LOCAL_RIGHT
+                   | LOCAL_LEFT
+                   LOCAL_LEFT_GHOST
+    */
 #ifndef SERIAL
     const int LOCAL_LEFT_GHOST = 0;
     const int LOCAL_LEFT = HALO;
@@ -408,7 +424,7 @@ int main( int argc, char* argv[] )
            ...---+-+     +-+--------+-+     +-+---...
                  |X|     |X|        |X|     |X|
            ...---+-+     +-+--------+-+     +-+---...
-                           local_cur
+                           local_cur[]
 
         */
 #ifndef SERIAL
@@ -501,7 +517,29 @@ int main( int argc, char* argv[] )
         /* Gather the updated local domains at the root; it is
            possible to gather the result at cur[] instead than next[];
            actually, in the parallel version, next[] is not needed at
-           all. */
+           all.
+
+        LEFT_SHOT                           RIGHT_GHOST
+        | LEFT                                  RIGHT |
+        | |                                         | |
+        V V                                         V V
+       +-+----------+----------+----------+----------+-+
+       |X|          |          |          |          |X| cur[]
+       +-+----------+----------+----------+----------+-+
+                     ^^^^^^^^^^
+                  +-+----------+-+
+                  |X|          |X| local_cur[]
+                  +-+----------+-+
+                   ^ ^        ^ ^
+                   | |        | |
+                   | |        | LOCAL_RIGHT_GHOST
+                   | |        LOCAL_RIGHT
+                   | LOCAL_LEFT
+                   LOCAL_LEFT_GHOST
+
+
+
+        */
 #ifndef SERIAL
         MPI_Gather( &local_next[LOCAL_LEFT],/* sendbuf      */
                     local_width,        /* sendcount    */

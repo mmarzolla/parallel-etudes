@@ -166,7 +166,7 @@ The output is stored to the file `opencl-rule30.pbm`
 - [opencl-rule30.c](opencl-rule30.c)
 - [simpleCL.c](simpleCL.c) [simpleCL.h](simpleCL.h) [hpc.h](hpc.h)
 
- ***/
+***/
 
 /* The following #define is required by the implementation of
    hpc_gettime(). It MUST be defined before including any other
