@@ -41,6 +41,7 @@ Table 1.
 
 Graph                        Nodes ($n$)    Edges ($m$)    Distance $0 \rightarrow n-1$
 -------------------------  ------------- -------------- -------------------------------
+[graph10.gr](graph10.gr)              10             52                            41.0
 [graph100.gr](graph100.gr)           100           4932                            16.0
 [graph1000.gr](graph1000.gr)        1000         499623                             4.0
 [graph2000.gr](graph2000.gr)        2000         800066                             4.0
