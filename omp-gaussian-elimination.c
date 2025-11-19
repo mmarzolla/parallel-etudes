@@ -2,7 +2,7 @@
  *
  * omp-gaussian-elimination.c - Solve systems of linear equations in upper triangular form
  *
- * Copyright (C) 2023, 2024 Moreno Marzolla
+ * Copyright (C) 2023--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,12 +22,11 @@
 /***
 % Solve systems of linear equations in upper triangular form
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-10-05
+% Last updated: 2025-11-19
 
-The solution of a linear system $Ax = b$, where $A$ is a square matrix
-of size $n \times n$ in upper triangular form and $b$ is a vector of
-size $n$, can be computed through _Gaussian elimination_ using the
-following code fragment:
+The solution of a linear system $Ax = b$, where $A$ is a $n \times n$
+matrix in upper triangular form and $b$ is a vector, can be computed
+through _Gaussian elimination_ using the following algorithm:
 
 ```C
     for (int i=n-1; i>=0; i--) {
@@ -48,8 +47,7 @@ $$
 x_i = b_i - \sum_{j = i+1}^{n-1} A_{ij} x_j \qquad i = n-1, n-2, \ldots, 0
 $$
 
-For example, consider the following syetsm of equations in upper
-triangular form:
+For example, consider the following syetsm of equations:
 
 $$
 \renewcommand\arraystretch{1.25}
@@ -62,18 +60,26 @@ $$
 \right.
 $$
 
-From the last equation one immediately gets $x_2 = 13/5$. We
-substitute this value into the second equation, to get
+From the last equation we gets $x_2 = 13/5$. We substitute this into
+the second equation, to get
 
 $$
 x_1 = (6 - 13/5) / (-4)
 $$
 
-and finally, knowing both $x_1$ and $x_2$, we can compute $x_0$ by
+and finally, knowing both $x_1$ and $x_2$, we compute $x_0$ by
 substituting the known values into the first equation.
 
 The goal fo this exercise is to parallelize the code fragment below
 using suitable OpenMP constructs.
+
+To compile:
+
+        gcc -std=c99 -Wall -Wpedantic -fopenmp omp-gaussian-elimination.c -o omp-gaussian-elimination -lm
+
+To execute:
+
+        ./omp-gaussian-elimination [n]
 
 ## Files
 
@@ -87,8 +93,8 @@ using suitable OpenMP constructs.
 #include <math.h>
 
 /**
- * Solve the linear system Ax = b, where A is a square matrix of size
- * n x n in upper triangular form.
+ * Solve the linear system Ax = b, where A is a n x n matrix in upper
+ * triangular form.
  */
 void solve( const float *A, const float *b, float *x, int n )
 {
@@ -142,7 +148,7 @@ void init( float *A, float *b, int n )
             }
         }
         b[i] = bi;
-        /* ensures that matrix A is non-singular */
+        /* ensures that A is non-singular */
         assert( fabs(A[i*n + i]) > EPSILON );
     }
     free(x);
@@ -211,7 +217,7 @@ int main( int argc, const char *argv[] )
     init(A, b, n);
     printf("Solving...\n");
     solve(A, b, x, n);
-    //print(A, b, x, n);
+    print(A, b, x, n);
     if (check_ok(A, b, x, n)) {
         printf("Check OK\n");
     } else {
