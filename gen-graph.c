@@ -30,7 +30,7 @@ int main( int argc, char *argv[] )
     int *d;
 
     if (argc > 4) {
-        fprintf(stderr, "Uso: %s [n [rho]]]\n", argv[0]);
+        fprintf(stderr, "Usage: %s [n [rho]]]\n", argv[0]);
         exit(EXIT_FAILURE);
     }
     if (argc > 1) {

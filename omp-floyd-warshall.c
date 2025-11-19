@@ -22,7 +22,7 @@
 /***
 % All-pair shortest paths
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-10-16
+% Last updated: 2025-11-19
 
 This program computes all-pair shortest path distances on a weighted.
 directed graph using Flyd and Warshall's algorithm.
@@ -207,7 +207,7 @@ int floyd_warshall( const graph_t *g, float *d, int *p )
     const int n = g->n;
     const int m = g->m;
 
-#ifndef HANDOUT
+#ifndef SERIAL
 #pragma omp parallel default(none) shared(g, d, p, n, m)
     {
 #pragma omp for
@@ -219,7 +219,7 @@ int floyd_warshall( const graph_t *g, float *d, int *p )
         }
     }
 
-#ifndef HANDOUT
+#ifndef SERIAL
 #pragma omp for
 #endif
     for (const edge_t *e = g->edges; e < g->edges + m; e++) {
@@ -228,38 +228,39 @@ int floyd_warshall( const graph_t *g, float *d, int *p )
     }
 
     for (int k=0; k<n; k++) {
-#ifndef HANDOUT
+#ifndef SERIAL
 #pragma omp single
 #endif
         fw_relax(d, p, k, k, k, n);
 
-#ifndef HANDOUT
+#ifndef SERIAL
 #pragma omp for
 #endif
         for (int i=0; i<n; i++) {
-            if (i == k) continue;
-            fw_relax(d, p, k, i, k, n);
-            fw_relax(d, p, i, k, k, n);
+            if (i != k) {
+                fw_relax(d, p, k, i, k, n);
+                fw_relax(d, p, i, k, k, n);
+            }
         }
 
-#ifndef HANDOUT
+#ifndef SERIAL
 #pragma omp for
 #endif
         for (int u=0; u<n; u++) {
-            if (u == k) continue;
-            /* u != k here */
-            for (int v=0; v<n; v++) {
-                if (v == k) continue;
-                /* u != k /\ v != k here */
-                fw_relax(d, p, u, v, k, n);
+            if ( u != k ) {
+                for (int v=0; v<n; v++) {
+                    if (v != k) {
+                        /* (u != k) && (v != k) here */
+                        fw_relax(d, p, u, v, k, n);
+                    }
+                }
             }
         }
     }
-#ifndef HANDOUT
-    } // pragma omp parallel
+#ifndef SERIAL
+    } /* pragma omp parallel */
 #endif
-    /* Check for self-loops of negative cost. Of one is found, there
-       are negative-weight cycles and return 1. */
+    /* Check for cycles of negative cost. Return 1 if one is found. */
     for (int u=0; u<n; u++) {
         if ( d[IDX(u,u,n)] < 0 ) {
             /* printf("d[%d][%d] = %f\n", u, u, d[u][u]); */
@@ -268,6 +269,33 @@ int floyd_warshall( const graph_t *g, float *d, int *p )
     }
 
     return 0;
+}
+
+void print_path(const int *p, int n, int src, int dst)
+{
+    if (src == dst) {
+        printf("%d", src);
+    } else if (p[IDX(src,dst,n)] < 0) {
+        printf("Not reachable");
+    } else {
+        print_path(p, n, src, p[IDX(src,dst,n)]);
+        printf("->%d", dst);
+    }
+}
+
+/* Print distances and shortest paths. */
+void print_results( const float *d, const int *p, int n )
+{
+    printf("   s    d         dist path\n");
+    printf("---- ---- ------------ -------------------------\n");
+    for (int u=0; u<n; u++) {
+        for (int v=0; v<n; v++) {
+            printf("%4d %4d %12.4f ", u, v, d[IDX(u,v,n)]);
+            print_path(p, n, u, v);
+            printf("\n");
+        }
+        printf("---- ---- ------------ -------------------------\n");
+    }
 }
 
 int main( int argc, char* argv[] )
@@ -299,9 +327,16 @@ int main( int argc, char* argv[] )
     const double tstart = omp_get_wtime();
     floyd_warshall(&g, d, p);
     const double elapsed = omp_get_wtime() - tstart;
+
+    if (g.n <= 10) {
+        print_results(d, p, g.n);
+    } else {
+        /* too many nodes, only print distances from 0 to n-1. */
+        printf("d[%d,%d] = %f\n", 0, g.n-1, d[IDX(0, g.n-1, g.n)]);
+    }
+
     fprintf(stderr, "Execution time %.3f\n", elapsed);
 
-    printf("d[%d,%d] = %f\n", 0, g.n-1, d[IDX(0, g.n-1, g.n)]);
     free(d);
     free(p);
     free(g.edges);

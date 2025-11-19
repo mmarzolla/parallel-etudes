@@ -22,7 +22,7 @@
 /***
 % All-pair shortest paths
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-10-16
+% Last updated: 2025-11-19
 
 This program computes all-pair shortest path distances on a weighted.
 directed graph using Flyd and Warshall's algorithm.
@@ -341,6 +341,33 @@ int floyd_warshall( const graph_t *g, float *d, int *p )
 }
 #endif
 
+void print_path(const int *p, int n, int src, int dst)
+{
+    if (src == dst) {
+        printf("%d", src);
+    } else if (p[IDX(src,dst,n)] < 0) {
+        printf("Not reachable");
+    } else {
+        print_path(p, n, src, p[IDX(src,dst,n)]);
+        printf("->%d", dst);
+    }
+}
+
+/* Print distances and shortest paths. */
+void print_results( const float *d, const int *p, int n )
+{
+    printf("   s    d         dist path\n");
+    printf("---- ---- ------------ -------------------------\n");
+    for (int u=0; u<n; u++) {
+        for (int v=0; v<n; v++) {
+            printf("%4d %4d %12.4f ", u, v, d[IDX(u,v,n)]);
+            print_path(p, n, u, v);
+            printf("\n");
+        }
+        printf("---- ---- ------------ -------------------------\n");
+    }
+}
+
 int main( int argc, char* argv[] )
 {
     graph_t g;
@@ -379,9 +406,16 @@ int main( int argc, char* argv[] )
     const double tstart = hpc_gettime();
     floyd_warshall(&g, d, p);
     const double elapsed = hpc_gettime() - tstart;
+
+    if (g.n <= 10) {
+        print_results(d, p, g.n);
+    } else {
+        /* too many nodes, only print distances from 0 to n-1. */
+        printf("d[%d,%d] = %f\n", 0, g.n-1, d[IDX(0, g.n-1, g.n)]);
+    }
+
     fprintf(stderr, "Execution time %.3f\n", elapsed);
 
-    printf("d[%d,%d] = %f\n", 0, g.n-1, d[IDX(0, g.n-1, g.n)]);
     free(d);
     free(p);
     free(g.edges);
