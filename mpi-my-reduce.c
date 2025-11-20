@@ -22,16 +22,53 @@
 /***
 % Sum-reduce using point-to-point communication
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-07-17
+% Last updated: 2025-11-20
+
+Write a function `my_reduce()` with the following prototype:
+
+```C
+int my_Reduce(const int *v)
+```
+
+that computes the sum-reduction of integers stored in the local memory
+of each MPI process. Specifically, the function has the following
+semantics:
+
+- All MPI processes call `my_reduce()` passing a pointer `v` to a
+  single integer value stored in their local memory space.
+
+- For rank 0: the function returns the sum-reduction of all `*v`; for
+  the other ranks, the return value is arbitrary.
+
+You are allowed to use only point-to-point communication primitives,
+i.e., `MPI_Send()` / `MPI_Recv()` and/or their asynchronous versions.
+
+# Suggestion
+
+A simple, but not efficient, solution would be for all processes to
+send `*v` to the master using `MPI_Send()`. A better way would be to
+structure the communication as a tree, i.e., rank $i$ receives
+messages from ranks $(2i+1)$ and $(2i+2)$, and send the sum to rank
+$\lceil i/2 \rceil$. See Figure 1.
+
+![Figure 1: Communicaton pattern for the `my_Reduce()` function.](mpi-my-reduce.svg)
+
+# Files
+
+- [mpi-my-reduce.c](mpi-my-reduce.c)
 
 ***/
 
-#include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <mpi.h>
 
 int my_Reduce(const int *v)
 {
+#ifdef SERIAL
+    /* TODO */
+    return 0;
+#else
     int my_rank, comm_sz;
     int result = *v, buf;
 
@@ -73,6 +110,7 @@ int my_Reduce(const int *v)
               );
 
     return result;
+#endif
 }
 
 
@@ -88,7 +126,7 @@ int main( int argc, char *argv[] )
     v = my_rank;
 
     const int result = my_Reduce(&v);
-    const int expected = comm_sz * (comm_sz-1) / 2;
+    const int expected = (comm_sz * (comm_sz-1)) / 2;
 
     if ( 0 == my_rank) {
         if (result == expected)
