@@ -2,7 +2,7 @@
  *
  * opencl-matsum.c - Matrix-matrix addition
  *
- * Copyright (C) 2017--2024 Moreno Marzolla
+ * Copyright (C) 2017--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,9 +20,9 @@
  ****************************************************************************/
 
 /***
-% Matrix-matrix addition
+% HPC - Matrix-matrix addition
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last update: 2024-01-04
+% Last updated: 2025-11-27
 
 The program [opencl-matsum.c](opencl-matsum.c) computes the sum of two
 square matrices of size $N \times N$ using the CPU. Modify the program
@@ -41,13 +41,11 @@ this aim, function `matsum()` should:
 
 - free up device memory.
 
-The program must work with any value of the matrix size $N$, even if
-it nos an integer multiple of the workgroup size. Note that there is
-no need to use local memory (why?).
+The program must work with any value of the matrix size $N$.
 
 To compile:
 
-        cc -std=c99 -Wall -Wpedantic opencl-matsum.c simpleCL.c -o opencl-matsum -lm -lOpenCL
+        gcc -std=c99 -Wall -Wpedantic opencl-matsum.c simpleCL.c -o opencl-matsum -lm -lOpenCL
 
 To execute:
 
@@ -56,6 +54,7 @@ To execute:
 Example:
 
         ./opencl-matsum 1024
+
 ## Files
 
 - [opencl-matsum.c](opencl-matsum.c)
@@ -69,27 +68,24 @@ Example:
 #if _XOPEN_SOURCE < 600
 #define _XOPEN_SOURCE 600
 #endif
-#include "hpc.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
-
 #include "simpleCL.h"
+#include "hpc.h"
 
 #ifndef SERIAL
-const char *program =
-    "__kernel void matsum_kernel( __global const float *p,\n"
-    "                             __global const float *q,\n"
-    "                             __global float *r,\n"
-    "                             int n )\n"
-    "{\n"
-    "    const int i = get_global_id(1);\n"
-    "    const int j = get_global_id(0);\n"
-    "    if ( i<n && j<n )\n"
-    "        r[i*n + j] = p[i*n + j] + q[i*n + j];\n"
-    "}\n";
+const char *matsum_kernel_str = "\
+__kernel void matsum_kernel( __global const float *p, __global const float *q, __global float *r, int n )\
+{\
+    const int i = get_global_id(1);\
+    const int j = get_global_id(0);\
+    if ( i<n && j<n )\
+        r[i*n + j] = p[i*n + j] + q[i*n + j];\
+}";
+
 sclKernel matsum_kernel;
 #endif
 
@@ -100,7 +96,7 @@ void matsum( float *p, float *q, float *r, int n )
        - allocate memory on the device
        - copy p and q to the device
        - call an appropriate kernel
-       - copy the result back from the device to the host
+       - copy the result from the device to the host
        - free memory on the device
     */
     for (int i=0; i<n; i++) {
@@ -109,33 +105,36 @@ void matsum( float *p, float *q, float *r, int n )
         }
     }
 #else
+    cl_mem d_p, d_q, d_r;	  /* device copies of p, q, r */
     const size_t size = n*n*sizeof(*p);
-    const sclDim block = DIM2(SCL_DEFAULT_WG_SIZE2D, SCL_DEFAULT_WG_SIZE2D);
-    const sclDim grid = DIM2(sclRoundUp(n, SCL_DEFAULT_WG_SIZE2D),
-                             sclRoundUp(n, SCL_DEFAULT_WG_SIZE2D));
 
     /* Allocate space for device copies of p, q, r */
-    cl_mem d_p = sclMallocCopy(size, p, CL_MEM_READ_ONLY);
-    cl_mem d_q = sclMallocCopy(size, q, CL_MEM_READ_ONLY);
-    cl_mem d_r = sclMalloc(size, CL_MEM_WRITE_ONLY);
+    d_p = sclMallocCopy(size, p, CL_MEM_READ_ONLY);
+    d_q = sclMallocCopy(size, q, CL_MEM_READ_ONLY);
+    d_r = sclMalloc(size, CL_MEM_READ_WRITE);
 
     /* Launch matsum() kernel on GPU */
     sclSetArgsEnqueueKernel(matsum_kernel,
-                            grid, block,
+                            DIM2(sclRoundUp(n, SCL_DEFAULT_WG_SIZE2D),
+                                 sclRoundUp(n, SCL_DEFAULT_WG_SIZE2D)),
+                            DIM2(SCL_DEFAULT_WG_SIZE2D,
+                                 SCL_DEFAULT_WG_SIZE2D),
                             ":b :b :b :d",
                             d_p, d_q, d_r, n);
 
     /* Copy result back to host */
     sclMemcpyDeviceToHost(r, d_r, size);
 
-    sclFree(d_p); sclFree(d_q); sclFree(d_r);
+    sclFree(d_p);
+    sclFree(d_q);
+    sclFree(d_r);
 #endif
 }
 
 /* Initialize square matrix p of size nxn */
 void fill( float *p, int n )
 {
-    int k=0;
+    int k = 0;
     for (int i=0; i<n; i++) {
         for (int j=0; j<n; j++) {
             p[i*n+j] = k;
@@ -147,11 +146,10 @@ void fill( float *p, int n )
 /* Check result */
 int check( float *r, int n )
 {
-    const float TOL = 1e-5;
     int k = 0;
     for (int i=0; i<n; i++) {
         for (int j=0; j<n; j++) {
-            if (fabsf(r[i*n+j] - 2.0f*k) > TOL) {
+            if (fabsf(r[i*n+j] - 2.0*k) > 1e-5) {
                 fprintf(stderr, "Check FAILED: r[%d][%d] = %f, expeted %f\n", i, j, r[i*n+j], 2.0*k);
                 return 0;
             }
@@ -182,13 +180,13 @@ int main( int argc, char *argv[] )
         return EXIT_FAILURE;
     }
 
-#ifndef SERIAL
-    sclInitFromString(program);
-    matsum_kernel = sclCreateKernel("matsum_kernel");
-#endif
+    printf("Matrix size: %d x %d\n", n, n);
 
     const size_t size = n*n*sizeof(*p);
-
+#ifndef SERIAL
+    sclInitFromString(matsum_kernel_str);
+    matsum_kernel = sclCreateKernel("matsum_kernel");
+#endif
     /* Allocate space for p, q, r */
     p = (float*)malloc(size); assert(p != NULL);
     fill(p, n);
@@ -200,13 +198,16 @@ int main( int argc, char *argv[] )
     matsum(p, q, r, n);
     const double elapsed = hpc_gettime() - tstart;
 
-    printf("Execution time %.3f\n", elapsed);
+    printf("Execution time (incl. data movement): %f\n", elapsed);
+    printf("Throughput (Melements/s): %f\n", n*n/(1e6 * elapsed));
 
     /* Check result */
     check(r, n);
 
     /* Cleanup */
-    free(p); free(q); free(r);
+    free(p);
+    free(q);
+    free(r);
 #ifndef SERIAL
     sclFinalize();
 #endif

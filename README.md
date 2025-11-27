@@ -1,55 +1,53 @@
 # Parallel Etudes
 
 _Etudes for Programmers_ is an unusual yet influential book written by
-Charles Wetherell and published in 1978. The term _étude_ refers to a
-small musical piece that is intended for learning to play an
-instrument.  The book argues that programming is a craft that -- at
-least in part -- is learned by practicing, like playing a musical
-instrument. To this aim, the book proposes a set of programming
-exercises of various levels of difficulty, from extremely simple to
-very complex.
+Charles Wetherell in 1978. The term _étude_ refers to a small musical
+piece that is intended for learning to play an instrument.  The book
+argues that programming is a craft that -- at least in part -- is
+learned by practicing, like playing a musical instrument. To this aim,
+the book proposes a set of programming exercises of various levels of
+difficulty, from extremely simple to very complex.
 
 I strongly agree with Wetherell, and believe that the practice-based
-approach he suggests is very appropriate also for learning _parallel_
+approach he suggests is appropriate also for learning _parallel_
 programming. I incorporated this idea in the [High Performance
 Computing](https://www.moreno.marzolla.name/teaching/HPC/) course that
-I have been teaching over the past 10 years to Computer Science and
+I have been teaching over the past years to Computer Science and
 Engineering students at the University of Bologna.
 
 The course is an elective, undergraduate course in parallel
 programming; it covers all the major parallel programming models,
 i.e., shared-memory, distributed-memory and GPU. Considerable emphasis
 is put on practical aspects of parallel programming using OpenMP, MPI
-and CUDA, for which lab exercises need to be developed.
+and CUDA, for which the lab exercises in this repository have been
+developed.
 
-This repository contains the source code of programming exercises that
-are used in the lab sessions. The labs are organized as follows: each
-exercise includes a detailed specification, and is provided with a
-fully functional serial solution. The goal is to parallelize the
-serial program using the techniques discussed in the previous
-classes. Reference parallel solutions are made available at the end of
-each lab session, so that each student can compare his/her own code to
-the program provided by the instructor.
+The labs are organized as follows: each exercise includes a detailed
+specification, and is provided with a fully functional serial
+solution. The goal is to parallelize the serial program using the
+techniques discussed in the previous classes. Solutions are made
+available at the end of each lab session, so that each student can
+compare his/her own code to the program provided by the instructor.
 
-In the spirit of Wetherell's _etudes_, some exercises are simple while
-others are more complex. However, the overall level of difficulty is
-moderate, since students are expected to solve at least one exercise
-during each lab session.
+In the spirit of Wetherell's _etudes_, some exercises are very simple,
+while others are more complex. However, the overall level of
+difficulty is moderate, since students are expected to solve at least
+a couple of exercises during each lab.
 
 Some notable points:
 
-- These exercises require little or no knowledge outside parallel
-  programming; in particular, they do not require advanced knowledge
-  of physics, linear algebra or numerical analysis.
+- These exercises require little or no knowledge outside computer
+  science; in particular, they do not require advanced knowledge of
+  physics, linear algebra or numerical analysis.
 
 - Many exercises are designed to be interesting, and are taken from
   different domains such as 3D graphics, Cellular Automata,
   gravitational N-body simulations, cryptography, and others. Some
   programs generate images or movies, to make them more appealing.
 
-- Some exercises can be parallelized using multiple programming
-  paradigms. This is quite useful to appreciate the strengths and
-  weaknesses of each paradigm.
+- Some exercises can be parallelized using different paradigms. This
+  is quite useful to appreciate the strengths and weaknesses of each
+  parallel programming model.
 
 ## Citation
 
@@ -92,40 +90,46 @@ it.
 
 | Kernel                      | OpenMP | MPI | CUDA | OpenCL | Pattern                                            |
 |-----------------------------|--------|-----|------|--------|----------------------------------------------------|
-| Password cracking           | X      | X   |      |        | Embarrassingly parallel                            |
-| Dot product                 | X      | X   | X    | X      | Reduction, Scatter/Gather                          |
-| Circular shift of array     | X      | X   |      |        | Point-to-point                                     |
-| Array sum                   |        | X   |      |        | Reduction, Scatter/Gather                          |
-| Monte Carlo Pi              | X      | X   |      |        | Embarrassingly parallel, Reduction                 |
-| Sieve of Eratosthenes       | X      |     | X    | X      | Embarrassingly parallel, Reduction                 |
-| Character frequencies       | X      | X   | X    | X      | Embarrassingly parallel, Reduction                 |
-| Inclusive scan              | X      | X   |      |        | Scan                                               |
-| OpenMP `schedule()`         | X      | NA  | NA   | NA     | OpenMP loop scheduling                             |
-| Image erosion               | X      | NA  | NA   | NA     | 2D Stentil, OpenMP loop collapse                   |
-| MergeSort                   | X      | NA  | NA   | NA     | Task-level parallelism                             |
-| Binary Tree traversal       | X      | NA  | NA   | NA     | Task-level parallelism                             |
-| Ray tracing                 | X      | X   |      |        | Embarrassingly parallel, Scatter/Gather            |
-| Levenstein's distance       | X      |     |      |        | 2D stencil, wavefront                              |
-| Arnold's cat map            | X      |     | X    | X      | Embarrassingly parallel                            |
-| Mandelbrot set              | X      | X   | X    | X      | Embarrassingly parallel, Load balancing            |
-| Area of the Mandelbrot set  | X      | X   | X    | X      | Embarrassingly parallel, Load balancing, Reduction |
-| Image denoising             | X      |     | X    | X      | 2D Stencil                                         |
-| List ranking                | X      | NA  |      |        | Pointer Jumping                                    |
-| Area of union of circles    |        | X   |      |        | Embarrassingly parallel, Scatter/Gather, Reduction |
-| Bounding Box                |        | X   |      |        | Scatter/Gather, Reduction                          |
-| Rule 30 CA                  | X      | X   | X    | X      | 1D Stencil, Point-to-point                         |
-| Linear search               |        | X   |      |        | Embarrassingly parallel, Reduction                 |
-| Binary search               | X      |     |      | X      | Divide-and-conquer                                 |
-| Odd-Even Sort               | X      | X   | X    | X      | Scatter/Gather, Point-to-point                     |
-| Coupled oscillators         |        |     | X    | X      | 1D Stencil                                         |
+| All-Pairs Shortest Paths    | X      |     | X    | X      | (Almost) Embarrassingly parallel                   |
 | Anneal CA                   |        |     | X    | X      | 2D Stencil                                         |
-| N-body simulation           | X      |     | X    | X      | Embarrassingly parallel, Load balancing, Reduction |
-| Knapsack problem            | X      |     | X    | X      | Non-uniform 1D stencil                             |
+| Area of the Mandelbrot set  | X      | X   | X    | X      | Embarrassingly parallel, Load balancing, Reduction |
+| Area of union of circles    |        | X   |      |        | Embarrassingly parallel, Scatter/Gather, Reduction |
+| Arnold's cat map            | X      |     | X    | X      | Embarrassingly parallel                            |
+| Array reversal              |        |     | X    | X      | Enbarrassingly parallel                            |
+| Array sum                   |        | X   |      |        | Reduction, Scatter/Gather                          |
+| Binary search               | X      |     |      | X      | Divide-and-conquer                                 |
+| Binary Tree traversal       | X      | NA  | NA   | NA     | Task-level parallelism                             |
+| Bounding Box                |        | X   |      |        | Scatter/Gather, Reduction                          |
+| Character frequencies       | X      | X   | X    | X      | Embarrassingly parallel, Reduction                 |
+| Circular shift of array     | X      | X   |      |        | Point-to-point                                     |
+| Coupled oscillators         |        |     | X    | X      | 1D Stencil                                         |
+| Dot product                 | X      | X   | X    | X      | Reduction, Scatter/Gather                          |
 | Edge detection              | X      |     | X    | X      | 2D Stencil                                         |
+| First occurrence            |        | X   |      |        | Reduction                                          |
 | Gaussian elimination        | X      |     |      |        | Reduction                                          |
+| Image denoising             | X      |     | X    | X      | 2D Stencil                                         |
+| Image erosion               | X      | NA  | NA   | NA     | 2D Stentil, OpenMP loop collapse                   |
+| Inclusive scan              | X      | X   |      |        | Scan                                               |
+| Knapsack problem            | X      |     | X    | X      | Non-uniform 1D stencil                             |
+| Levenstein's distance       | X      |     |      |        | 2D stencil, wavefront                              |
+| Linear search               |        | X   |      |        | Embarrassingly parallel, Reduction                 |
+| List ranking                | X      | NA  |      |        | Pointer Jumping                                    |
+| Mandelbrot set              | X      | X   | X    | X      | Embarrassingly parallel, Load balancing            |
+| Matrix sum                  | X      |     | X    | X      | Embarrassingly parallel                            |
+| MergeSort                   | X      | NA  | NA   | NA     | Task-level parallelism                             |
+| Monte Carlo Pi              | X      | X   |      |        | Embarrassingly parallel, Reduction                 |
+| N-body simulation           | X      |     | X    | X      | Embarrassingly parallel, Load balancing, Reduction |
+| Odd-Even Sort               | X      | X   | X    | X      | Scatter/Gather, Point-to-point                     |
+| OpenMP `schedule()`         | X      | NA  | NA   | NA     | OpenMP loop scheduling                             |
+| Password cracking           | X      | X   |      |        | Embarrassingly parallel                            |
+| Ring communication          |        | X   |      |        | Point-to-point                                     |
+| Sieve of Eratosthenes       | X      |     | X    | X      | Embarrassingly parallel, Reduction                 |
+| Triangulare GEMV            | X      |     |      |        | Embarrassingly parallel                            |
+| Ray tracing                 | X      | X   |      |        | Embarrassingly parallel, Scatter/Gather            |
+| Right shift of array        |        | X   |      |        | Point-to-point                                     |
+| Rule 30 CA                  | X      | X   | X    | X      | 1D Stencil, Point-to-point                         |
 | SAT solver                  | X      | X   | X    | X      | Embarrassingly parallel, Reduction                 |
 | Single-Source Shortest Path | X      |     |      |        | Reduction                                          |
-| All-Pairs Shortest Paths    | X      |     | X    | X      | (Almost) Embarrassingly parallel                   |
 
 ## Prerequisites
 

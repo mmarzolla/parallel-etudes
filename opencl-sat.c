@@ -113,7 +113,7 @@ true.
 
 To compile:
 
-        gcc -Wall -Wpedantic opencl-sat.c simpleCL.c -o opencl-sat -LOpenCL
+        gcc -std=c99 -Wall -Wpedantic opencl-sat.c simpleCL.c -o opencl-sat -lOpenCL
 
 To execute:
 
