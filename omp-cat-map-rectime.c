@@ -22,7 +22,7 @@
 /***
 % Minimum Recurrence Time of Arnold's cat map
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-10-09
+% Last updated: 2025-11-27
 
 This program computes the _Minimum Recurrence Time_ of Arnold's cat
 map for an image of given size $N \times N$. The minimum recurrence
@@ -121,7 +121,7 @@ int cat_map_rectime( int n )
                 xold = xnew;
                 yold = ynew;
                 k++;
-            } while (xnew != x || ynew != y);
+            } while ((xnew != x) || (ynew != y));
             /* `k` is the minimum recurrence time of the pixel of
                coordinate (x,y). The minimum recurrence time of the
                whole image is the least common multiple of all values

@@ -254,12 +254,12 @@ eval_kernel(const int *x,
 
     __syncthreads();
 
-// perform a reduction
+    /* perform a reduction */
     for (int bsize = blockDim.x / 2; bsize > 0; bsize /= 2) {
         if ( lindex < bsize ) {
             nsol[lindex] += nsol[lindex + bsize];
         }
-    __syncthreads();
+        __syncthreads();
     }
 
     if (0 == lindex) {
@@ -389,7 +389,7 @@ int main( int argc, char *argv[] )
 {
     problem_t p;
     FILE *f;
-    
+
     assert(MAXLITERALS <= 8*sizeof(int)-2);
 
     if (argc != 2) {

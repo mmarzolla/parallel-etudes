@@ -22,7 +22,7 @@
 /***
 % Simulate the "collapse()" clause
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-10-22
+% Last updated: 2025-11-27
 
 In this exercise we simulate the `collapse()` clause by hand; in other
 words, we want to replace the statement:
@@ -139,11 +139,11 @@ void erode( const PGM_image* in, PGM_image* out )
     for (int idx = 0; idx < (HEIGHT-2)*(WIDTH-2); idx++) {
         int tmp = idx;
         const int j = 1 + tmp % (WIDTH-2);
-        tmp /= WIDTH;
+        tmp /= (WIDTH - 2);
         const int i = 1 + tmp;
         assert(i>=1); assert(i < HEIGHT-1);
         assert(j>=1); assert(j < WIDTH-1);
-        
+
         const int CENTER = i * WIDTH + j;
         const int NORTH = CENTER - WIDTH;
         const int SOUTH = CENTER + WIDTH;
