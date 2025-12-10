@@ -25,7 +25,7 @@
 /***
 % Ray tracing
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-10-10
+% Last updated: 2025-12-10
 
 The file [omp-c-ray.c](omp-c-ray.c) contains the implementation of a
 [simple ray tracer](https://github.com/jtsiomb/c-ray) written
@@ -173,7 +173,7 @@ typedef struct __attribute__((__packed__)) {
 
 /* forward declarations */
 vec3_t trace(ray_t ray, int depth);
-vec3_t shade(sphere_t *obj, spoint_t *sp, int depth);
+vec3_t shade(const sphere_t *obj, spoint_t *sp, int depth);
 
 #define MAX_LIGHTS 16                   /* maximum number of lights     */
 const double RAY_MAG = 1000.0;		/* trace rays of this magnitude */
@@ -197,7 +197,7 @@ int irand[NRAN];
 
 const char *usage = {
     "\n"
-    "Usage: omp-c-ray [options]\n\n"
+    "Usage: ./omp-c-ray [options]\n\n"
     "  Reads a scene file from stdin, writes the image to stdout\n"
     "  and stats to stderr.\n\n"
     "Options:\n"
@@ -381,7 +381,7 @@ ray_t get_primary_ray(int x, int y, int sample)
  * Compute direct illumination with the phong reflectance model.  Also
  * handles reflections by calling trace again, if necessary.
  */
-vec3_t shade(sphere_t *obj, spoint_t *sp, int depth)
+vec3_t shade(const sphere_t *obj, spoint_t *sp, int depth)
 {
     vec3_t col = {0, 0, 0};
 
@@ -390,7 +390,7 @@ vec3_t shade(sphere_t *obj, spoint_t *sp, int depth)
         double ispec, idiff;
         vec3_t ldir;
         ray_t shadow_ray;
-        sphere_t *iter = obj_list;
+        const sphere_t *iter = obj_list;
         int in_shadow = 0;
 
         ldir.x = lights[i].x - sp->pos.x;
@@ -453,7 +453,7 @@ vec3_t trace(ray_t ray, int depth)
 {
     vec3_t col;
     spoint_t sp, nearest_sp;
-    sphere_t *nearest_obj = NULL;
+    const sphere_t *nearest_obj = NULL;
 
     nearest_sp.dist = INFINITY;
 
@@ -464,7 +464,7 @@ vec3_t trace(ray_t ray, int depth)
     }
 
     /* find the nearest intersection ... */
-    for (sphere_t *iter = obj_list; iter != NULL; iter = iter->next ) {
+    for (const sphere_t *iter = obj_list; iter != NULL; iter = iter->next ) {
         if ( ray_sphere(iter, ray, &sp) &&
              (!nearest_obj || sp.dist < nearest_sp.dist) ) {
             nearest_obj = iter;
@@ -666,7 +666,7 @@ int main(int argc, char *argv[])
     elapsed = omp_get_wtime() - tstart;
 
     /* output statistics to stderr */
-    fprintf(stderr, "Rendering took %f seconds\n", elapsed);
+    fprintf(stderr, "Rendering took %.3f seconds\n", elapsed);
 
     /* output the image */
     fprintf(outfile, "P6\n%d %d\n255\n", xres, yres);
