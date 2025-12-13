@@ -157,7 +157,7 @@ int iterate( float cx, float cy )
    of the WHOLE image. */
 void mandelbrot( int xsize, int ysize, pixel_t* bmap)
 {
-    const float XMIN = -2.3, XMAX = 1.0;
+    const float XMIN = -2.3f, XMAX = 1.0f;
     const float SCALE = (XMAX - XMIN)*ysize / xsize;
     const float YMIN = -SCALE/2, YMAX = SCALE/2;
 

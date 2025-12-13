@@ -127,11 +127,11 @@ const int NCOLORS = sizeof(COLORS)/sizeof(COLORS[0]);
  */
 int iterate( float cx, float cy )
 {
-    float x = 0.0f, y = 0.0f, xnew, ynew;
     int it;
-    for ( it = 0; (it < MAXIT) && (x*x + y*y <= 2.0*2.0); it++ ) {
+    float x = 0.0f, y = 0.0f, xnew, ynew;
+    for ( it = 0; (it < MAXIT) && (x*x + y*y <= 2.0f*2.0f); it++ ) {
         xnew = x*x - y*y + cx;
-        ynew = 2.0*x*y + cy;
+        ynew = 2.0f*x*y + cy;
         x = xnew;
         y = ynew;
     }
@@ -141,7 +141,7 @@ int iterate( float cx, float cy )
 /* Draw the Mandelbrot set on the bitmap pointed to by `p`. */
 void draw_lines( pixel_t* bmap, int xsize, int ysize )
 {
-    const float XMIN = -2.3, XMAX = 1.0;
+    const float XMIN = -2.3f, XMAX = 1.0f;
     const float SCALE = (XMAX - XMIN)*ysize / xsize;
     const float YMIN = -SCALE/2, YMAX = SCALE/2;
 
