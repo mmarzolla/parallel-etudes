@@ -222,7 +222,7 @@ bool eval(const problem_t *p, int v)
         const bool term = (v & p->x[c]) | (~v & p->nx[c]);
         result &= term;
     }
-    if (result) print_solution(p, v);
+    // if (result) print_solution(p, v);
     return result;
 }
 
