@@ -2,7 +2,7 @@
  *
  * cuda-matsum.cu - Matrix-matrix addition
  *
- * Copyright (C) 2017--2024 Moreno Marzolla
+ * Copyright (C) 2017--2025 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % HPC - Matrix-matrix addition
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-01-04
+% Last updated: 2025-12-10
 
 The program [cuda-matsum.cu](cuda-matsum.cu) computes the sum of two
 square matrices of size $N \times N$ using the CPU. Modify the program
@@ -143,7 +143,7 @@ int check( float *r, int n )
     int k = 0;
     for (int i=0; i<n; i++) {
         for (int j=0; j<n; j++) {
-            if (fabsf(r[i*n+j] - 2.0*k) > 1e-5) {
+            if (fabs(r[i*n+j] - 2.0f*k) > 1e-5) {
                 fprintf(stderr, "Check FAILED: r[%d][%d] = %f, expeted %f\n", i, j, r[i*n+j], 2.0*k);
                 return 0;
             }
