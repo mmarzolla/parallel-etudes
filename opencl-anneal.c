@@ -215,8 +215,8 @@ Example:
 
 - Tommaso Toffoli, Norman Margolus, _Cellular Automata Machines: a new
   environment for modeling_, MIT Press, 1987, ISBN 9780262526319.
-  [PDF](https://people.csail.mit.edu/nhm/cam-book.pdf) from Normal
-  Margolus home page.
+  [PDF](https://people.csail.mit.edu/nhm/cam-book.pdf) from [Norman
+  Margolus home page](https://people.csail.mit.edu/nhm/).
 
 ## Files
 
