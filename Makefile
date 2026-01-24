@@ -86,6 +86,8 @@ omp-cat-map: CFLAGS+=-O0
 
 mpi-pi: LDLIBS+=-lm
 
+mpi-gemv: LDLIBS+=-lm
+
 omp-pi: LDLIBS+=-lm
 
 omp-nbody: LDLIBS+=-lm

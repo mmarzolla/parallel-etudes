@@ -116,6 +116,7 @@ it.
 | List ranking                | X      | NA  |      |        | Pointer Jumping                                    |
 | Mandelbrot set              | X      | X   | X    | X      | Embarrassingly parallel, Load balancing            |
 | Matrix sum                  | X      |     | X    | X      | Embarrassingly parallel                            |
+| Matrix-vector multiply      |        | X   |      |        | Scatter/Gather                                     |
 | MergeSort                   | X      | NA  | NA   | NA     | Task-level parallelism                             |
 | Monte Carlo Pi              | X      | X   |      |        | Embarrassingly parallel, Reduction                 |
 | N-body simulation           | X      |     | X    | X      | Embarrassingly parallel, Load balancing, Reduction |
