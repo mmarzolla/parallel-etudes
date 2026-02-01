@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ## Performs the following replacements on stdin; write result
 ## to stdout:

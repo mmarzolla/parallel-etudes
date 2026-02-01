@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ## Use this script to extract comment blocks delimited by `/***` and
 ## `***/`. The delimiters *must* appear on a line from themselves,
