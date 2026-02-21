@@ -64,17 +64,17 @@ First of all, right before the `While` loop there must be a barrier
 synchronization so that all distances are properly initialized before
 the actual pointer jumping algorithm starts.
 
-Then, the pseudocode assumes that all instructions are executed in a
-SIMD way, which is something that does not happen with OpenMP.  In
-particular, the instruction
+Then, the pseudocode assumes that all processes executes synchronously
+(in a SIMD way), which does not happen with OpenMP. In particular, the
+instruction:
 
 ```
 Set d[n] ← d[n] + d[n.next].
 ```
 
-has a loop-carried dependence on `d[]`. Indeed, the pseudocode assumes
-that all processors _first_ compute `d[n] + d[n.next]`, and _then, all
-at the same time_, set the new value of `d[n]`.
+has a loop-carried dependence on `d[]`. The pseudocode assumes that
+all processors _first_ compute `d[n] + d[n.next]`, and _then, all at
+the same time_, set the new value of `d[n]`.
 
 ![Figure 1: Pointer jumping algorithm.](omp-list-ranking.svg)
 
