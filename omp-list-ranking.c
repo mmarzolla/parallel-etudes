@@ -143,45 +143,50 @@ void rank( list_node_t *nodes, int start, int n )
     next[1] = (int*)malloc(n * sizeof(int)); assert(next[1]);
     int cur = 0, new = 1;
 
+    /* The following macros make the code more readable */
+#define CUR_RANK(i) rank[cur][i]
+#define NEW_RANK(i) rank[new][i]
+#define CUR_NEXT(i) next[cur][i]
+#define NEW_NEXT(i) next[new][i]
+
     /* Initialization */
 #pragma omp parallel for default(none) shared(nodes,rank,next,n,cur)
     for (int i=0; i<n; i++) {
         if (nodes[i].next < 0)
-            rank[cur][i] = 0;
+            CUR_RANK(i) = 0;
         else
-            rank[cur][i] = 1;
-        next[cur][i] = nodes[i].next;
+            CUR_RANK(i) = 1;
+        CUR_NEXT(i) = nodes[i].next;
     }
 
     /* Compute ranks */
     while (!done) {
         done = 1;
-#pragma omp parallel default(none) shared(done,n,nodes,rank,next,cur,new)
-        {
-#pragma omp for
-            for (int i=0; i<n; i++) {
-                if (next[cur][i] >= 0) {
-                    done = 0;
-                    rank[new][i] = rank[cur][i] + rank[cur][next[cur][i]];
-                    next[new][i] = next[cur][next[cur][i]];
-                } else {
-                    rank[new][i] = rank[cur][i];
-                    next[new][i] = next[cur][i];
-                }
-            }
-            /* Swap cur and next */
-#pragma omp single
-            {
-                cur = 1 - cur;
-                new = 1 - cur;
+#pragma omp parallel for default(none) shared(n, done, rank, next, cur, new)
+        for (int i=0; i<n; i++) {
+            if (CUR_NEXT(i) >= 0) {
+                done = 0;
+                NEW_RANK(i) = CUR_RANK(i) + CUR_RANK(CUR_NEXT(i));
+                NEW_NEXT(i) = CUR_NEXT(CUR_NEXT(i));
+            } else {
+                NEW_RANK(i) = CUR_RANK(i);
+                NEW_NEXT(i) = CUR_NEXT(i);
             }
         }
+        /* Swap cur and next */
+        cur = 1 - cur;
+        new = 1 - cur;
     }
 
 #pragma omp parallel for
     for (int i=0; i<n; i++) {
-        nodes[i].rank = rank[cur][i];
+        nodes[i].rank = CUR_RANK(i);
     }
+
+#undef CUR_RANK
+#undef NEW_RANK
+#undef CUR_NEXT
+#undef NEW_NEXT
 
     free(rank[0]); free(rank[1]);
     free(next[0]); free(next[1]);
