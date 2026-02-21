@@ -2,7 +2,7 @@
  *
  * omp-list-ranking.c - Parallel list ranking
  *
- * Copyright (C) 2021, 2022, 2024 Moreno Marzolla
+ * Copyright (C) 2021, 2022, 2024, 2026 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Parallel list ranking
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-09-24
+% Last updated: 2026-02-21
 
 The goal of this exercise is to implement the _list ranking_
 algorithm. The algorithm takes a list of length $n$ as input; the list
@@ -126,10 +126,8 @@ void list_print(const list_node_t *nodes, int n)
    list is `nodes[start]`; the successor of `nodes[i]` is
    `nodes[nodes[i].next]`. The array serves as a conveniente way to
    allow each OpenMP thread to grab an element of the list in constant
-   time.
-
-   Upon termination, `ranks[i]` is the rank of `nodes[i]`. */
-void rank( list_node_t *nodes, int start, int *ranks, int n )
+   time. */
+void rank( list_node_t *nodes, int start, int n )
 {
 #ifdef SERIAL
     int rank = n;
@@ -138,63 +136,60 @@ void rank( list_node_t *nodes, int start, int *ranks, int n )
     }
 #else
     int done = 0;
-    int *cur_rank = (int*)malloc(n * sizeof(*cur_rank)); assert(cur_rank);
-    int *new_rank = (int*)malloc(n * sizeof(*new_rank)); assert(new_rank);
-    int *cur_next = (int*)malloc(n * sizeof(*cur_next)); assert(cur_next);
-    int *new_next = (int*)malloc(n * sizeof(*new_next)); assert(new_next);
-    assert(ranks);
+    int *rank[2], *next[2];
+    rank[0] = (int*)malloc(n * sizeof(int)); assert(rank[0]);
+    rank[1] = (int*)malloc(n * sizeof(int)); assert(rank[1]);
+    next[0] = (int*)malloc(n * sizeof(int)); assert(next[0]);
+    next[1] = (int*)malloc(n * sizeof(int)); assert(next[1]);
+    int cur = 0, new = 1;
 
     /* Initialization */
-#pragma omp parallel for default(none) shared(nodes,cur_rank,cur_next,n)
+#pragma omp parallel for default(none) shared(nodes,rank,next,n,cur)
     for (int i=0; i<n; i++) {
         if (nodes[i].next < 0)
-            cur_rank[i] = 0;
+            rank[cur][i] = 0;
         else
-            cur_rank[i] = 1;
-        cur_next[i] = nodes[i].next;
+            rank[cur][i] = 1;
+        next[cur][i] = nodes[i].next;
     }
 
     /* Compute ranks */
     while (!done) {
         done = 1;
-#pragma omp parallel default(none) shared(done,n,nodes,cur_rank,cur_next,new_rank,new_next)
+#pragma omp parallel default(none) shared(done,n,nodes,rank,next,cur,new)
         {
 #pragma omp for
             for (int i=0; i<n; i++) {
-                if (cur_next[i] >= 0) {
+                if (next[cur][i] >= 0) {
                     done = 0;
-                    new_rank[i] = cur_rank[i] + cur_rank[cur_next[i]];
-                    new_next[i] = cur_next[cur_next[i]];
+                    rank[new][i] = rank[cur][i] + rank[cur][next[cur][i]];
+                    next[new][i] = next[cur][next[cur][i]];
                 } else {
-                    new_rank[i] = cur_rank[i];
-                    new_next[i] = cur_next[i];
+                    rank[new][i] = rank[cur][i];
+                    next[new][i] = next[cur][i];
                 }
             }
             /* Swap cur and next */
 #pragma omp single
             {
-                int *tmp;
-                tmp = cur_rank;
-                cur_rank = new_rank;
-                new_rank = tmp;
-
-                tmp = cur_next;
-                cur_next = new_next;
-                new_next = tmp;
+                cur = 1 - cur;
+                new = 1 - cur;
             }
         }
     }
-    memcpy(ranks, cur_rank, n * sizeof(*ranks));
-    free(cur_rank);
-    free(new_rank);
-    free(cur_next);
-    free(new_next);
+
+#pragma omp parallel for
+    for (int i=0; i<n; i++) {
+        nodes[i].rank = rank[cur][i];
+    }
+
+    free(rank[0]); free(rank[1]);
+    free(next[0]); free(next[1]);
 #endif
 }
 
-/* Inizializza il contenuto della lista. Per agevolare il controllo di
-   correttezza, il valore presente in ogni nodo coincide con il rango
-   che ci aspettiamo venga calcolato. */
+/* Initialize the list. To simplify the correctness test, the value of
+   each node is its rank. */
 void init(list_node_t *nodes, int n, int *start)
 {
     for (int i=0; i<n; i++) {
@@ -205,12 +200,12 @@ void init(list_node_t *nodes, int n, int *start)
     *start = 0;
 }
 
-/* Controlla la correttezza del risultato */
-int check(const list_node_t *nodes, const int *ranks, int n)
+/* Check result. */
+int check(const list_node_t *nodes, int n)
 {
     for (int i=0; i<n; i++) {
-        if (ranks[i] != nodes[i].val) {
-            fprintf(stderr, "FAILED: rank[%d]=%d, expected %d\n", i, ranks[i], nodes[i].val);
+        if (nodes[i].rank != nodes[i].val) {
+            fprintf(stderr, "FAILED: rank[%d]=%d, expected %d\n", i, nodes[i].rank, nodes[i].val);
             return 0;
         }
     }
@@ -233,11 +228,10 @@ int main( int argc, char *argv[] )
     }
 
     list_node_t *nodes = (list_node_t*)malloc(n * sizeof(*nodes));
-    int *ranks = (int*)malloc(n * sizeof(*ranks));
     assert(nodes != NULL);
     init(nodes, n, &start);
-    rank(nodes, start, ranks, n);
-    check(nodes, ranks, n);
+    rank(nodes, start, n);
+    check(nodes, n);
     free(nodes);
     return EXIT_SUCCESS;
 }
