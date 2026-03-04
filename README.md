@@ -1,6 +1,6 @@
 # Parallel Etudes
 
-![](omp-c-ray.png)
+![](omp-c-ray-images.png)
 
 _Etudes for Programmers_ is an unusual yet influential book written by
 Charles Wetherell in 1978. The term _étude_ refers to a small musical
