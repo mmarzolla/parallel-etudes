@@ -91,9 +91,9 @@ BibTeX:
 Table 1 lists, for each exercise, which parallel versions are
 available, and which patterns are used to solve it.
 
-:Table 1: List of exercises
+:Table 1: List of etudes
 
-| Kernel                      | OpenMP | MPI | CUDA | OpenCL | Pattern                                            |
+| Etude                       | OpenMP | MPI | CUDA | OpenCL | Pattern                                            |
 |-----------------------------|--------|-----|------|--------|----------------------------------------------------|
 | All-Pairs Shortest Paths    | X      |     | X    | X      | (Almost) Embarrassingly parallel                   |
 | Anneal CA                   | X      |     | X    | X      | 2D Stencil                                         |
@@ -130,7 +130,7 @@ available, and which patterns are used to solve it.
 | Password cracking           | X      | X   |      |        | Embarrassingly parallel                            |
 | Ring communication          |        | X   |      |        | Point-to-point                                     |
 | Sieve of Eratosthenes       | X      |     | X    | X      | Embarrassingly parallel, Reduction                 |
-| Triangulare GEMV            | X      |     |      |        | Embarrassingly parallel                            |
+| Triangular GEMV             | X      |     |      |        | Embarrassingly parallel                            |
 | Ray tracing                 | X      | X   |      |        | Embarrassingly parallel, Scatter/Gather            |
 | Right shift of array        |        | X   |      |        | Point-to-point                                     |
 | Rule 30 CA                  | X      | X   | X    | X      | 1D Stencil, Point-to-point                         |
