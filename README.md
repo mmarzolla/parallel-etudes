@@ -2,13 +2,14 @@
 
 ![](parallel-etudes.jpg)
 
-_Etudes for Programmers_ is an unusual yet influential book written by
-Charles Wetherell in 1978. The term _étude_ refers to a small musical
-piece that is intended for learning to play an instrument.  The book
-argues that programming is a craft that -- at least in part -- is
-learned by practicing, like playing a musical instrument. To this aim,
-the book proposes a set of programming exercises of various levels of
-difficulty, from extremely simple to very complex.
+[Etudes for Programmers](https://dl.acm.org/doi/10.5555/1096892) is an
+unusual yet influential book written by Charles Wetherell in 1978. The
+term _étude_ refers to a small musical piece that is intended for
+learning to play an instrument.  The book argues that programming is a
+craft that -- at least in part -- is learned by practicing, like
+playing a musical instrument. To this aim, the book proposes a set of
+programming exercises of various levels of difficulty, from extremely
+simple to very complex.
 
 I strongly agree with Wetherell, and believe that the practice-based
 approach he suggests is appropriate also for learning _parallel_
@@ -18,27 +19,28 @@ I have been teaching, in various forms, over the past decade to
 Computer Science and Engineering students at the University of
 Bologna.
 
-The course is an elective, graduate course in parallel programming; it
-covers all the major parallel programming models, i.e., shared-memory,
-distributed-memory and GPU. Considerable emphasis is put on practical
-aspects of parallel programming using OpenMP, MPI and CUDA, for which
-the lab exercises in this repository have been developed.
+The course is an elective course in parallel programming, that has
+been taught both at the undergraduate and graduate level. It covers
+all the major parallel programming models, i.e., shared-memory,
+distributed-memory and GPU. Considerable emphasis is put on writing
+parallel programs using OpenMP, MPI and CUDA, for which the exercises
+in this repository have been developed.
 
-The labs are organized as follows: each exercise includes a detailed
-specification, and is provided with a fully functional serial
-solution. The goal is to parallelize the serial program using the
-techniques discussed in the previous classes. Solutions are made
-available at the end of each lab session, so that each student can
-compare his/her own code to the program provided by the instructor.
+Each exercise includes a detailed specification, and is provided with
+a fully functional serial solution. The goal is to parallelize the
+serial program using the techniques discussed during the
+classes. Solutions are made available at the end of each lab session,
+so that students can compare their own program with that provided by
+the instructor.
 
 In the spirit of Wetherell's _etudes_, some exercises are very simple,
 while others are more complex. However, the overall level of
 difficulty is moderate, since students are expected to solve at least
-a couple of exercises during each lab.
+a couple of exercises during each lab session.
 
 Some notable points:
 
-- These exercises require little or no knowledge outside computer
+- The exercises require little or no knowledge outside computer
   science; in particular, they do not require advanced knowledge of
   physics, linear algebra or numerical analysis.
 
@@ -87,8 +89,7 @@ BibTeX:
 ## List of exercises
 
 Table 1 lists, for each exercise, which parallel versions are
-available, and which parallel programming patterns are used to solve
-it.
+available, and which patterns are used to solve it.
 
 :Table 1: List of exercises
 
@@ -157,7 +158,9 @@ Type
 
 to generate the specification of each exercise in HTML format,
 together with the skeleton source code provided during the lab
-sessions, and the corresponding solution.
+sessions, and the corresponding solution. Specifications and serial
+skeleton code are then copied in `handouts/`, while solutions are
+copied in `solutions/`
 
 ## How it works
 
@@ -222,16 +225,16 @@ generates:
 The following figure illustrates the process:
 
 ```
-+--------+ sed   +---------+ pandoc   +------------+
-|        | ----> | file.md | -------> | file.html  |
-|        |       +---------+          +------------+
++--------+ sed   +---------+ pandoc   +---------------------+
+|        | ----> | file.md | -------> | handouts/file.html  |
+|        |       +---------+          +---------------------+
 |        |
-|        | unifdef -DSERIAL     +------------------+
-| file.c | -------------------> | handouts/file.c  |
-|        |                      +------------------+
+|        | unifdef -DSERIAL           +---------------------+
+| file.c | -------------------------> | handouts/file.c     |
+|        |                            +---------------------+
 |        |
-|        | unifdef -USERIAL     +------------------+
-|        | -------------------> | solutions/file.c |
-+--------+                      +------------------+
+|        | unifdef -USERIAL           +---------------------+
+|        | -------------------------> | solutions/file.c    |
++--------+                            +---------------------+
 ```
 
