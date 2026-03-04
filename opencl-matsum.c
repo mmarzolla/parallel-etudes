@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - Matrix-matrix addition
+% Matrix-matrix addition
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2025-12-10
 

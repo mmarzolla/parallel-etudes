@@ -21,7 +21,7 @@
  ****************************************************************************/
 
 /***
-% HPC - N-Body simulation
+% N-Body simulation
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2025-10-17
 

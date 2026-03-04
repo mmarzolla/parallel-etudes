@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - Image denoising
+% Image denoising
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2025-10-09
 

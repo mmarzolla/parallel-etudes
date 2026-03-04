@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * omp-anneal.cu - ANNEAL cellular automaton
+ * omp-anneal.c - ANNEAL cellular automaton
  *
  * Copyright (C) 2017--2026 Moreno Marzolla
  *
@@ -20,7 +20,7 @@
  ****************************************************************************/
 
 /***
-% HPC - ANNEAL cellular automaton
+% ANNEAL cellular automaton
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2026-03-04
 
