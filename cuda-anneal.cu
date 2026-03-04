@@ -46,7 +46,7 @@ $$
 
 See Figure 1 for some examples.
 
-![Figure 1: Computation of the new state of the central cell of a block of size $3 \times 3$.](cuda-anneal1.svg)
+![Figure 1: Computation of the new state of the central cell of a block of size $3 \times 3$.](anneal.svg)
 
 To simulate synchronous, concurrent updates of all cells, two domains
 must be used. The state of a cell is read from the "current" domain,

@@ -12,17 +12,17 @@ difficulty, from extremely simple to very complex.
 
 I strongly agree with Wetherell, and believe that the practice-based
 approach he suggests is appropriate also for learning _parallel_
-programming. I incorporated this idea in the [High Performance
-Computing](https://www.moreno.marzolla.name/teaching/HPC/) course that
-I have been teaching over the past years to Computer Science and
-Engineering students at the University of Bologna.
+programming. I incorporated this idea in the [Parallel
+Computing](https://www.moreno.marzolla.name/teaching/CP/) course that
+I have been teaching, in various forms, over the past decade to
+Computer Science and Engineering students at the University of
+Bologna.
 
-The course is an elective, undergraduate course in parallel
-programming; it covers all the major parallel programming models,
-i.e., shared-memory, distributed-memory and GPU. Considerable emphasis
-is put on practical aspects of parallel programming using OpenMP, MPI
-and CUDA, for which the lab exercises in this repository have been
-developed.
+The course is an elective, graduate course in parallel programming; it
+covers all the major parallel programming models, i.e., shared-memory,
+distributed-memory and GPU. Considerable emphasis is put on practical
+aspects of parallel programming using OpenMP, MPI and CUDA, for which
+the lab exercises in this repository have been developed.
 
 The labs are organized as follows: each exercise includes a detailed
 specification, and is provided with a fully functional serial
@@ -43,13 +43,15 @@ Some notable points:
   physics, linear algebra or numerical analysis.
 
 - Many exercises are designed to be interesting, and are taken from
-  different domains such as 3D graphics, Cellular Automata,
-  gravitational N-body simulations, cryptography, and others. Some
-  programs generate images or movies, to make them more appealing.
+  different domains such as [3D graphics](omp-c-ray.c), [Cellular
+  Automata](cuda-anneal.cu), [gravitational N-body
+  simulations](mpi-n-body.c), [cryptography](omp-brute-force.c), and
+  others. Some programs generate images or movies, to make them more
+  appealing.
 
 - Some exercises can be parallelized using different paradigms. This
-  is quite useful to appreciate the strengths and weaknesses of each
-  parallel programming model.
+  is useful to better understand the strengths and weaknesses of
+  different parallel programming models.
 
 ## Citation
 
@@ -88,12 +90,12 @@ Table 1 lists, for each exercise, which parallel versions are
 available, and which parallel programming patterns are used to solve
 it.
 
-: Table 1: List of exercises
+:Table 1: List of exercises
 
 | Kernel                      | OpenMP | MPI | CUDA | OpenCL | Pattern                                            |
 |-----------------------------|--------|-----|------|--------|----------------------------------------------------|
 | All-Pairs Shortest Paths    | X      |     | X    | X      | (Almost) Embarrassingly parallel                   |
-| Anneal CA                   |        |     | X    | X      | 2D Stencil                                         |
+| Anneal CA                   | X      |     | X    | X      | 2D Stencil                                         |
 | Area of the Mandelbrot set  | X      | X   | X    | X      | Embarrassingly parallel, Load balancing, Reduction |
 | Area of union of circles    |        | X   |      |        | Embarrassingly parallel, Scatter/Gather, Reduction |
 | Arnold's cat map            | X      |     | X    | X      | Embarrassingly parallel                            |
@@ -120,7 +122,7 @@ it.
 | Matrix sum                  | X      |     | X    | X      | Embarrassingly parallel                            |
 | Matrix-vector multiply      |        | X   |      |        | Scatter/Gather                                     |
 | MergeSort                   | X      | NA  | NA   | NA     | Task-level parallelism                             |
-| Monte Carlo Pi              | X      | X   |      |        | Embarrassingly parallel, Reduction                 |
+| Monte Carlo $\pi$           | X      | X   |      |        | Embarrassingly parallel, Reduction                 |
 | N-body simulation           | X      |     | X    | X      | Embarrassingly parallel, Load balancing, Reduction |
 | Odd-Even Sort               | X      | X   | X    | X      | Scatter/Gather, Point-to-point                     |
 | OpenMP `schedule()`         | X      | NA  | NA   | NA     | OpenMP loop scheduling                             |
