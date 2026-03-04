@@ -157,27 +157,27 @@ edge-detect.png: omp-edge-detect BWstop-sign.pgm
 
 cat-map.png: omp-cat-map
 	for niter in 0 1 2 5 10 36; do \
-	  ./omp-cat-map "$${niter}" < cat1368.pgm > `printf "cat-map-demo-%02d.pgm" $${niter}` ; \
+	  ./omp-cat-map "$${niter}" < cat1368.pgm > `printf "cat-map-demo-%02d.tmp.pgm" $${niter}` ; \
 	done
-	montage "cat-map-demo-[0-9]*.pgm" -scale x300 -tile 6x1 -geometry +2+4 $@
-	\rm -f "cat-map-demo-[0-9]*.pgm"
+	montage "cat-map-demo-[0-9]*.tmp.pgm" -scale x300 -tile 6x1 -geometry +2+4 $@
+	\rm -f "cat-map-demo-[0-9]*.tmp.pgm"
 
 cat-map-demo.png: omp-cat-map
 	for niter in 0 1 2 5 10 36; do \
-	  ./omp-cat-map "$${niter}" < cat1368.pgm > "cat-map-demo-$${niter}.pgm" ; \
-	  convert "cat-map-demo-$${niter}.pgm" -resize 128 -pointsize 18 -background white label:"K = $$niter" -gravity Center -append `printf "cat-map-demo-%02d.png" $${niter}` ; \
+	  ./omp-cat-map "$${niter}" < cat1368.pgm > "cat-map-demo-$${niter}.tmp.pgm" ; \
+	  convert "cat-map-demo-$${niter}.tmp.pgm" -resize 128 -pointsize 18 -background white label:"K = $$niter" -gravity Center -append `printf "cat-map-demo-%02d.tmp.png" $${niter}` ; \
 	done
-	montage "cat-map-demo-[0-9]*.png" -tile 6x1 -geometry +5+5 $@
-	\rm -f "cat-map-demo-[0-9]*.pgm" "cat-map-demo-[0-9]*.png"
+	montage "cat-map-demo-[0-9]*.tmp.png" -tile 6x1 -geometry +5+5 $@
+	\rm -f "cat-map-demo-[0-9]*.tmp.pgm" "cat-map-demo-[0-9]*.tmp.png"
 
 anneal-demo.png: opencl-anneal
 	for niter in 0 10 100 1000; do \
 	  FILENAME=`printf "opencl-anneal-%06d.pbm" $${niter}` ; \
 	  ./opencl-anneal "$${niter}" ; \
-	  convert "$${FILENAME}" -resize 256 -pointsize 18 -background white label:"$$niter Iterations" -gravity Center -append `printf "anneal-demo-%06d.png" $${niter}` ; \
+	  convert "$${FILENAME}" -resize 256 -pointsize 18 -background white label:"$$niter Iterations" -gravity Center -append `printf "anneal-demo-%06d.tmp.png" $${niter}` ; \
 	done
-	montage "anneal-demo-[0-9]*.png" -tile 4x1 -geometry +5+5 $@
-	\rm -f "opencl-anneal-[0-9]*.pbm" "anneal-demo-[0-9]*.png"
+	montage "anneal-demo-[0-9]*.tmp.png" -tile 4x1 -geometry +5+5 $@
+	\rm -f "opencl-anneal-[0-9]*.pbm" "anneal-demo-[0-9]*.tmp.png"
 
 valve-noise.tmp.ppm: valve.png
 	convert $< -attenuate 0.2 +noise impulse -format ppm $@
@@ -225,7 +225,7 @@ pub: MAKE_DIRS ${HTML} ${HANDOUTS_SRC} ${SOLUTIONS_SRC} ${OUTFILES}
 	put-aruba.sh
 
 clean:
-	\rm -r -f *.html a.out *.o *.s ${EXE} *-anneal.avi coupled-oscillators.ppm opencl-anneal-*-out.png cuda-rule30.pbm opencl-rule30.pbm *.tmp.p[pbg]m sphfract.ppm opencl-mandelbrot.ppm cuda-mandelbrot.ppm cat-map-demo-[0-9]*.png cat-map-demo-[0-9]*.pgm anneal-demo-[0-9]*.p?? count-locs.tex
+	\rm -r -f *.html a.out *.o *.s ${EXE} *-anneal.avi coupled-oscillators.ppm opencl-anneal-*-out.png cuda-rule30.pbm opencl-rule30.pbm *.tmp.p?? *-mandelbrot.ppm count-locs.tex
 
 distclean: clean
 	\rm -rf handouts/* solutions/*
