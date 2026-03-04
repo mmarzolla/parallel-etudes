@@ -13,7 +13,7 @@ HANDOUTS_SRC := ${SRC:%.c=handouts/%.c} ${SRC:%.cu=handouts/%.cu} ${SRC:%.cl=han
 SOLUTIONS_SRC := ${SRC:%.c=solutions/%.c} ${SRC:%.cu=solutions/%.cu} ${SRC:%.cl=solutions/%.cl} ${INC:%.h=solutions/%.h}
 HTML := ${SRC:%.c=handouts/%.html} ${SRC:%.cu=handouts/%.html}
 EXTRAS += lab.css $(wildcard *.png *.svg *.jpg *.pgm *.ppm *.md *.sh *.odp *.odg) mpi-rule30.pdf
-IMGS := omp-c-ray-images.jpg denoise.png simd-map-levels.png edge-detect.png cat-map.png cat-map-demo.png anneal-demo.png
+IMGS := omp-c-ray-images.jpg denoise.png simd-map-levels.png edge-detect.png cat-map.png cat-map-demo.png anneal-demo.png parallel-etudes.jpg
 CFLAGS += -std=c99 -Wall -Wpedantic
 LDLIBS +=
 PANDOC_EXTRA_OPTS += -V lang=en-US --mathjax="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
@@ -134,12 +134,17 @@ spheres.in: gen-spheres
 dna.in: gen-dna
 	./gen-dna > $@
 
-omp-c-ray-images.jpg: omp-c-ray sphfract.small.in spheres.in dna.in
-	./omp-c-ray -r 10 < sphfract.small.in > c-ray1.tmp.ppm
-	./omp-c-ray -r 10 < spheres.in > c-ray2.tmp.ppm
-	./omp-c-ray -r 10 < dna.in > c-ray3.tmp.ppm
-	montage c-ray?.tmp.ppm -tile 3x1 -geometry +2+4 $@
-	\rm -f c-ray?.tmp.ppm
+sphfract.small.tmp.ppm: omp-c-ray sphfract.small.in
+	./omp-c-ray -r 10 < sphfract.small.in > $@
+
+spheres.tmp.ppm: omp-c-ray spheres.in
+	./omp-c-ray -r 10 < spheres.in > $@
+
+dna.tmp.ppm: omp-c-ray dna.in
+	./omp-c-ray -r 10 < dna.in > $@
+
+omp-c-ray-images.jpg: sphfract.small.tmp.ppm spheres.tmp.ppm dna.tmp.ppm
+	montage $< -tile 3x1 -geometry +2+4 $@
 
 simd-map-levels.png: simd-map-levels simd-map-levels-in.pgm
 	./simd-map-levels 100 180 < simd-map-levels-in.pgm > simd-map-levels.tmp.pgm
@@ -174,13 +179,20 @@ anneal-demo.png: opencl-anneal
 	montage "anneal-demo-[0-9]*.png" -tile 4x1 -geometry +5+5 $@
 	\rm -f "opencl-anneal-[0-9]*.pbm" "anneal-demo-[0-9]*.png"
 
-valve-noise.ppm: valve.png
+valve-noise.tmp.ppm: valve.png
 	convert $< -attenuate 0.2 +noise impulse -format ppm $@
 
-denoise.png: omp-denoise valve-noise.ppm
-	./omp-denoise < valve-noise.ppm > valve-clear.tmp.ppm
-	montage valve-noise.ppm valve-clear.tmp.ppm -tile 2x1 -geometry +2+4 $@
-	\rm -f valve-clear.tmp.ppm
+valve-clear.tmp.ppm: omp-denoise valve-noise.tmp.ppm
+	./omp-denoise < valve-noise.tmp.ppm > $@
+
+denoise.png: valve-noise.tmp.ppm valve-clear.tmp.ppm
+	montage $< -tile 2x1 -geometry +2+4 $@
+
+# cover image
+parallel-etudes.jpg: dna.tmp.ppm omp-anneal mandelbrot-set.png rule30.png
+	./omp-anneal 200
+	montage -scale x480 mandelbrot-set.png omp-anneal-000200.pbm dna.tmp.ppm rule30.png -tile 4x1 -geometry +2+4 $@
+	\rm -f omp-anneal-000200.pbm
 
 handouts/%.c: %.c
 	./expand-includes.sh $< | unifdef -x2 -DSERIAL > $@
@@ -213,7 +225,7 @@ pub: MAKE_DIRS ${HTML} ${HANDOUTS_SRC} ${SOLUTIONS_SRC} ${OUTFILES}
 	put-aruba.sh
 
 clean:
-	\rm -r -f *.html a.out *.o *.s ${EXE} anneal-*.pbm coupled-oscillators.ppm anneal.avi cuda-anneal-*.pbm cuda-anneal.avi opencl-anneal-*.pbm opencl-anneal-*-out.png opencl-anneal.avi cuda-rule30.pbm opencl-rule30.pbm *.tmp.p[pbg]m sphfract.ppm opencl-mandelbrot.ppm cuda-mandelbrot.ppm cat-map-demo-[0-9]*.png cat-map-demo-[0-9]*.pgm anneal-demo-[0-9]*.p?? count-locs.tex
+	\rm -r -f *.html a.out *.o *.s ${EXE} *-anneal.avi coupled-oscillators.ppm opencl-anneal-*-out.png cuda-rule30.pbm opencl-rule30.pbm *.tmp.p[pbg]m sphfract.ppm opencl-mandelbrot.ppm cuda-mandelbrot.ppm cat-map-demo-[0-9]*.png cat-map-demo-[0-9]*.pgm anneal-demo-[0-9]*.p?? count-locs.tex
 
 distclean: clean
 	\rm -rf handouts/* solutions/*
