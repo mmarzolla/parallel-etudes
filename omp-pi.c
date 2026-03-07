@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * omp-pi.c - Monte Carlo approximation of PI
+ * omp-pi.c - Estimate PI using random numbers
  *
- * Copyright (C) 2017--2025 Moreno Marzolla
+ * Copyright (C) 2017--2026 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,13 +20,13 @@
  ****************************************************************************/
 
 /***
-% Monte Carlo approximation of $\pi$
+% Estimate $\pi$ using random numbers
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-10-09
+% Last updated: 2026-03-07
 
 The file [omp-pi.c](omp-pi.c) implements a serial Monte Carlo
 algorithm for computing the approximate value of $\pi$. Monte Carlo
-algorithms use pseudo-random numbers to evaluate some function of
+algorithms use (pseudo-)random numbers to evaluate some function of
 interest.
 
 ![Figure 1: Monte Carlo computation of the value of $\pi$.](pi_Monte_Carlo.svg)

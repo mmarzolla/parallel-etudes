@@ -2,7 +2,7 @@
  *
  * omp-cat-map.c - Arnold's cat map
  *
- * Copyright (C) 2016--2023, 2024, 2025 Moreno Marzolla
+ * Copyright (C) 2016--2026 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Arnold's cat map
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-10-09
+% Last updated: 2026-03-06
 
 ![](cat-map.png)
 
@@ -122,9 +122,9 @@ Example:
 
 ## Suggestions
 
-The provided function `cat_map()` is based on the following template:
+The provided function `cat_map()` is based on the following pseudocode:
 
-```C
+```
 for (int i=0; i<k; i++) {
     for (int y=0; y<N; y++) {
         for (int x=0; x<N; x++) {
@@ -132,7 +132,7 @@ for (int i=0; i<k; i++) {
             P'(x', y') = P(x, y);
         }
     }
-    P = P';
+    Exchange P and P';
 }
 ```
 
@@ -140,7 +140,7 @@ The two inner loops build $P'$ from $P$; the outer loop applies this
 transformation $k$ times, using the result of the previous iteration
 as the source image. Therefore, the outer loop can _not_ be
 parallelized (the result of an iteration is used as input for the next
-one). Therefore, in the version above you can either:
+one); instead, you can either:
 
 1. Parallelize the `y` loop only, or
 
@@ -149,13 +149,10 @@ one). Therefore, in the version above you can either:
 3. Parallelize both the `y` and `x` loops using the `collapse(2)`
    clause.
 
-(I suggest to try options 1 and/or 3. Option 2 does not appear to be
-efficient in practice: why?).
+On this particular computation we can exchange the loops as follows
+(this kind of transformation is sometimes called _loop interchange_):
 
-We can apply the _loop interchange_ transformation to rewrite the
-code above as follows:
-
-```C
+```
 for (int y=0; y<N; y++) {
     for (int x=0; x<N; x++) {
         xcur = x; ycur = y;
@@ -171,9 +168,8 @@ for (int y=0; y<N; y++) {
 
 This version can be understood as follows: the two outer loops iterate
 over all pixels $(x, y)$. For each pixel, the inner loop computes the
-target position $(\mathit{xnext}, \mathit{ynext}) = C^k(x,y)$ that the
-pixel of coordinates $(x, y)$ will occupy after $k$ iterations of the
-cat map.
+final position $(\mathit{xnext}, \mathit{ynext}) = C^k(x,y)$ that the
+pixel $(x, y)$ will occupy after $k$ iterations.
 
 In this second version, we have the following options:
 
@@ -183,24 +179,23 @@ b. Parallelize the middle loop on `x`, or
 
 c. Parallelize the two outermost loops with the `collapse(2)` directive.
 
-(I suggest to try option c).
-
-Intuitively, we might expect that (c) performs better than (3), because:
+Intuitively, we expect this version to perform better than the
+previous one, because:
 
 - the loop granularity is higher, and
 
 - there are fewer writes to memory.
 
-Interestingly, this does not appear to be the case (at least, not on
-every processor). Table 1 shows the execution time of two versions of
-the `cat_map()` function ("No loop interchange" refers to option (3);
+Interestingly, this does not appear to be the case on every
+processor. Table 1 shows the execution time of two versions of the
+`cat_map()` function ("No loop interchange" refers to option (3);
 "Loop interchange" refers to option (c)). The program has been
 compiled with:
 
         gcc -std=c99 -Wall -Wpedantic -O0 -fopenmp omp-cat-map.c -o omp-cat-map
 
-(`-O0` prevents the compiler from applying code transformations that
-might alter the functions too much) and executed as:
+to prevent the compiler from applying code transformations that might
+alter the functions, and executed as:
 
         ./omp-cat-map 2048 < cat1368.pgm > /dev/null
 
@@ -210,18 +205,19 @@ Each measurement is the average of five independent executions.
 
 Processor           Cores   GHz  GCC version  No loop interchange   Loop interchange
 ------------------ ------ ----- ------------ -------------------- ------------------
-Intel Xeon E3-1220      4   3.5       11.4.0                 6.84              12.90
-Intel Xeon E5-2603     12   1.7        9.4.0                 6.11               7.74
+Intel Xeon E3-1220      4   3.5       11.4.0               *6.84*              12.90
+Intel Xeon E5-2603     12   1.7        9.4.0               *6.11*               7.74
 Intel i7-4790         4+4   3.6        9.4.0                 6.25               6.02
 Intel i7-9800X        8+8   3.8       11.4.0                 2.27               2.34
-Intel i5-11320H       4+4   4.5        9.4.0                 3.94               4.01
-Intel Atom N570       2+2   1.6        7.5.0               128.69              92.47
-Raspberry Pi 4          4   1.5        8.3.0                35.72              32.55
+Intel i5-11320H       4+4   3.2       13.3.0                 3.19               3.93
+Intel i9-12900F     8+8+8   5.1       13.3.0                 2.21             *0.92*
+Intel Atom N570       2+2   1.6        7.5.0               128.69            *92.47*
+Raspberry Pi 4          4   1.5       12.2.0                27.48            *16.77*
 
-On some platforms (Intel i5, i7 and Raspberry Pi 4) there is little or
-no difference between the two versions. Loop interchange provides a
-significant performance boost on the very old Intel Atom N570
-processor, but provides worse performance on the Xeon processors.
+On some platforms there is little or no difference between the two
+versions. However, loop interchange provides a significant performance
+boost on the very old Intel Atom N570, and on the very new Intel
+i9-12900F processors.
 
 ## To probe further
 

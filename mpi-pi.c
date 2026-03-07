@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * mpi-pi.c - Monte Carlo approximatino of PI
+ * mpi-pi.c - Estimate PI using random numbers
  *
- * Copyright (C) 2017--2022, 2024 Moreno Marzolla
+ * Copyright (C) 2017--2026 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,14 +20,14 @@
  ****************************************************************************/
 
 /***
-% Monte Carlo approximation of PI
+% Estimate $\pi$ using random numbers
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-10-25
+% Last updated: 2026-03-07
 
 The file [mpi-pi.c](mpi-pi.c) contains a serial program for computing
 the approximate value of $\pi$ using a Monte Carlo algorithm. Monte
-Carlo algorithms use pseudorandom numbers to compute an approximation
-of some quantity of interest.
+Carlo algorithms use (pseudo-)random numbers to evaluate some function
+of interest.
 
 ![Figure 1: Monte Carlo computation of the value of $\pi$](pi_Monte_Carlo.svg)
 
