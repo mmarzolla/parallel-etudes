@@ -200,8 +200,7 @@ int make_hist( const char *text, int hist[ALPHA_LEN] )
         }
     }
 
-    /* compute the frequencies by summing the local histograms element
-       by element. */
+    /* Performs column-wise reduction of `local_hist[][]`. */
     for (int j=0; j<ALPHA_LEN; j++) {
         int s = 0;
         for (int i=0; i<num_threads; i++) {
