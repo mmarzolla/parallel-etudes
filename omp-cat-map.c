@@ -22,7 +22,7 @@
 /***
 % Arnold's cat map
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2026-03-06
+% Last updated: 2026-03-10
 
 ![](cat-map.png)
 
@@ -250,7 +250,7 @@ $k(x, y)$.  Table 2 shows the minimum recurrence time for some $N$.
 ------- -------------------------
 
 Figure 3 shows the minimum recurrence time as a function of
-$N$. Despite the fact that the values jumps around, they tend to align
+$N$. Despite the fact that the values jump around, they tend to align
 along straight lines.
 
 ![Figure 3: Minimum recurrence time as a function of the image size $N$](cat-map-rectime.png)
