@@ -207,7 +207,7 @@ Processor           Cores   GHz  GCC version  No loop interchange   Loop interch
 ------------------ ------ ----- ------------ -------------------- ------------------
 Intel Xeon E3-1220      4   3.5       11.4.0               *6.84*              12.90
 Intel Xeon E5-2603     12   1.7        9.4.0               *6.11*               7.74
-Intel i7-4790         4+4   3.6        9.4.0                 6.25               6.02
+Intel i7-4790         4+4   3.6        9.4.0                 6.18               5.86
 Intel i7-9800X        8+8   3.8       11.4.0                 2.27               2.34
 Intel i5-11320H       4+4   3.2       13.3.0                 3.19               3.93
 Intel i9-12900F     8+8+8   5.1       13.3.0                 2.21             *0.92*
@@ -370,9 +370,11 @@ int main( int argc, char* argv[] )
     /**
      ** WITHOUT loop interchange
      **/
+    fprintf(stderr, "\n=== Without loop interchange ===\n\n");
+
     elapsed = 0.0;
     for (int i=0; i<NTESTS; i++) {
-        fprintf(stderr, "Run %d of %d\n", i+1, NTESTS);
+        fprintf(stderr, "Run %d of %d\r", i+1, NTESTS);
         const double tstart = omp_get_wtime();
         cat_map(&img, niter);
         elapsed += omp_get_wtime()- tstart;
@@ -380,40 +382,38 @@ int main( int argc, char* argv[] )
             write_pgm(stdout, &img, "produced by omp-cat-map.c");
     }
     elapsed /= NTESTS;
-
-    fprintf(stderr, "\n=== Without loop interchange ===\n");
 #if defined(_OPENMP)
     fprintf(stderr, "  OpenMP threads: %d\n", omp_get_max_threads());
 #else
     fprintf(stderr, "  OpenMP disabled\n");
 #endif
-    fprintf(stderr, "    Iterations: %d\n", niter);
-    fprintf(stderr, "  Width,Height: %d,%d\n", img.width, img.height);
-    fprintf(stderr, "      Mops/sec: %f\n", 1.0e-6 * img.width * img.height * niter / elapsed);
-    fprintf(stderr, "Execution time  %.3f\n\n", elapsed);
+    fprintf(stderr, "      Iterations: %d\n", niter);
+    fprintf(stderr, "    Width,Height: %d,%d\n", img.width, img.height);
+    fprintf(stderr, "        Mops/sec: %f\n", 1.0e-6 * img.width * img.height * niter / elapsed);
+    fprintf(stderr, "  Execution time: %.3f\n\n", elapsed);
 
     /**
      ** WITH loop interchange
      **/
+    fprintf(stderr, "\n=== With loop interchange ===\n\n");
+
     elapsed = 0.0;
     for (int i=0; i<NTESTS; i++) {
-        fprintf(stderr, "Run %d of %d\n", i+1, NTESTS);
+        fprintf(stderr, "Run %d of %d\r", i+1, NTESTS);
         const double tstart = omp_get_wtime();
         cat_map_interchange(&img, niter);
         elapsed += omp_get_wtime() - tstart;
     }
     elapsed /= NTESTS;
-
-    fprintf(stderr, "\n=== With loop interchange ===\n");
 #if defined(_OPENMP)
     fprintf(stderr, "  OpenMP threads: %d\n", omp_get_max_threads());
 #else
     fprintf(stderr, "  OpenMP disabled\n");
 #endif
-    fprintf(stderr, "    Iterations: %d\n", niter);
-    fprintf(stderr, "  Width,Height: %d,%d\n", img.width, img.height);
-    fprintf(stderr, "      Mops/sec: %.4f\n", 1.0e-6 * img.width * img.height * niter / elapsed);
-    fprintf(stderr, "Execution time  %.3f\n\n", elapsed);
+    fprintf(stderr, "      Iterations: %d\n", niter);
+    fprintf(stderr, "    Width,Height: %d,%d\n", img.width, img.height);
+    fprintf(stderr, "        Mops/sec: %.4f\n", 1.0e-6 * img.width * img.height * niter / elapsed);
+    fprintf(stderr, "  Execution time: %.3f\n\n", elapsed);
 
     free_pgm( &img );
     return EXIT_SUCCESS;
