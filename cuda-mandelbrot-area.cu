@@ -134,7 +134,7 @@ mandelbrot_area_kernel( int xsize,
 
     __syncthreads();
 
-    /* column-wisd reduction */
+    /* column-wise reduction */
     for ( int bsize = blockDim.x / 2; bsize > 0; bsize /= 2 ) {
         if ( lx < bsize ) {
             local_inside[ly][lx] += local_inside[ly][lx + bsize];

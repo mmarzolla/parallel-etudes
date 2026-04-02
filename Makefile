@@ -12,7 +12,7 @@ OUTFILES :=
 HANDOUTS_SRC := ${SRC:%.c=handouts/%.c} ${SRC:%.cu=handouts/%.cu} ${SRC:%.cl=handouts/%.cl} ${INC:%.h=handouts/%.h}
 SOLUTIONS_SRC := ${SRC:%.c=solutions/%.c} ${SRC:%.cu=solutions/%.cu} ${SRC:%.cl=solutions/%.cl} ${INC:%.h=solutions/%.h}
 HTML := ${SRC:%.c=handouts/%.html} ${SRC:%.cu=handouts/%.html}
-EXTRAS += lab.css $(wildcard *.png *.svg *.jpg *.pgm *.ppm *.md *.sh *.odp *.odg) mpi-rule30.pdf
+EXTRAS += parallel-etudes.css $(wildcard *.png *.svg *.jpg *.pgm *.ppm *.md *.sh *.odp *.odg) mpi-rule30.pdf
 IMGS := omp-c-ray-images.jpg denoise.png simd-map-levels.png edge-detect.png cat-map.png cat-map-demo.png anneal-demo.png parallel-etudes.jpg
 CFLAGS += -std=c99 -Wall -Wpedantic
 LDLIBS +=
@@ -113,7 +113,7 @@ cuda-nbody-shared: cuda-nbody.cu
 	$(NVCC) $(NVCFLAGS) $< -o $@
 
 handouts/%.html: %.md
-	pandoc -s $(PANDOC_EXTRA_OPTS) --from markdown --css lab.css --to html5 $< > $@
+	pandoc -s $(PANDOC_EXTRA_OPTS) --from markdown --css parallel-etudes.css --to html5 $< > $@
 
 %.md: %.c
 	./extract-markdown.sh $< > $@
@@ -222,7 +222,7 @@ pub: MAKE_DIRS ${HTML} ${HANDOUTS_SRC} ${SOLUTIONS_SRC} ${OUTFILES}
 	@cp -a -u ${EXTRAS} ${DATAFILES} ${OUTFILES} handouts/
 	rsync -av --delete-after handouts/ ~/public_html/teaching/calcolo-parallelo/2025-2026/handouts && \
 	rsync -av --delete-after solutions/ ~/public_html/teaching/calcolo-parallelo/2025-2026/solutions && \
-	put-aruba.sh
+	put-aruba
 
 clean:
 	\rm -r -f *.html a.out *.o *.s ${EXE} *-anneal.avi coupled-oscillators.ppm opencl-anneal-*-out.png cuda-rule30.pbm opencl-rule30.pbm *.tmp.p?? *-mandelbrot.ppm count-locs.tex
