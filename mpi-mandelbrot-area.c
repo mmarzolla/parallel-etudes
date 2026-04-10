@@ -2,7 +2,7 @@
  *
  * mpi-mandelbrot-area.c - Area of the Mandelbrot set
  *
- * Copyright (C) 2024--2005 Moreno Marzolla
+ * Copyright (C) 2024--2026 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,35 +22,32 @@
 /***
 % Area of the Mandelbrot set
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-10-09
+% Last updated: 2026-04-20
 
 The Mandelbrot set is the set of black points in Figure 1.
 
 ![Figure 1: The Mandelbrot set](mandelbrot-set.png)
 
 The file [mpi-mandelbrot-area.c](mpi-mandelbrot-area.c) contains a
-serial program that computes an estimate of the area of the Mandelbrot
-set.
+serial program that estimates the area of the Mandelbrot set using a
+Monte Carlo method.
 
-The program works as follows. First, we identify a rectangle in the
+The program works as follows. First, it defines a rectangle in the
 complex plane that contains the Mandelbrot set. Let _(XMIN, YMIN)_ and
 _(XMAX, YMAX)_ be the upper left and lower right coordinates of such a
-rectangle (the program defines these values).
-
-The program overlaps a regular grid of $N \times N$ points over the
-bounding rectangle. For each point we decide whether it belongs to the
-Mandelbrot set. Let $x$ be the number of points that belong to the
-Mandelbrot set (by construction, $x \leq N \times N$). Let $B$ be the
-area of the bounding rectangle defined as
+rectangle. Then, the program generates $N$ random points inside the
+rectangle. Let $x$ be the number of points that belong to the
+Mandelbrot set (by construction, $x \leq N$). Let $B$ be the area of
+the bounding rectangle defined as
 
 $$
 B := (\mathrm{XMAX} - \mathrm{XMIN}) \times (\mathrm{YMAX} - \mathrm{YMIN})
 $$
 
-Then, the area $A$ of the Mandelbrot set can be approximated as
+The area $A$ of the Mandelbrot set can be approximated as
 
 $$
-A \approx \frac{x}{N^2} \times B
+A \approx \frac{x}{N} \times B
 $$
 
 The approximation gets better as the number of points $N$ becomes
@@ -58,19 +55,14 @@ larger. The exact value of $A$ is not known, but there are [some
 estimates](https://www.fractalus.com/kerry/articles/area/mandelbrot-area.html).
 
 Modify the serial program to use the distributed-memory parallelism
-provided by MPI. To this aim, you can logically distribute the $N$
-rows of the grid across $P$ MPI processes. No communication is
-required, since each process can compute the start (included) and end
-(excluded) line with the usual formulas:
+provided by MPI. If there are $P$ MPI processes, each one generates
+$N/P$ points (care should be taken if $N$ is not an integer multiple
+of $P$). The result is the sum-reduction of the partial counts from
+each process.
 
-```
-const int local_ystart = (N * my_rank) / comm_sz;
-const int local_yend = (N * (my_rank+1)) / comm_sz;
-```
-
-Once each process has computed the number of points of the Mandelbrot
-set in its assigned strip, all processes can compute a sum-reduction
-of the local values to get the result.
+Care should be taken to ensure that the random number generator is
+initialized with a different seed at each process, otherwise each
+process will generate the exact same sequence of points.
 
 To compile:
 
@@ -105,6 +97,14 @@ const float XMIN = -2.25, XMAX = 0.75;
 const float YMIN = -1.4, YMAX = 1.5;
 
 /**
+ * Returns a random number in [a, b].
+ */
+float randab(float a, float b)
+{
+    return a + (b-a)*rand()/(float)RAND_MAX;
+}
+
+/**
  * Performs the iteration z = z*z+c, until ||z|| > 2 when point is
  * known to be outside the Mandelbrot set. Return the number of
  * iterations until ||z|| > 2, or MAXIT.
@@ -125,48 +125,49 @@ int iterate(float cx, float cy)
 int main( int argc, char *argv[] )
 {
     int my_rank, comm_sz;
-    int N = 1000;
-    int ninside = 0;
+    long N = 1000000;
+    long ninside = 0;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
 
     if ( argc > 1 ) {
-        N = atoi(argv[1]);
+        N = atol(argv[1]);
     }
 
     const double tstart = MPI_Wtime();
+    /* Initialize the random-number generator with a seed that depends
+       on the rank of the current process. */
+    srand(17 + my_rank * 3);
 #ifdef SERIAL
     if ( 0 == my_rank ) {
         /* [TODO] This is not a true parallel version, since the master
-           does everything */
-        for (int i=0; i<N; i++) {
-            for (int j=0; j<N; j++) {
-                const float cx = XMIN + (XMAX-XMIN)*j/N;
-                const float cy = YMIN + (YMAX-YMIN)*i/N;
-                const int it = iterate(cx, cy);
-                ninside += (it >= MAXIT);
-            }
+           does everything. */
+        for (long i=0; i<N; i++) {
+            const float cx = randab(XMIN, XMAX);
+            const float cy = randab(YMIN, YMAX);
+            const int it = iterate(cx, cy);
+            ninside += (it >= MAXIT);
         }
     }
 #else
-    const int local_ystart = N * my_rank / comm_sz;
-    const int local_yend = (N * (my_rank + 1)) / comm_sz;
-    int local_ninside = 0;
-    for (int i=local_ystart; i<local_yend; i++) {
-        for (int j=0; j<N; j++) {
-            const float cx = XMIN + (XMAX-XMIN)*j/N;
-            const float cy = YMIN + (YMAX-YMIN)*i/N;
-            const int it = iterate(cx, cy);
-            local_ninside += (it >= MAXIT);
-        }
+    /* Each process generates N/comm_sz points. If N is not an integer
+       multiple of comm_sz, then the first (N % comm_sz) processes
+       will generated one additional point each. */
+    const long local_points = (N / comm_sz) + (N % comm_sz < my_rank);
+    long local_ninside = 0;
+    for (long i=0; i<local_points; i++) {
+        const float cx = randab(XMIN, XMAX);
+        const float cy = randab(YMIN, YMAX);
+        const int it = iterate(cx, cy);
+        local_ninside += (it >= MAXIT);
     }
-    printf("Rank=%d local_ninside=%d\n", my_rank, local_ninside);
+    printf("Rank=%d local_ninside=%ld\n", my_rank, local_ninside);
     MPI_Reduce(&local_ninside,  /* sendbuf      */
                &ninside,        /* recfbuf      */
                1,               /* count        */
-               MPI_INT,         /* datatype     */
+               MPI_LONG,        /* datatype     */
                MPI_SUM,         /* op           */
                0,               /* root         */
                MPI_COMM_WORLD);
@@ -174,10 +175,10 @@ int main( int argc, char *argv[] )
     const double elapsed = MPI_Wtime() - tstart;
 
     if (0 == my_rank) {
-        printf("N = %d, ninside = %u\n", N, ninside);
+        printf("N = %ld, ninside = %ld\n", N, ninside);
 
-        /* Compute area and error estimate and output the results */
-        const double area = (XMAX-XMIN)*(YMAX-YMIN)*ninside/(N*N);
+        /* Compute area and output the results */
+        const double area = (XMAX-XMIN)*(YMAX-YMIN)*ninside/N;
 
         printf("Area of Mandlebrot set = %f\n", area);
         printf("Correct answer should be around 1.50659\n");

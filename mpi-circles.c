@@ -2,7 +2,7 @@
  *
  * mpi-circles.c - Monte Carlo estimation of the area of the union of circles
  *
- * Copyright (C) 2017--2025 Moreno Marzolla
+ * Copyright (C) 2017--2026 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Monte Carlo estimation of the area of the union of circles
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-10-09
+% Last updated: 2026-04-10
 
 The ile [mpi-circles.c](mpi-circles.c) contains a serial
 implementation of a Monte Carlo algorithm that estimates the area of
@@ -95,10 +95,16 @@ Example:
 #include <assert.h>
 #include <mpi.h>
 
-/* Computes the square of x */
+/* Computes the square of x. */
 float sq(float x)
 {
     return x*x;
+}
+
+/* Generate a random float in [a, b] */
+float randab(float a, float b)
+{
+    return a + (b-a)*(rand() / (float)RAND_MAX);
 }
 
 /* Generate `k` random points inside the square (0,0) --
@@ -107,11 +113,12 @@ float sq(float x)
   result must be <= k. */
 int inside( const float* x, const float* y, const float *r, int n, int k )
 {
-    int i, np, c=0;
-    for (np=0; np<k; np++) {
-        const float px = 100.0*rand()/(float)RAND_MAX;
-        const float py = 100.0*rand()/(float)RAND_MAX;
-        for (i=0; i<n; i++) {
+    int c=0;
+    for (int np=0; np<k; np++) {
+        const float px = randab(0.0, 100.0);
+        const float py = randab(0.0, 100.0);
+        /* Iterate over the circles. */
+        for (int i=0; i<n; i++) {
             if ( sq(px-x[i]) + sq(py-y[i]) <= sq(r[i]) ) {
                 c++;
                 break;
@@ -131,7 +138,8 @@ int main( int argc, char* argv[] )
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
 
-    /* Initialize the Random Number Generator (RNG) */
+    /* Initialize the Random Number Generator (RNG) to some value that
+       depends on the rank of the current process. */
     srand(my_rank * 7 + 11);
 
     if ( (0 == my_rank) && (argc != 3) ) {
@@ -213,11 +221,10 @@ int main( int argc, char* argv[] )
                MPI_COMM_WORLD   /* communicator */
                );
 
-    int local_K = K / comm_sz;
-
-    /* the master handles any excess points */
-    if ( 0 == my_rank )
-        local_K += K % comm_sz;
+    /* Each process will generate K / comm_sz points; if K is not an
+       integer multiple of comm_sz, then the first (K % comm_sz)
+       processes will generate one additional point each. */
+    const int local_K = K / comm_sz + (K % comm_sz < my_rank);
 
     int local_c = inside(x, y, r, N, local_K);
 
