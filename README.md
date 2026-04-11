@@ -98,7 +98,7 @@ available, and which patterns are used to solve it.
 | All-Pairs Shortest Paths    | X      |     | X    | X      | (Almost) Embarrassingly parallel                   |
 | Anneal CA                   | X      |     | X    | X      | 2D Stencil                                         |
 | Area of the Mandelbrot set  | X      | X   | X    | X      | Embarrassingly parallel, Load balancing, Reduction |
-| Area of union of circles    |        | X   |      |        | Embarrassingly parallel, Scatter/Gather, Reduction |
+| Area of union of circles    | X      | X   |      |        | Embarrassingly parallel, Scatter/Gather, Reduction |
 | Arnold's cat map            | X      |     | X    | X      | Embarrassingly parallel                            |
 | Array reversal              |        |     | X    | X      | Enbarrassingly parallel                            |
 | Array sum                   |        | X   |      |        | Reduction, Scatter/Gather                          |

@@ -24,7 +24,7 @@
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2026-04-10
 
-The ile [mpi-circles.c](mpi-circles.c) contains a serial
+The file [mpi-circles.c](mpi-circles.c) contains a serial
 implementation of a Monte Carlo algorithm that estimates the area of
 the union of $N$ circles. Let `cx[i]`, `cy[i]`, and `r[i]` be the
 coordinates of the center of circle $i$ and its radius.  All circles
@@ -72,7 +72,7 @@ copy of the arrays `cx[]`, `cy[]` and `r[]`.
 
 To compile:
 
-        mpicc -std = c99 -Wall -Wpedantic mpi-circles.c -o mpi-circles
+        mpicc -std=c99 -Wall -Wpedantic mpi-circles.c -o mpi-circles
 
 To execute:
 
