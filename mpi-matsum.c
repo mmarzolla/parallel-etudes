@@ -197,6 +197,7 @@ int main( int argc, char* argv[] )
 
     if (0 == my_rank) {
         printf("Elapsed time (s): %.3f\n", elapsed);
+        printf("Throughput (Melements/s): %.3f\n", n*n/(1e6 * elapsed));
         check_result(C, n);
     }
 

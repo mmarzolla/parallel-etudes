@@ -130,8 +130,8 @@ int main( int argc, char *argv[] )
     matsum(p, q, r, n);
     const double elapsed = omp_get_wtime() - tstart;
 
-    printf("Execution time (incl. data movement): %f\n", elapsed);
-    printf("Throughput (Melements/s): %f\n", n*n/(1e6 * elapsed));
+    printf("Execution time (s): %.3f\n", elapsed);
+    printf("Throughput (Melements/s): %.3f\n", n*n/(1e6 * elapsed));
 
     /* Check result */
     check(r, n);
