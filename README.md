@@ -120,7 +120,7 @@ available, and which patterns are used to solve it.
 | Linear search               |        | X   |      |        | Embarrassingly parallel, Reduction                 |
 | List ranking                | X      | NA  |      |        | Pointer Jumping                                    |
 | Mandelbrot set              | X      | X   | X    | X      | Embarrassingly parallel, Load balancing            |
-| Matrix sum                  | X      |     | X    | X      | Embarrassingly parallel                            |
+| Matrix sum                  | X      | X   | X    | X      | Embarrassingly parallel                            |
 | Matrix-vector multiply      |        | X   |      |        | Scatter/Gather                                     |
 | MergeSort                   | X      | NA  | NA   | NA     | Task-level parallelism                             |
 | Monte Carlo $\pi$           | X      | X   |      |        | Embarrassingly parallel, Reduction                 |
@@ -137,7 +137,7 @@ available, and which patterns are used to solve it.
 | SAT solver                  | X      | X   | X    | X      | Embarrassingly parallel, Reduction                 |
 | Single-Source Shortest Path | X      |     |      |        | Reduction                                          |
 
-## Prerequisites
+## Build requirements
 
 To build the executables and documentation for the programs, the
 following tools are required:

@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * cuda-matsum.cu - Matrix-matrix addition
+ * omp-matsum.c - Matrix-matrix addition
  *
- * Copyright (C) 2017--2025 Moreno Marzolla
+ * Copyright (C) 2026 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,45 +22,27 @@
 /***
 % Matrix-matrix addition
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-12-10
+% Last updated: 2026-04-14
 
-The program [cuda-matsum.cu](cuda-matsum.cu) computes the sum of two
-square matrices of size $N \times N$ using the CPU. Modify the program
-to use the GPU; you must modify the function `matsum()` in such a way
-that the new version is transparent to the caller, i.e., the caller is
-not aware whether the computation happens on the CPU or the GPU. To
-this aim, function `matsum()` should:
-
-- allocate memory on the device to store copies of $p, q, r$;
-
-- copy $p, q$ from the _host_ to the _device_;
-
-- execute a kernel that computes the sum $p + q$;
-
-- copy the result from the _device_ back to the _host_;
-
-- free up device memory.
-
-The program must work with any value of the matrix size $N$, even if
-it nos an integer multiple of the CUDA block size. Note that there is
-no need to use shared memory: why?
+The program [omp-matsum.cc](omp-matsum.c) computes the sum of two
+square matrices of size $N \times N$. Modify the program to use OpenMP
+parallelism.
 
 To compile:
 
-        nvcc cuda-matsum.cu -o cuda-matsum -lm
+        gcc -fopenmp -std=c99 -Wall -Wpedantic omp-matsum.c -o omp-matsum
 
 To execute:
 
-        ./cuda-matsum [N]
+        OMP_NUM_THREADS=[P] ./omp-matsum [N]
 
 Example:
 
-        ./cuda-matsum 1024
+        OMP_NUM_THREADS=2 ./omp-matsum 1024
 
 ## Files
 
-- [cuda-matsum.cu](cuda-matsum.cu)
-- [hpc.h](hpc.h)
+- [omp-matsum.c](omp-matsum.c)
 
 ***/
 
@@ -68,64 +50,23 @@ Example:
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
+#include <omp.h>
 
-#include "hpc.h"
-
-#ifndef SERIAL
-#define BLKDIM 32
-
-__global__ void matsum_kernel( const float *p, const float *q, float *r, int n )
-{
-    const int i = blockIdx.y * blockDim.y + threadIdx.y;
-    const int j = blockIdx.x * blockDim.x + threadIdx.x;
-    if ( i<n && j<n )
-        r[i*n + j] = p[i*n + j] + q[i*n + j];
-}
-#endif
-
+/* Compute the sum of `p` and `q`; store the result in `r`. All
+   parameters are nxn square matrices. */
 void matsum( const float *p, const float *q, float *r, int n )
 {
-#ifdef SERIAL
-    /* [TODO] Modify the body of this function to
-       - allocate memory on the device
-       - copy p and q to the device
-       - call an appropriate kernel
-       - copy the result from the device to the host
-       - free memory on the device
-    */
+#ifndef SERIAL
+#pragma omp parallel for default(none) shared(p,q,r,n) schedule(static)
+#endif
     for (int i=0; i<n; i++) {
         for (int j=0; j<n; j++) {
             r[i*n + j] = p[i*n + j] + q[i*n + j];
         }
     }
-#else
-    float *d_p, *d_q, *d_r;	  /* device copies of p, q, r */
-    const size_t size = n*n*sizeof(*p);
-    dim3 block(BLKDIM, BLKDIM);
-    dim3 grid((n+BLKDIM-1)/BLKDIM, (n+BLKDIM-1)/BLKDIM);
-
-    /* Allocate space for device copies of p, q, r */
-    cudaMalloc((void **)&d_p, size);
-    cudaMalloc((void **)&d_q, size);
-    cudaMalloc((void **)&d_r, size);
-
-    /* Copy inputs to device */
-    cudaMemcpy(d_p, p, size, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_q, q, size, cudaMemcpyHostToDevice);
-
-    /* Launch matsum() kernel on GPU */
-    matsum_kernel<<<grid, block>>>(d_p, d_q, d_r, n);
-
-    /* Copy result back to host */
-    cudaMemcpy(r, d_r, size, cudaMemcpyDeviceToHost);
-
-    cudaFree(d_p);
-    cudaFree(d_q);
-    cudaFree(d_r);
-#endif
 }
 
-/* Initialize square matrix p of size nxn */
+/* Initialize square matrix p of size nxn. */
 void fill( float *p, int n )
 {
     int k = 0;
@@ -137,7 +78,7 @@ void fill( float *p, int n )
     }
 }
 
-/* Check result */
+/* Check result. */
 int check( float *r, int n )
 {
     int k = 0;
@@ -185,9 +126,9 @@ int main( int argc, char *argv[] )
     fill(q, n);
     r = (float*)malloc(size); assert(r != NULL);
 
-    const double tstart = hpc_gettime();
+    const double tstart = omp_get_wtime();
     matsum(p, q, r, n);
-    const double elapsed = hpc_gettime() - tstart;
+    const double elapsed = omp_get_wtime() - tstart;
 
     printf("Execution time (incl. data movement): %f\n", elapsed);
     printf("Throughput (Melements/s): %f\n", n*n/(1e6 * elapsed));
