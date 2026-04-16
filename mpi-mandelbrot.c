@@ -2,7 +2,7 @@
  *
  * mpi-mandelbrot.c - Mandelbrot set
  *
- * Copyright (C) 2017--2025 Moreno Marzolla
+ * Copyright (C) 2017--2026 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,9 +22,9 @@
 /***
 % Mandelbrot set
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-10-09
+% Last updated: 2026-04-16
 
-![Figure 1: The Mandelbrot set.](mandelbrot-set.png)
+![Figure 1: The Mandelbrot set.](mandelbrot-set.png "The Mandelbrot set")
 
 The file [mpi-mandelbrot.c](mpi-mandelbrot.c) contains a MPI program
 that computes the Mandelbrot set; it is not a parallel program,
@@ -44,7 +44,7 @@ blocks where $P$ is the number of MPI processes, and let each process
 draws a portion of the image (see Figure 2).
 
 ![Figure 2: Domain decomposition for the computation of the Mandelbrot
- set with 4 MPI processes](mpi-mandelbrot.png)
+ set with 4 MPI processes](mpi-mandelbrot.png "Domain decomposition for the computation of the Mandelbro set with 4 MPI processes")
 
 Specifically, each process computes a portion of the image of size
 $\mathit{xsize} \times (\mathit{ysize} / P)$ (see below how to handle

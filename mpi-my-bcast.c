@@ -2,7 +2,7 @@
  *
  * mpi-my-bcast.c - MPI broadcast using point-to-point communications
  *
- * Copyright (C) 2017--2025 Moreno Marzolla
+ * Copyright (C) 2017--2026 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % MPI broadcast using point-to-point communications
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-07-17
+% Last updated: 2026-04-16
 
 The purpose of this exercise is to implement the function
 
@@ -48,24 +48,26 @@ MPI_Bcast(v,             \/\* buffer   \*\/
 > _might_ be implemented.
 
 To implement `my_Bcast()`, each process determines its own rank $p$
-and the number $P$ of MPI processes. Then, process 0:
+and the number $P$ of MPI processes. Then:
 
-- sends `*v` to processes $(2p + 1)$ and $(2p + 2)$, provided that
-  they exist.
+- Process $p=0$:
 
-Any other process $p>0$:
+  - sends `*v` to processes $(2p + 1)$ and $(2p + 2)$, provided that
+    they exist.
 
-- receives an integer from $(p - 1)/2$ and stores it in `*v`;
+- Any other process $p>0$:
 
-- sends `*v` to processes $(2p + 1)$ and $(2p + 2)$, provided that
-  they exist.
+  - receives an integer from $(p - 1)/2$ and stores it in `*v`;
+
+  - sends `*v` to processes $(2p + 1)$ and $(2p + 2)$, provided that
+    they exist.
 
 For example, with $P = 15$ you get the communication pattern shown in
 Figure 1; arrows indicate point-to-point communications, numbers
 indicate the rank of processes. The procedure above should work
 correctly for any $P$.
 
-![Figure 1: Broadcast tree with $P = 15$ processes](mpi-my-bcast.svg)
+![Figure 1: Broadcast tree with $P = 15$ processes.](mpi-my-bcast.svg "Broadcast tree with P=15 processes.")
 
 The file [mpi-my-bcast.c](mpi-my-bcast.c) contains the skeleton of the
 `my_Bcast()` function. Complete the implementation using

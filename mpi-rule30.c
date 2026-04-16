@@ -2,7 +2,7 @@
  *
  * mpi-rule30.c - Rule30 Cellular Automaton
  *
- * Copyright (C) 2017--2025 Moreno Marzolla
+ * Copyright (C) 2017--2026 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Rule 30 Cellular Automaton
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-11-06
+% Last updated: 2026-04-16
 
 In this exercise we implement the [Rule 30 Cellular
 Automaton](https://en.wikipedia.org/wiki/Rule_30).
@@ -68,26 +68,25 @@ textile](https://en.wikipedia.org/wiki/Conus_textile) shell (Figure
 3), a highly poisonous marine mollusk that lives in tropical seas.
 
 ![Figure 3: Conus Textile by Richard Ling, CC BY-SA 3.0,
-<https://commons.wikimedia.org/w/index.php?curid=293495>.](conus-textile.jpg "The Conus Textile shell.")
+<https://commons.wikimedia.org/w/index.php?curid=293495>.](conus-textile.jpg "The Conus Textile shell")
 
 The goal of this exercise is to parallelize the serial program using
 MPI, so that the computation of each step is distributed across MPI
 processes. The program should operate as follows (refer to Figure 4
 and also to [this document](mpi-rule30.pdf)):
 
-![Figure 4: Parallelization of the Rule 30 CA.](mpi-rule30-fig4.svg "Parallelization of the Rule 30 CA.")
+![Figure 4: Parallelization of the Rule 30 CA.](mpi-rule30-fig4.svg "Parallelization of the Rule 30 CA")
 
 1. The domain is distributed across the $P$ MPI processes using
    `MPI_Scatter()`; assume that $N$ is an integer multiple of
    $P$. Each partition is augmented with two ghost cells, that are
-   required to compute the next states.
+   required to compute the new states.
 
 2. Each process sends the values on the border of its partition to the
    left and right neighbors using `MPI_Sendrecv()`. This operation
-   must be performed twice, to fill the left and right ghost cells
-   (see below).
+   must be performed twice, to fill the left and right ghost cells.
 
-3. Each process computes the next state for the cells in its
+3. Each process computes the new state for the cells in its
    partition.
 
 4. Since we want to dump the state after each step, the master
@@ -95,7 +94,7 @@ and also to [this document](mpi-rule30.pdf)):
    the result in the output file.
 
 At the end of step 4 we go back to step 2: since each process already
-has its own (updated) partition, there is no need to perform a new
+has its own (updated) block of data, there is no need to perform a new
 `MPI_Scatter()`.
 
 Let `comm_sz` be the number of MPI processes. Each partition has
@@ -123,7 +122,7 @@ MPI_Scatter( &cur[LEFT],        \/\* sendbuf    \*\/
 (the symbols `LEFT` and `LOCAL_LEFT` are defined in the source code to
 improve readability).
 
-![Figure 5: Using `MPI_Sendrecv()` to exchange ghost cells.](mpi-rule30-fig5.svg)
+![Figure 5: Using `MPI_Sendrecv()` to exchange ghost cells.](mpi-rule30-fig5.svg "Using MPI_Sendrect() to exchange ghost cells")
 
 Filling the ghost cells requires two calls to `MPI_Sendrecv()` (Figure
 5). First, each process sends the value of the _rightmost_ domain cell

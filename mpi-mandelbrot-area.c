@@ -26,7 +26,7 @@
 
 The Mandelbrot set is the set of black points in Figure 1.
 
-![Figure 1: The Mandelbrot set](mandelbrot-set.png)
+![Figure 1: The Mandelbrot set.](mandelbrot-set.png "The Mandelbrot set")
 
 The file [mpi-mandelbrot-area.c](mpi-mandelbrot-area.c) contains a
 serial program that computes an estimate of the area of the Mandelbrot

@@ -46,7 +46,7 @@ value of $\pi$ by generating random points, and is as follows:
   of points $c/K$ that falls within at least one circle.
 
 ![Figure 1: Monte Carlo estimation of the area of ​​the union of
- circles](mpi-circles.svg)
+ circles.](mpi-circles.svg "Monte Carlo estimation of the area of the union of circles")
 
 Figure 1 illustrates the idea.
 
