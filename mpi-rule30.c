@@ -22,7 +22,7 @@
 /***
 % Rule 30 Cellular Automaton
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2026-04-16
+% Last updated: 2026-04-17
 
 In this exercise we implement the [Rule 30 Cellular
 Automaton](https://en.wikipedia.org/wiki/Rule_30).
@@ -512,10 +512,10 @@ int main( int argc, char* argv[] )
         }
 #endif
 
-        /* Gather the updated local domains at the root; it is
-           possible to gather the result at `cur[]` instead of
-           `next[]`; indeed, in the parallel version, `next[]` is not
-           needed at all.
+        /* Gather the updated local domains local_next[] at the root;
+           it is possible to gather the result at `cur[]` instead of
+           `next[]`, since `next[]` is not used in the parallel
+           version..
 
         LEFT_SHOT                           RIGHT_GHOST
         | LEFT                                  RIGHT |
@@ -526,7 +526,7 @@ int main( int argc, char* argv[] )
        +-+----------+----------+----------+----------+-+
                      ^^^^^^^^^^
                   +-+----------+-+
-                  |X|          |X| local_cur[]
+                  |X|          |X| local_next[]
                   +-+----------+-+
                    ^ ^        ^ ^
                    | |        | |
