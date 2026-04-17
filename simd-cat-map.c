@@ -2,7 +2,7 @@
  *
  * simd-cat-map.c - Arnold's cat map
  *
- * Copyright (C) 2016--2025 Moreno Marzolla
+ * Copyright (C) 2016--2026 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Ardnold's cat map
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-10-09
+% Last updated: 2026-04-17
 
 ![](cat-map.png)
 
@@ -401,7 +401,7 @@ int main( int argc, char* argv[] )
     const double tstart = hpc_gettime();
     cat_map(&img, niter);
     const double elapsed = hpc_gettime() - tstart;
-    fprintf(stderr, "    SIMD width: %d bytes\n", (int)VLEN);
+    fprintf(stderr, "    SIMD width: %d lanes\n", (int)VLEN);
     fprintf(stderr, "    Iterations: %d\n", niter);
     fprintf(stderr, "  Width,Height: %d,%d\n", img.width, img.height);
     fprintf(stderr, "      Mops/sec: %.4f\n", 1.0e-6 * img.width * img.height * niter / elapsed);
