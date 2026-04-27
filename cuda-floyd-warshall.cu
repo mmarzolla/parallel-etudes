@@ -2,7 +2,7 @@
  *
  * cuda-floyd-warshall.cu - All-pair shortest paths.
  *
- * Copyright (C) 2025 Moreno Marzolla
+ * Copyright (C) 2025, 2026 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,20 +22,22 @@
 /***
 % All-pair shortest paths
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-11-19
+% Last updated: 2026-04-27
 
-This program computes all-pair shortest path distances on a weighted.
-directed graph using Flyd and Warshall's algorithm.
+The file [cuda-floyd-warshall.cu](cuda-floyd-warshall.cu] contains a
+serial implementation of Floyd and Warshall's algorithm for computing
+shortest-path distances among all pair of nodes on a directed,
+wdighted graph.
 
-The input is in [DIMACS
-format](http://www.diag.uniroma1.it/challenge9/index.shtml), and is
-read from standard input; the program computes all distances, and
-prints to stadandard ouptut the minimum distance from node $0$ to
-$n-1$, where $n$ is the number of nodes of the input.
+The program reads input in [DIMACS
+format](http://www.diag.uniroma1.it/challenge9/index.shtml) from
+standard input; at the end, it computes all distances and prints to
+stadandard ouptut the minimum distance from node $0$ to $n-1$, where
+$n$ is the number of nodes of the input.
 
-Some test files are provided; the number of nodes $n$ and edges $m$ of
-each one, and the distances between node $0$ and $n-1$, are shown in
-Table 1.
+Some test files are provided; Table 1 shows the number of nodes $n$
+and edges $m$ of each one, plus the distances between node $0$ and
+$n-1$.
 
 :Table 1: Parameters of the input datasets.
 
@@ -48,30 +50,33 @@ Graph                        Nodes ($n$)    Edges ($m$)    Distance $0 \rightarr
 [rome99.gr](rome99.g)               3353           8870                         30290.0
 
 The goal of this exercise is to parallelize the function
-`floyd_warshall()` using CUDA. Note that the main nested loop of the
-Floyd-Warshall algorithm is non embarrassingly parallel, since it has
-loop-carried dependences. The serial code is written in such a way to
-make the dependences more evident, and allows immediate application of
-OpenMP directives according to the approach described in:
+`floyd_warshall()` using CUDA. The main nested loop of the
+Floyd-Warshall algorithm has loop-carried dependences, so it can not
+be trivially parallelized. However, the serial code is written in such
+a way that dependences are evident: each iteration of the main loop is
+broken down into three phases that must be executed in sequence;
+however, each phase is embarrassingly parallel. This approach has been
+described in the following paper:
 
 > Tang, Peiyi. "Rapid development of parallel blocked all-pairs shortest paths code for multi-core computers", proc. IEEE SOUTHEASTCON 2014, <https://doi.org/10.21122/2309-4923-2022-3-57-65>
 
 ![Figure 1: Data dependences for the Floyd-Warshall algorithm.](floyd-warshall.svg)
 
-Specifically, the dependences for the Floyd-Warshall algorithm are
-shown in Figure 1. We observe that:
+The dependences for the Floyd-Warshall algorithm are shown in Figure
+1. We observe that:
 
 1. The distance $d_{kk}$ has no dependency;
 2. Distances of row and column $k$ depend on $d_{kk}$;
 3. All other distances depend on rown and column $k$.
 
-This suggests that the computation is broken into three sequential
-steps:
+This suggests that the computation is broken into three steps:
 
 1. During the first step, compute $d_{kk}$;
 2. During the second step, compute the distances on row and column $k$,
    in parallel;
 3. During the third step, compute everything else, in parallel.
+
+The steps above should be realized using three kernels.
 
 Compile with:
 
@@ -366,14 +371,20 @@ int floyd_warshall( const graph_t *g, float *d, int *p )
     }
 
     for (int k=0; k<n; k++) {
+        /* [TODO]: the following function call should be transformed
+           into a kernel launch using 1 thread in 1 block. */
         fw_relax(d, p, k, k, k, n);
 
+        /* [TODO]: the following loop should be transformed into a 1D
+           kernel. */
         for (int i=0; i<n; i++) {
             if (i == k) continue;
             fw_relax(d, p, k, i, k, n);
             fw_relax(d, p, i, k, k, n);
         }
 
+        /* [TODO]: the following nested loops should be transformed
+           into a 2D kernel. */
         for (int u=0; u<n; u++) {
             if (u == k) continue;
             /* u != k here */
@@ -386,7 +397,9 @@ int floyd_warshall( const graph_t *g, float *d, int *p )
     }
 
     /* Check for self-loops of negative cost. Of one is found, there
-       are negative-weight cycles and return 1. */
+       are negative-weight cycles and return 1.
+
+       [TODO] This check can be performed on the GPU. */
     for (int u=0; u<n; u++) {
         if ( d[IDX(u,u,n)] < 0 ) {
             /* printf("d[%d][%d] = %f\n", u, u, d[u][u]); */
