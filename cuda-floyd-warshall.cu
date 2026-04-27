@@ -41,13 +41,13 @@ $n-1$.
 
 :Table 1: Parameters of the input datasets.
 
-Graph                        Nodes ($n$)    Edges ($m$)    Distance $0 \rightarrow n-1$
--------------------------  ------------- -------------- -------------------------------
-[graph10.gr](graph10.gr)              10             52                            41.0
-[graph100.gr](graph100.gr)           100           4932                            16.0
-[graph1000.gr](graph1000.gr)        1000         499623                             4.0
-[graph2000.gr](graph2000.gr)        2000         800066                             4.0
-[rome99.gr](rome99.g)               3353           8870                         30290.0
+Graph                             Nodes ($n$)    Edges ($m$)    Distance $0 \rightarrow n-1$
+------------------------------  ------------- -------------- -------------------------------
+[graph10.gr](graph10.gr)                   10             52                            41.0
+[graph100.gr](graph100.gr)                100           4932                            16.0
+[graph1000.gr](graph1000.gr)             1000         499623                             4.0
+[graph2000.gr](graph2000.gr)             2000         800066                             4.0
+[rome99.gr](rome99.g)                    3353           8870                         30290.0
 
 The goal of this exercise is to parallelize the function
 `floyd_warshall()` using CUDA. The main nested loop of the
