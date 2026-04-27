@@ -58,7 +58,7 @@ broken down into three phases that must be executed in sequence;
 however, each phase is embarrassingly parallel. This approach has been
 described in the following paper:
 
-> Tang, Peiyi. "Rapid development of parallel blocked all-pairs shortest paths code for multi-core computers", proc. IEEE SOUTHEASTCON 2014, <https://doi.org/10.21122/2309-4923-2022-3-57-65>
+> Tang, Peiyi. "Rapid development of parallel blocked all-pairs shortest paths code for multi-core computers", proc. IEEE SOUTHEASTCON 2014, <https://doi.org/10.1109/SECON.2014.6950734>
 
 ![Figure 1: Data dependences for the Floyd-Warshall algorithm.](floyd-warshall.svg)
 
