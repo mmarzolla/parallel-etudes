@@ -22,7 +22,7 @@
 /***
 % All-pair shortest paths
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2026-04-27
+% Last updated: 2026-04-28
 
 The file [cuda-floyd-warshall.cu](cuda-floyd-warshall.cu] contains a
 serial implementation of [Floyd and Warshall's
@@ -32,6 +32,7 @@ directed, weighted graph. The following Java (pseudo-)code illustrates
 the Floyd-Warshall algorithm.
 
 ```Java
+// Return true if there are negative-weight cycles
 boolean floyd_warshall(double d[][], Graph G) {
    final int n = G.n; // number of nodes
 
@@ -102,16 +103,20 @@ described in the following paper:
 The dependences for the Floyd-Warshall algorithm are shown in Figure
 1. We observe that:
 
-1. The distance $d_{kk}$ has no dependency;
+1. The distance $d_{kk}$ has no dependence;
 2. Distances of row and column $k$ depend on $d_{kk}$;
 3. All other distances depend on rown and column $k$.
 
-This suggests that the computation is broken into three steps:
+This suggests that the computation is broken into three steps, to be
+executed sequentially:
 
 1. During the first step, compute $d_{kk}$;
 2. During the second step, compute the distances on row and column $k$,
    in parallel;
 3. During the third step, compute everything else, in parallel.
+
+Steps 2 and 3 involve multiple computations, that can be executed in
+parallel since there are no internal dependences.
 
 The steps above should be realized using three kernels.
 
@@ -395,6 +400,8 @@ int floyd_warshall( const graph_t *g, float *d, int *p )
     const int n = g->n;
     const int m = g->m;
 
+    /* [TODO]: The following nested loops can be transformed
+       into a 2D kernel. */
     for (int u=0; u<n; u++) {
         for (int v=0; v<n; v++) {
             d[IDX(u,v,n)] = (u == v ? 0 : HUGE_VALF);
@@ -402,6 +409,8 @@ int floyd_warshall( const graph_t *g, float *d, int *p )
         }
     }
 
+    /* [TODO]: The following loop can be transformed into a 1D
+       kernel. */
     for (const edge_t *e = g->edges; e < g->edges + m; e++) {
         d[IDX(e->src,e->dst,n)] = e->w;
         p[IDX(e->src,e->dst,n)] = e->src;
@@ -409,7 +418,7 @@ int floyd_warshall( const graph_t *g, float *d, int *p )
 
     for (int k=0; k<n; k++) {
         /* [TODO]: the following function call should be transformed
-           into a kernel launch using 1 thread in 1 block. */
+           into a kernel launch using one thread in one block. */
         fw_relax(d, p, k, k, k, n);
 
         /* [TODO]: the following loop should be transformed into a 1D
