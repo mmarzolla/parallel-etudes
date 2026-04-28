@@ -2,7 +2,7 @@
  *
  * opencl-floyd-warshall.cu - All-pair shortest paths.
  *
- * Copyright (C) 2025 Moreno Marzolla
+ * Copyright (C) 2025--2026 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,56 +22,103 @@
 /***
 % All-pair shortest paths
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-11-19
+% Last updated: 2026-04-28
 
-This program computes all-pair shortest path distances on a weighted.
-directed graph using Flyd and Warshall's algorithm.
+The file [opencl-floyd-warshall.c](opencl-floyd-warshall.c) contains a
+serial implementation of [Floyd and Warshall's
+algorithm](https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm)
+for computing shortest-path distances among all pair of nodes on a
+directed, weighted graph. The following Java (pseudo-)code illustrates
+the Floyd-Warshall algorithm.
 
-The input is in [DIMACS
-format](http://www.diag.uniroma1.it/challenge9/index.shtml), and is
-read from standard input; the program computes all distances, and
-prints to stadandard ouptut the minimum distance from node $0$ to
-$n-1$, where $n$ is the number of nodes of the input.
+```Java
+// Return true if there are negative-weight cycles
+boolean floyd_warshall(double d[][], Graph G) {
+   final int n = G.n; // number of nodes
 
-Some test files are provided; the number of nodes $n$ and edges $m$ of
-each one, and the distances between node $0$ and $n-1$, are shown in
-Table 1.
+   // Initialization
+   for (int u=0; u<n; u++) {
+     for (int v=0; v<n; v++) {
+       d[u][v] = (u == v ? 0 : Double.POSITIVE_INFINITY);
+     }
+   }
+
+   for (Edge e: G.edges()) {
+     d[e.src][e.dst] = e.w;
+   }
+
+   // k relaxation phases
+   for (int k=0; k<n; k++) {
+     for (int u=0; u<n; u++) {
+       for (int v=0; v<n; v++) {
+         if (d[u][k] + d[k][v] < d[u][v])
+           d[u][v] = d[u][k] + d[k][v];
+       }
+     }
+   }
+
+   // check for negative-weight cycles
+   for (int u=0; u<n; u++) {
+     if ( d[u][u] < 0 ) {
+       return true;
+     }
+   }
+   return false;
+}
+```
+
+The program reads input in [DIMACS
+format](http://www.diag.uniroma1.it/challenge9/index.shtml) from
+standard input; at the end, it computes all distances and prints to
+stadandard ouptut the minimum distance from node $0$ to $n-1$, where
+$n$ is the number of nodes of the input.
+
+Some test files are provided; Table 1 shows the number of nodes $n$
+and edges $m$ of each one, plus the distances between node $0$ and
+$n-1$.
 
 :Table 1: Parameters of the input datasets.
 
-Graph                        Nodes ($n$)    Edges ($m$)    Distance $0 \rightarrow n-1$
--------------------------  ------------- -------------- -------------------------------
-[graph10.gr](graph10.gr)              10             52                            41.0
-[graph100.gr](graph100.gr)           100           4932                            16.0
-[graph1000.gr](graph1000.gr)        1000         499623                             4.0
-[graph2000.gr](graph2000.gr)        2000         800066                             4.0
-[rome99.gr](rome99.g)               3353           8870                         30290.0
+Graph                             Nodes ($n$)    Edges ($m$)    Distance $0 \rightarrow n-1$
+------------------------------  ------------- -------------- -------------------------------
+[graph10.gr](graph10.gr)                   10             52                            41.0
+[graph100.gr](graph100.gr)                100           4932                            16.0
+[graph1000.gr](graph1000.gr)             1000         499623                             4.0
+[graph2000.gr](graph2000.gr)             2000         800066                             4.0
+[rome99.gr](rome99.g)                    3353           8870                         30290.0
 
 The goal of this exercise is to parallelize the function
-`floyd_warshall()` using OpenCL. Note that the main nested loop of the
-Floyd-Warshall algorithm is non embarrassingly parallel, since it has
-loop-carried dependences. The serial code is written in such a way to
-make the dependences more evident, and allows immediate application of
-OpenMP directives according to the approach described in:
+`floyd_warshall()` using OpenCL. The main nested loop of the
+Floyd-Warshall algorithm has loop-carried dependences, so it can not
+be trivially parallelized. However, the serial code is written in such
+a way that dependences are evident: each iteration of the main loop is
+broken down into three phases that must be executed in sequence;
+however, each phase is embarrassingly parallel. This approach has been
+described in the following paper:
 
-> Tang, Peiyi. "Rapid development of parallel blocked all-pairs shortest paths code for multi-core computers", proc. IEEE SOUTHEASTCON 2014, <https://doi.org/10.21122/2309-4923-2022-3-57-65>
+- Tang, Peiyi. _Rapid development of parallel blocked all-pairs shortest paths code for multi-core computers_, proc. IEEE SOUTHEASTCON 2014, <https://doi.org/10.1109/SECON.2014.6950734>
 
 ![Figure 1: Data dependences for the Floyd-Warshall algorithm.](floyd-warshall.svg)
 
-Specifically, the dependences for the Floyd-Warshall algorithm are
-shown in Figure 1. We observe that:
+The dependences for the Floyd-Warshall algorithm are shown in Figure
+1. We observe that:
 
-1. The distance $d_{kk}$ has no dependency;
+1. The distance $d_{kk}$ has no dependence;
 2. Distances of row and column $k$ depend on $d_{kk}$;
 3. All other distances depend on rown and column $k$.
 
-This suggests that the computation is broken into three sequential
-steps:
+This suggests that the computation is broken into three steps, to be
+executed sequentially:
 
 1. During the first step, compute $d_{kk}$;
 2. During the second step, compute the distances on row and column $k$,
    in parallel;
 3. During the third step, compute everything else, in parallel.
+
+Steps 2 and 3 involve multiple computations, that can be executed in
+parallel since there are no internal dependences.
+
+The steps above should be realized using three kernels.
 
 Compile with:
 
@@ -84,6 +131,7 @@ Execute with:
 ## Files
 
 - [omp-floyd-warshall.cu](omp-floyd-warshall.cu) [simpleCL.h](simpleCL.h) [simpleCL.c](simpleCL.c)
+- [hpc.h](hpc.h)
 
 ***/
 #if _XOPEN_SOURCE < 600

@@ -128,19 +128,19 @@ Execute with:
 
         ./cuda-floyd-warshall graph100.gr
 
-
 ## Files
 
 - [cuda-floyd-warshall.cu](cuda-floyd-warshall.cu)
+- [hpc.h](hpc.h)
 
 ***/
 
+#include "hpc.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h> /* for isinf(), fminf() and HUGE_VAL */
 #include <assert.h>
-#include "hpc.h"
 
 typedef struct {
     int src, dst;
