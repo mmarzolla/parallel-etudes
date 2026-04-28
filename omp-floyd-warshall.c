@@ -24,7 +24,7 @@
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2026-04-28
 
-The file [omp-floyd-warshall.c](omp-floyd-warshall.c] contains a
+The file [omp-floyd-warshall.c](omp-floyd-warshall.c) contains a
 serial implementation of [Floyd and Warshall's
 algorithm](https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm)
 for computing shortest-path distances among all pair of nodes on a
