@@ -131,7 +131,7 @@ Execute with:
 
 ## Files
 
-- [omp-floyd-warshall.cu](omp-floyd-warshall.cu)
+- [cuda-floyd-warshall.cu](cuda-floyd-warshall.cu)
 
 ***/
 
