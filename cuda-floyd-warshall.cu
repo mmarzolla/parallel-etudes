@@ -25,9 +25,46 @@
 % Last updated: 2026-04-27
 
 The file [cuda-floyd-warshall.cu](cuda-floyd-warshall.cu] contains a
-serial implementation of Floyd and Warshall's algorithm for computing
-shortest-path distances among all pair of nodes on a directed,
-wdighted graph.
+serial implementation of [Floyd and Warshall's
+algorithm](https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm)
+for computing shortest-path distances among all pair of nodes on a
+directed, weighted graph. The following Java (pseudo-)code illustrates
+the Floyd-Warshall algorithm.
+
+```Java
+boolean floyd_warshall(double d[][], Graph G) {
+   final int n = G.n; // number of nodes
+
+   // Initialization
+   for (int u=0; u<n; u++) {
+     for (int v=0; v<n; v++) {
+       d[u][v] = (u == v ? 0 : Double.POSITIVE_INFINITY);
+     }
+   }
+
+   for (Edge e: G.edges()) {
+     d[e.src][e.dst] = e.w;
+   }
+
+   // k relaxation phases
+   for (int k=0; k<n; k++) {
+     for (int u=0; u<n; u++) {
+       for (int v=0; v<n; v++) {
+         if (d[u][k] + d[k][v] < d[u][v])
+           d[u][v] = d[u][k] + d[k][v];
+       }
+     }
+   }
+
+   // check for negative-weight cycles
+   for (int u=0; u<n; u++) {
+     if ( d[u][u] < 0 ) {
+       return true;
+     }
+   }
+   return false;
+}
+```
 
 The program reads input in [DIMACS
 format](http://www.diag.uniroma1.it/challenge9/index.shtml) from
@@ -58,7 +95,7 @@ broken down into three phases that must be executed in sequence;
 however, each phase is embarrassingly parallel. This approach has been
 described in the following paper:
 
-> Tang, Peiyi. "Rapid development of parallel blocked all-pairs shortest paths code for multi-core computers", proc. IEEE SOUTHEASTCON 2014, <https://doi.org/10.1109/SECON.2014.6950734>
+- Tang, Peiyi. _Rapid development of parallel blocked all-pairs shortest paths code for multi-core computers_, proc. IEEE SOUTHEASTCON 2014, <https://doi.org/10.1109/SECON.2014.6950734>
 
 ![Figure 1: Data dependences for the Floyd-Warshall algorithm.](floyd-warshall.svg)
 
