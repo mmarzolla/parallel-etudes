@@ -53,14 +53,15 @@ Run with:
 
 ## Suggestions
 
-You can start with a simple mapping of one CUDA thread for each
-character of the input text. In order to reduce memory contention,
-define a local histogram of size 26 in shared memory on each thread
-block. Each thread will analyze one character, transform to lowercase
-if it is a letter and atomically increment the shared histogram using
-CUDA atomic operations (see below). When all threads in a block are
-done, they accumulate the values of the shared histogram to a global
-histogram in device memory.
+Map each CUDA thread to a character of the input text. The use of CUDA
+atomic operations (see below) simplifies the implementation and
+reduces memory contention.
+
+Each thread block defines a local histogram of size 26 in shared
+memory; each thread will analyze one character, transform it to
+lowercase and atomically increment the shared histogram. When all
+threads in a block are done, they accumulate the values of the shared
+histogram to a global histogram in device memory.
 
 Use `atomicAdd(T *address, T val)` to atomically add `val` to the
 content of the memory location `address`; the function will execute
@@ -70,7 +71,9 @@ content of the memory location `address`; the function will execute
 ```
 
 atomically, The `atomicAdd()` function supports most CUDA datatypes
-`T`, including `int`; the [the
+`T`, including `int`; it works correctly for addresses in shared as
+well as global memory, and guarantees atomicity among threads of the
+same or different blocks. See [the
 documentation](https://docs.nvidia.com/cuda/cuda-programming-guide/05-appendices/cpp-language-extensions.html#atomicadd).
 
 ## Files
@@ -143,7 +146,16 @@ int make_hist( const char *text, int hist[ALPHA_SIZE] )
     for (int j=0; j<ALPHA_SIZE; j++) {
         hist[j] = 0;
     }
-    /* Count occurrences */
+    /* Count occurrences. Note: you can not use `isalpha()` and
+       `tolower()` inside a kernel; you can substitute
+
+       isalpha(c) with ((c >= 'a' && c <= 'z') || (c => 'A' && c <= 'Z'))
+
+       and
+
+       tolower(c) with (if (c >= 'A' && c <= 'Z') { c = (c - 'A') + 'a'; }
+
+    */
     for (int i=0; i < len; i++) {
         const char c = text[i];
         if (isalpha(c)) {
