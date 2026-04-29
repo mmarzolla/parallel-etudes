@@ -2,7 +2,7 @@
  *
  * cuda-letters.cu - Character counts
  *
- * Copyright (C) 2018--2025 Moreno Marzolla
+ * Copyright (C) 2018--2026 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Character counts
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-10-09
+% Last updated: 2026-04-29
 
 ![By Willi Heidelbach, CC BY 2.5, <https://commons.wikimedia.org/w/index.php?curid=1181525>](letters.jpg)
 
@@ -51,6 +51,28 @@ Run with:
 
         ./cuda-letters < the-war-of-the-worlds.txt
 
+## Suggestions
+
+You can start with a simple mapping of one CUDA thread for each
+character of the input text. In order to reduce memory contention,
+define a local histogram of size 26 in shared memory on each thread
+block. Each thread will analyze one character, transform to lowercase
+if it is a letter and atomically increment the shared histogram using
+CUDA atomic operations (see below). When all threads in a block are
+done, they accumulate the values of the shared histogram to a global
+histogram in device memory.
+
+Use `atomicAdd(T *address, T val)` to atomically add `val` to the
+content of the memory location `address`; the function will execute
+
+```C
+*m += x;
+```
+
+atomically, The `atomicAdd()` function supports most CUDA datatypes
+`T`, including `int`; the [the
+documentation](https://docs.nvidia.com/cuda/cuda-programming-guide/05-appendices/cpp-language-extensions.html#atomicadd).
+
 ## Files
 
 * [cuda-letters.cu](cuda-letters.cu) [hpc.h](hpc.h)
@@ -60,13 +82,13 @@ Run with:
 
 ***/
 
+#include "hpc.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
 #include <assert.h>
-
-#include "hpc.h"
 
 #define ALPHA_SIZE 26
 #ifndef SERIAL
