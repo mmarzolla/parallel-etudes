@@ -222,8 +222,8 @@ solutions/%.cl: %.cl
 
 pub: MAKE_DIRS ${HTML} ${HANDOUTS_SRC} ${SOLUTIONS_SRC} ${OUTFILES}
 	@cp -a -u ${EXTRAS} ${DATAFILES} ${OUTFILES} handouts/
-	rsync -av --delete-after handouts/ ~/public_html/teaching/calcolo-parallelo/2025-2026/handouts && \
-	rsync -av --delete-after solutions/ ~/public_html/teaching/calcolo-parallelo/2025-2026/solutions && \
+	rsync -av --delete-after handouts/ ~/public_html/teaching/parallel-etudes/handouts && \
+	rsync -av --delete-after solutions/ ~/public_html/teaching/parallel-etudes/solutions && \
 	put-aruba
 
 clean:
