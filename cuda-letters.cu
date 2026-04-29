@@ -66,7 +66,7 @@ Use `atomicAdd(T *address, T val)` to atomically add `val` to the
 content of the memory location `address`; the function will execute
 
 ```C
-*m += x;
+*address += val;
 ```
 
 atomically, The `atomicAdd()` function supports most CUDA datatypes
