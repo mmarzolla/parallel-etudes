@@ -92,6 +92,8 @@ omp-pi: LDLIBS+=-lm
 
 omp-nbody: LDLIBS+=-lm
 
+omp-nbody-task: LDLIBS+=-lm
+
 omp-knapsack: LDLIBS+=-lm
 
 mpi-dot: LDLIBS+=-lm

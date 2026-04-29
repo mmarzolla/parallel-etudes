@@ -404,7 +404,7 @@ int main(int argc, char* argv[])
         fflush(stdout);
     }
     const double avg_time = total_time / nsteps;
-
+    printf("Execution time %.3f\n", total_time);
     printf("Average %0.3f Billion Interactions / second\n", 1e-9 * N * N / avg_time);
 
     free(x);

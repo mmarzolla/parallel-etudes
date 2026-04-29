@@ -115,11 +115,11 @@ To compile:
 
 To execute:
 
-        ./omp-nbody [nsteps [nparticles]]
+        ./omp-nbody [nparticles [nsteps]]
 
 Example:
 
-        ./omp-nbody 50 10000
+        ./omp-nbody 10000 50
 
 ## File
 
@@ -148,12 +148,8 @@ float randab( float a, float b )
  * Randomly initialize positions and velocities of the `n` particles
  * stored in `p`.
  */
-void init(float *x,
-          float *y,
-          float *z,
-          float *vx,
-          float *vy,
-          float *vz,
+void init(float *x, float *y, float *z,
+          float *vx, float *vy, float *vz,
           int n)
 {
     for (int i = 0; i < n; i++) {
@@ -169,12 +165,8 @@ void init(float *x,
 /**
  * Compute the new velocities of all particles in `p`
  */
-void compute_force(const float *x,
-                   const float *y,
-                   const float *z,
-                   float *vx,
-                   float *vy,
-                   float *vz,
+void compute_force(const float *x, const float *y, const float *z,
+                   float *vx, float *vy, float *vz,
                    float dt,
                    int n)
 {
@@ -183,7 +175,6 @@ void compute_force(const float *x,
 #endif
     for (int i = 0; i < n; i++) {
         float Fx = 0.0f, Fy = 0.0f, Fz = 0.0f;
-
         for (int j = 0; j < n; j++) {
             const float dx = x[j] - x[i];
             const float dy = y[j] - y[i];
@@ -206,12 +197,8 @@ void compute_force(const float *x,
  * Update the positions of all particles in p using the updated
  * velocities.
  */
-void integrate_positions(float *x,
-                         float *y,
-                         float *z,
-                         const float *vx,
-                         const float *vy,
-                         const float *vz,
+void integrate_positions(float *x, float *y, float *z,
+                         const float *vx, const float *vy, const float *vz,
                          float dt,
                          int n)
 {
@@ -229,12 +216,8 @@ void integrate_positions(float *x,
  * Compute the total energy of the system as the sum of kinetic and
  * potential energy.
  */
-float energy(const float *x,
-             const float *y,
-             const float *z,
-             const float *vx,
-             const float *vy,
-             const float *vz,
+float energy(const float *x, const float *y, const float *z,
+             const float *vx, const float *vy, const float *vz,
              int n)
 {
     double result = 0.0;
@@ -274,7 +257,7 @@ int main(int argc, char* argv[])
     float *x, *y, *z, *vx, *vy, *vz;
 
     if (argc > 3) {
-        fprintf(stderr, "Usage: %s [nbodies [niter]]\n", argv[0]);
+        fprintf(stderr, "Usage: %s [nparticles [nsteps]]\n", argv[0]);
         return EXIT_FAILURE;
     }
 
@@ -317,7 +300,7 @@ int main(int argc, char* argv[])
         fflush(stdout);
     }
     const double avg_time = total_time / nsteps;
-
+    printf("Execution time %.3f\n", total_time);
     printf("Average %0.3f Billion Interactions / second\n", 1e-9 * N * N / avg_time);
 
     free(x);

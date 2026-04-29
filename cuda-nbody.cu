@@ -150,11 +150,11 @@ To compile with shared memory:
 
 To execute:
 
-        ./cuda-nbody [nsteps [nparticles]]
+        ./cuda-nbody [nparticles [nsteps]]
 
 Example:
 
-        ./cuda-nbody 50 15000
+        ./cuda-nbody 10000 50
 
 ## Files
 
@@ -368,7 +368,7 @@ int main(int argc, char* argv[])
 #endif
 
     if (argc > 3) {
-        fprintf(stderr, "Usage: %s [nbodies [niter]]\n", argv[0]);
+        fprintf(stderr, "Usage: %s [nparticles [nsteps]]\n", argv[0]);
         return EXIT_FAILURE;
     }
 
@@ -412,7 +412,7 @@ int main(int argc, char* argv[])
     const dim3 GRID((nBodies + BLKDIM - 1)/BLKDIM);
 #endif
 
-    float totalTime = 0.0;
+    float total_time = 0.0;
     for (int iter = 1; iter <= nIters; iter++) {
         const double tstart = hpc_gettime();
 #ifdef SERIAL
@@ -427,7 +427,7 @@ int main(int argc, char* argv[])
         cudaDeviceSynchronize();
 #endif
         const double elapsed = hpc_gettime() - tstart;
-        totalTime += elapsed;
+        total_time += elapsed;
 #ifndef SERIAL
         /* The following copy is required to compute the energy on the
            CPU. It would be possible to compute the energy on the GPU,
@@ -438,9 +438,9 @@ int main(int argc, char* argv[])
         printf("Iteration %3d/%3d : energy=%f, %.3f seconds\n", iter, nIters, energy(x, v, nBodies), elapsed);
         fflush(stdout);
     }
-    const double avgTime = totalTime / nIters;
-
-    printf("%d Bodies: average %0.3f Billion Interactions / second\n", nBodies, 1e-9 * nBodies * nBodies / avgTime);
+    const double avg_time = total_time / nIters;
+    printf("Execution time %.3f\n", total_time);
+    printf("%d Bodies: average %0.3f Billion Interactions / second\n", nBodies, 1e-9 * nBodies * nBodies / avg_time);
 
     free(x);
     free(v);
