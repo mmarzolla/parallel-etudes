@@ -2,7 +2,7 @@
  *
  * opencl-floyd-warshall.cl - OpenCL kernels for the Floyd-Warshall algorithm.
  *
- * Copyright (C) 2025 Moreno Marzolla
+ * Copyright (C) 2026 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,10 +65,11 @@ void fw_relax(__global float *d,
 }
 
 /* Executed by one thread only; relax (k,k). */
-__kernel
-void fw_relax0(__global float *d,
-               __global int *p,
-               int k, int n)
+__kernel void
+__attribute__((reqd_work_group_size(1, 1, 1)))
+fw_relax0(__global float *d,
+          __global int *p,
+          int k, int n)
 {
     if (get_global_id(0) == 0)
         fw_relax(d, p, k, k, k, n);

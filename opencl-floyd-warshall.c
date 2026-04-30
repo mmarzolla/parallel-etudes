@@ -264,92 +264,7 @@ int IDX(int i, int j, int width)
     return i * width + j;
 }
 
-/**
- * The Floyd-Warshall algorithm for all-pair shortest paths.  `g` is
- * the input graph with `n` nodes and `m` edges. `d` is the matrix of
- * distances, represented as an array of length `n * n` that must be
- * allocated by the caller; `d[IDX(u,v,n)]` is the minimum distance
- * from node `u` to node `v`. `p` is the matrix of predecessors,
- * represented as an array of length `n * n` that must be allocated by
- * the caller; `p[IDX(u,v,n)]` is the index of the node that precedes
- * `v` on the shortest path from `u` to `v`.
- *
- * Returns 1 if there are cycles of negative weights (in this case,
- * some shortest paths do not exists), 0 otherwise.
- */
-#ifndef SERIAL
-
-sclKernel kernel_fw_init1, kernel_fw_init2, kernel_fw_relax0, kernel_fw_relax1,  kernel_fw_relax2, kernel_fw_check;
-
-int floyd_warshall( const graph_t *g, float *d, int *p )
-{
-    assert(g != NULL);
-    int result = 0;
-
-    const int n = g->n;
-    const int m = g->m;
-#if 1
-    sclDim BLOCK_2D_NN, GRID_2D_NN, BLOCK_1D_N, GRID_1D_N, BLOCK_1D_M, GRID_1D_M;
-    sclWGSetup2D(n, n, &GRID_2D_NN, &BLOCK_2D_NN);
-    sclWGSetup1D(n, &GRID_1D_N, &BLOCK_1D_N);
-    sclWGSetup1D(m, &GRID_1D_M, &BLOCK_1D_M);
-#else
-    const sclDim BLOCK_2D_NN = DIM2(SCL_DEFAULT_WG_SIZE2D, SCL_DEFAULT_WG_SIZE2D);
-    const sclDim GRID_2D_NN = DIM2(sclRoundUp(n, SCL_DEFAULT_WG_SIZE2D),
-                                   sclRoundUp(n, SCL_DEFAULT_WG_SIZE2D));
-    const sclDim BLOCK_1D_N = DIM1(SCL_DEFAULT_WG_SIZE);
-    const sclDim GRID_1D_N = DIM1(sclRoundUp(n, SCL_DEFAULT_WG_SIZE));
-    const sclDim BLOCK_1D_M = DIM1(SCL_DEFAULT_WG_SIZE);
-    const sclDim GRID_1D_M = DIM1(sclRoundUp(m, SCL_DEFAULT_WG_SIZE));
-#endif
-    cl_mem d_d = sclMalloc(n*n*sizeof(*d), CL_MEM_READ_WRITE);
-    cl_mem d_p = sclMalloc(n*n*sizeof(*p), CL_MEM_READ_WRITE);
-    cl_mem d_edges = sclMallocCopy(m*sizeof(edge_t), g->edges, CL_MEM_READ_ONLY);
-    cl_mem d_result = sclMallocCopy(sizeof(result), &result, CL_MEM_READ_WRITE);
-
-    sclSetArgsEnqueueKernel(kernel_fw_init1,
-                            GRID_2D_NN, BLOCK_2D_NN,
-                            ":b :b :d",
-                            d_d, d_p, n);
-
-    sclSetArgsEnqueueKernel(kernel_fw_init2,
-                            GRID_1D_M, BLOCK_1D_M,
-                            ":b :b :b :d :d",
-                            d_edges, d_d, d_p, n, m);
-
-    for (int k=0; k<n; k++) {
-        sclSetArgsEnqueueKernel(kernel_fw_relax0,
-                                DIM1(1), DIM1(1),
-                                ":b :b :d :d",
-                                d_d, d_p, k, n);
-        sclSetArgsEnqueueKernel(kernel_fw_relax1,
-                                GRID_1D_N, BLOCK_1D_N,
-                                ":b :b :d :d",
-                                d_d, d_p, k, n);
-        sclSetArgsEnqueueKernel(kernel_fw_relax2,
-                                GRID_2D_NN, BLOCK_2D_NN,
-                                ":b :b :d :d",
-                                d_d, d_p, k, n);
-    }
-
-    sclSetArgsEnqueueKernel(kernel_fw_check,
-                            GRID_1D_N, BLOCK_1D_N,
-                            ":b :d :b",
-                            d_d, n, d_result);
-
-    sclMemcpyDeviceToHost(d, d_d, n*n*sizeof(*d));
-    sclMemcpyDeviceToHost(p, d_p, n*n*sizeof(*p));
-    sclMemcpyDeviceToHost(&result, d_result, sizeof(result));
-
-    sclFree(d_d);
-    sclFree(d_p);
-    sclFree(d_edges);
-    sclFree(d_result);
-
-    return result;
-}
-
-#else
+#ifdef SERIAL
 void fw_relax(float *d, int *p, int u, int v, int k, int n)
 {
     if (d[IDX(u,k,n)] + d[IDX(k,v,n)] < d[IDX(u,v,n)]) {
@@ -357,6 +272,9 @@ void fw_relax(float *d, int *p, int u, int v, int k, int n)
         p[IDX(u,v,n)] = p[IDX(k,v,n)];
     }
 }
+#else
+sclKernel kernel_fw_init1, kernel_fw_init2, kernel_fw_relax0, kernel_fw_relax1,  kernel_fw_relax2, kernel_fw_check;
+#endif
 
 /**
  * The Floyd-Warshall algorithm for all-pair shortest paths.  `g` is
@@ -373,6 +291,7 @@ void fw_relax(float *d, int *p, int u, int v, int k, int n)
  */
 int floyd_warshall( const graph_t *g, float *d, int *p )
 {
+#ifdef SERIAL
     assert(g != NULL);
 
     const int n = g->n;
@@ -420,8 +339,73 @@ int floyd_warshall( const graph_t *g, float *d, int *p )
     }
 
     return 0;
-}
+#else
+    assert(g != NULL);
+    int result = 0;
+
+    const int n = g->n;
+    const int m = g->m;
+#if 1
+    sclDim BLOCK_2D_NN, GRID_2D_NN, BLOCK_1D_N, GRID_1D_N, BLOCK_1D_M, GRID_1D_M;
+    sclWGSetup1D(n, &GRID_1D_N, &BLOCK_1D_N);
+    sclWGSetup1D(m, &GRID_1D_M, &BLOCK_1D_M);
+    sclWGSetup2D(n, n, &GRID_2D_NN, &BLOCK_2D_NN);
+#else
+    const sclDim BLOCK_1D_N = DIM1(SCL_DEFAULT_WG_SIZE);
+    const sclDim GRID_1D_N = DIM1(sclRoundUp(n, SCL_DEFAULT_WG_SIZE));
+    const sclDim BLOCK_1D_M = DIM1(SCL_DEFAULT_WG_SIZE);
+    const sclDim GRID_1D_M = DIM1(sclRoundUp(m, SCL_DEFAULT_WG_SIZE));
+    const sclDim BLOCK_2D_NN = DIM2(SCL_DEFAULT_WG_SIZE2D, SCL_DEFAULT_WG_SIZE2D);
+    const sclDim GRID_2D_NN = DIM2(sclRoundUp(n, SCL_DEFAULT_WG_SIZE2D),
+                                   sclRoundUp(n, SCL_DEFAULT_WG_SIZE2D));
 #endif
+    cl_mem d_d = sclMalloc(n*n*sizeof(*d), CL_MEM_READ_WRITE);
+    cl_mem d_p = sclMalloc(n*n*sizeof(*p), CL_MEM_READ_WRITE);
+    cl_mem d_edges = sclMallocCopy(m*sizeof(edge_t), g->edges, CL_MEM_READ_ONLY);
+    cl_mem d_result = sclMallocCopy(sizeof(result), &result, CL_MEM_READ_WRITE);
+
+    sclSetArgsEnqueueKernel(kernel_fw_init1,
+                            GRID_2D_NN, BLOCK_2D_NN,
+                            ":b :b :d",
+                            d_d, d_p, n);
+
+    sclSetArgsEnqueueKernel(kernel_fw_init2,
+                            GRID_1D_M, BLOCK_1D_M,
+                            ":b :b :b :d :d",
+                            d_edges, d_d, d_p, n, m);
+
+    for (int k=0; k<n; k++) {
+        sclSetArgsEnqueueKernel(kernel_fw_relax0,
+                                DIM1(1), DIM1(1),
+                                ":b :b :d :d",
+                                d_d, d_p, k, n);
+        sclSetArgsEnqueueKernel(kernel_fw_relax1,
+                                GRID_1D_N, BLOCK_1D_N,
+                                ":b :b :d :d",
+                                d_d, d_p, k, n);
+        sclSetArgsEnqueueKernel(kernel_fw_relax2,
+                                GRID_2D_NN, BLOCK_2D_NN,
+                                ":b :b :d :d",
+                                d_d, d_p, k, n);
+    }
+
+    sclSetArgsEnqueueKernel(kernel_fw_check,
+                            GRID_1D_N, BLOCK_1D_N,
+                            ":b :d :b",
+                            d_d, n, d_result);
+
+    sclMemcpyDeviceToHost(d, d_d, n*n*sizeof(*d));
+    sclMemcpyDeviceToHost(p, d_p, n*n*sizeof(*p));
+    sclMemcpyDeviceToHost(&result, d_result, sizeof(result));
+
+    sclFree(d_d);
+    sclFree(d_p);
+    sclFree(d_edges);
+    sclFree(d_result);
+
+    return result;
+#endif
+}
 
 void print_path(const int *p, int n, int src, int dst)
 {
