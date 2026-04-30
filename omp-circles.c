@@ -22,7 +22,7 @@
 /***
 % Monte Carlo estimation of the area of the union of circles
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2026-04-10
+% Last updated: 2026-04-30
 
 The file [omp-circles.c](omp-circles.c) contains a serial
 implementation of a Monte Carlo algorithm that estimates the area of
@@ -98,6 +98,10 @@ Example:
 - [circles-10000.in](circles-10000.in)
 
 ***/
+#if _POSIX_C_SOURCE < 199506L
+/* required for rand_r() */
+#define _POSIX_C_SOURCE 199506L
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>

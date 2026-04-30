@@ -243,7 +243,7 @@ void init( cell_t *cur, int ext_width, int ext_height, float p )
     srand(1234); /* initialize PRND */
     for (int i=TOP; i <= BOTTOM; i++) {
         for (int j=LEFT; j <= RIGHT; j++) {
-            *IDX(cur, ext_width, i, j) = (((float)rand())/RAND_MAX < p);
+            *IDX(cur, ext_width, i, j) = (((double)rand())/RAND_MAX < p);
         }
     }
 }
