@@ -40,18 +40,18 @@ nodes. Therefore, we have:
 $$
 d_{uv}^{-1} = \begin{cases}
 0 & \text{if}\ u = v \\
-w_{uv} & \text{otherwise}
+w(u,v) & \text{otherwise}
 \end{cases}
 $$
 
-where $w_{uv}$ is the weight of edge $(u,v)$; if no such edge exists,
-then $w_{uv} = +\infty$.
+where $w(u,v)$ is the weight of edge $(u,v)$; if no such edge exists,
+then $w(u,v) = +\infty$.
 
 For each $k=0, \ldots, n-1$ we can define $d_{uv}^k$ recursively as
 follows:
 
 $$
-d_{uv}^k = \min \{ d_{uv}^{k-1} , d_{uk}^{k-1} + d_{kv}^{k-1} \}
+d_{uv}^k = \min \left\lbrace d_{uv}^{k-1} , d_{uk}^{k-1} + d_{kv}^{k-1} \right\rbrace
 $$
 
 the idea being that the shortest path from $u$ to $v$ that only visits
