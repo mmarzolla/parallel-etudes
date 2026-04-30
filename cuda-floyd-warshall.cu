@@ -254,7 +254,9 @@ void load_dimacs(FILE *f, graph_t* g)
  * j` of the array. To access this element, you simply write
  * `A[IDX(i,j,width)]`.
  */
+#ifndef SERIAL
 __host__ __device__
+#endif
 int IDX(int i, int j, int width)
 {
     assert((i >= 0) && (i < width));
@@ -262,21 +264,18 @@ int IDX(int i, int j, int width)
     return i * width + j;
 }
 
-/**
- * The Floyd-Warshall algorithm for all-pair shortest paths.  `g` is
- * the input graph with `n` nodes and `m` edges. `d` is the matrix of
- * distances, represented as an array of length `n * n` that must be
- * allocated by the caller; `d[IDX(u,v,n)]` is the minimum distance
- * from node `u` to node `v`. `p` is the matrix of predecessors,
- * represented as an array of length `n * n` that must be allocated by
- * the caller; `p[IDX(u,v,n)]` is the index of the node that precedes
- * `v` on the shortest path from `u` to `v`.
- *
- * Returns 1 if there are cycles of negative weights (in this case,
- * some shortest paths do not exists), 0 otherwise.
- */
 #ifndef SERIAL
+__device__
+#endif
+void fw_relax(float *d, int *p, int u, int v, int k, int n)
+{
+    if (d[IDX(u,k,n)] + d[IDX(k,v,n)] < d[IDX(u,v,n)]) {
+        d[IDX(u,v,n)] = d[IDX(u,k,n)] + d[IDX(k,v,n)];
+        p[IDX(u,v,n)] = p[IDX(k,v,n)];
+    }
+}
 
+#ifndef SERIAL
 #define BLKDIM2D 32
 #define BLKDIM1D 1024
 
@@ -302,15 +301,6 @@ void fw_init2(const edge_t *e, float *d, int *p, int n, int m)
     }
 }
 
-__device__
-void fw_relax(float *d, int *p, int u, int v, int k, int n)
-{
-    if (d[IDX(u,k,n)] + d[IDX(k,v,n)] < d[IDX(u,v,n)]) {
-        d[IDX(u,v,n)] = d[IDX(u,k,n)] + d[IDX(k,v,n)];
-        p[IDX(u,v,n)] = p[IDX(k,v,n)];
-    }
-}
-
 /* Executed by one thread only; relax (k,k). */
 __global__
 void fw_relax0(float *d, int *p, int k, int n)
@@ -330,7 +320,7 @@ void fw_relax1(float *d, int *p, int k, int n)
     }
 }
 
-/* Executed by n x n threads; relax everything else. */
+/* Executed by n*n threads; relax everything else. */
 __global__
 void fw_relax2(float *d, int *p, int k, int n)
 {
@@ -351,67 +341,7 @@ void fw_check(float *d, int n, int *result)
         }
     }
 }
-
-int floyd_warshall( const graph_t *g, float *d, int *p )
-{
-    assert(g != NULL);
-    float *d_d;
-    int *d_p;
-    edge_t *d_edges;
-    int result = 0;
-    int *d_result;
-
-    const int n = g->n;
-    const int m = g->m;
-    const dim3 BLOCK_2D_NN(BLKDIM2D, BLKDIM2D);
-    const dim3 GRID_2D_NN((n + BLKDIM2D-1)/BLKDIM2D, (n + BLKDIM2D-1)/BLKDIM2D);
-    const dim3 BLOCK_1D_N(BLKDIM1D);
-    const dim3 GRID_1D_N((n + BLKDIM1D-1)/BLKDIM1D);
-    const dim3 BLOCK_1D_M(BLKDIM1D);
-    const dim3 GRID_1D_M((m + BLKDIM1D-1)/BLKDIM1D);
-
-    cudaSafeCall(cudaMalloc((void**)&d_d, n * n * sizeof(*d_d)) );
-    cudaSafeCall(cudaMalloc((void**)&d_p, n * n * sizeof(*d_p)) );
-    cudaSafeCall(cudaMalloc((void**)&d_edges, m * sizeof(*d_edges)) );
-    cudaSafeCall(cudaMalloc((void**)&d_result, sizeof(*d_result)) );
-
-    cudaSafeCall(cudaMemcpy(d_d, d, n*n*sizeof(*d_d), cudaMemcpyHostToDevice));
-    cudaSafeCall(cudaMemcpy(d_p, p, n*n*sizeof(*d_p), cudaMemcpyHostToDevice));
-    cudaSafeCall(cudaMemcpy(d_edges, g->edges, m*sizeof(*d_edges), cudaMemcpyHostToDevice));
-    cudaSafeCall(cudaMemcpy(d_result, &result, sizeof(result), cudaMemcpyHostToDevice));
-
-    fw_init1<<<GRID_2D_NN, BLOCK_2D_NN>>>(d_d, d_p, n); cudaCheckError();
-
-    fw_init2<<<GRID_1D_M, BLOCK_1D_M>>>(d_edges, d_d, d_p, n, m); cudaCheckError();
-
-    for (int k=0; k<n; k++) {
-        fw_relax0<<<1, 1>>>(d_d, d_p, k, n); cudaCheckError();
-        fw_relax1<<<GRID_1D_N, BLOCK_1D_N>>>(d_d, d_p, k, n); cudaCheckError();
-        fw_relax2<<<GRID_2D_NN, BLOCK_2D_NN>>>(d_d, d_p, k, n); cudaCheckError();
-    }
-
-    fw_check<<<GRID_1D_N, BLOCK_1D_N>>>(d_d, n, d_result); cudaCheckError();
-
-    cudaSafeCall(cudaMemcpy(d, d_d, n*n*sizeof(*d), cudaMemcpyDeviceToHost));
-    cudaSafeCall(cudaMemcpy(p, d_p, n*n*sizeof(*p), cudaMemcpyDeviceToHost));
-    cudaSafeCall(cudaMemcpy(&result, d_result, sizeof(result), cudaMemcpyDeviceToHost));
-
-    cudaFree(d_d);
-    cudaFree(d_p);
-    cudaFree(d_edges);
-
-    return result;
-}
-
-#else
-
-void fw_relax(float *d, int *p, int u, int v, int k, int n)
-{
-    if (d[IDX(u,k,n)] + d[IDX(k,v,n)] < d[IDX(u,v,n)]) {
-        d[IDX(u,v,n)] = d[IDX(u,k,n)] + d[IDX(k,v,n)];
-        p[IDX(u,v,n)] = p[IDX(k,v,n)];
-    }
-}
+#endif
 
 /**
  * The Floyd-Warshall algorithm for all-pair shortest paths.  `g` is
@@ -428,6 +358,7 @@ void fw_relax(float *d, int *p, int u, int v, int k, int n)
  */
 int floyd_warshall( const graph_t *g, float *d, int *p )
 {
+#ifdef SERIAL
     assert(g != NULL);
 
     const int n = g->n;
@@ -469,7 +400,7 @@ int floyd_warshall( const graph_t *g, float *d, int *p )
             /* u != k here */
             for (int v=0; v<n; v++) {
                 if (v == k) continue;
-                /* u != k /\ v != k here */
+                /* (u != k) && (v != k here) */
                 fw_relax(d, p, u, v, k, n);
             }
         }
@@ -487,8 +418,56 @@ int floyd_warshall( const graph_t *g, float *d, int *p )
     }
 
     return 0;
-}
+#else
+    assert(g != NULL);
+    float *d_d;
+    int *d_p;
+    edge_t *d_edges;
+    int result = 0;
+    int *d_result;
+
+    const int n = g->n;
+    const int m = g->m;
+    const dim3 BLOCK_1D_N(BLKDIM1D);
+    const dim3 GRID_1D_N((n + BLKDIM1D-1)/BLKDIM1D);
+    const dim3 BLOCK_1D_M(BLKDIM1D);
+    const dim3 GRID_1D_M((m + BLKDIM1D-1)/BLKDIM1D);
+    const dim3 BLOCK_2D_NN(BLKDIM2D, BLKDIM2D);
+    const dim3 GRID_2D_NN((n + BLKDIM2D-1)/BLKDIM2D, (n + BLKDIM2D-1)/BLKDIM2D);
+
+    cudaSafeCall(cudaMalloc((void**)&d_d, n * n * sizeof(*d_d)) );
+    cudaSafeCall(cudaMalloc((void**)&d_p, n * n * sizeof(*d_p)) );
+    cudaSafeCall(cudaMalloc((void**)&d_edges, m * sizeof(*d_edges)) );
+    cudaSafeCall(cudaMalloc((void**)&d_result, sizeof(*d_result)) );
+
+    cudaSafeCall(cudaMemcpy(d_d, d, n*n*sizeof(*d_d), cudaMemcpyHostToDevice));
+    cudaSafeCall(cudaMemcpy(d_p, p, n*n*sizeof(*d_p), cudaMemcpyHostToDevice));
+    cudaSafeCall(cudaMemcpy(d_edges, g->edges, m*sizeof(*d_edges), cudaMemcpyHostToDevice));
+    cudaSafeCall(cudaMemcpy(d_result, &result, sizeof(result), cudaMemcpyHostToDevice));
+
+    fw_init1<<<GRID_2D_NN, BLOCK_2D_NN>>>(d_d, d_p, n); cudaCheckError();
+
+    fw_init2<<<GRID_1D_M, BLOCK_1D_M>>>(d_edges, d_d, d_p, n, m); cudaCheckError();
+
+    for (int k=0; k<n; k++) {
+        fw_relax0<<<1, 1>>>(d_d, d_p, k, n); cudaCheckError();
+        fw_relax1<<<GRID_1D_N, BLOCK_1D_N>>>(d_d, d_p, k, n); cudaCheckError();
+        fw_relax2<<<GRID_2D_NN, BLOCK_2D_NN>>>(d_d, d_p, k, n); cudaCheckError();
+    }
+
+    fw_check<<<GRID_1D_N, BLOCK_1D_N>>>(d_d, n, d_result); cudaCheckError();
+
+    cudaSafeCall(cudaMemcpy(d, d_d, n*n*sizeof(*d), cudaMemcpyDeviceToHost));
+    cudaSafeCall(cudaMemcpy(p, d_p, n*n*sizeof(*p), cudaMemcpyDeviceToHost));
+    cudaSafeCall(cudaMemcpy(&result, d_result, sizeof(result), cudaMemcpyDeviceToHost));
+
+    cudaFree(d_d);
+    cudaFree(d_p);
+    cudaFree(d_edges);
+
+    return result;
 #endif
+}
 
 void print_path(const int *p, int n, int src, int dst)
 {

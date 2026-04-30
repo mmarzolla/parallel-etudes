@@ -22,14 +22,54 @@
 /***
 % All-pair shortest paths
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2026-04-28
+% Last updated: 2026-04-30
 
 The file [opencl-floyd-warshall.c](opencl-floyd-warshall.c) contains a
 serial implementation of [Floyd and Warshall's
 algorithm](https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm)
 for computing shortest-path distances among all pair of nodes on a
-directed, weighted graph. The following Java (pseudo-)code illustrates
-the Floyd-Warshall algorithm.
+directed, weighted graph.
+
+Floyd-Warshall's algorithm uses dynamic programming. Let $d_{uv}^k$
+the (shortest) distance from node $u$ to node $j$, $0 \leq u,v< n$,
+with the assumption that all intermediate nodes (if any) must belong
+to the set $\{0, \ldots, k\}$; $d_{uv}^{-1}$ is the shortest-path
+distance from $u$ to $v$ that does not visit intermediate
+nodes. Therefore, we have:
+
+$$
+d_{uv}^{-1} = \begin{cases}
+0 & \text{if}\ u = v \\
+w(u,v) & \text{otherwise}
+\end{cases}
+$$
+
+where $w(u,v)$ is the weight of edge $(u,v)$; if no such edge exists,
+then $w(u,v) = +\infty$.
+
+For each $k=0, \ldots, n-1$ we can define $d_{uv}^k$ recursively as
+follows:
+
+$$
+d_{uv}^k = \min \left\lbrace d_{uv}^{k-1} , d_{uk}^{k-1} + d_{kv}^{k-1} \right\rbrace
+$$
+
+the idea being that the shortest path from $u$ to $v$ that only visits
+intermediate nodes in $\{0, \ldots, k\}$ can either pass through node
+$k$ or not:
+
+- If the shortest path does not pass through node $k$, then its
+  length is $d_{uv}^{k-1}$;
+
+- If the shortest path does pass through node $k$, then it can be
+  broken into two sub-paths, the first one from $u$ to $k$, and the
+  second one from $k$ to $v$. By construction, those sub-paths will
+  use intermediate nodes in $\{0, \ldots, k-1\}$ only, since shortest
+  paths can not have cycles and therefore node $k$ can only be visited
+  once. So, the sum of their lengths is $d_{uk}^{k-1} + d_{kv}^{k-1}$.
+
+It can be shown that we can drop the subscript and compute the
+distances $d_{uv}$ iteratively using the following Java (pseudo-)code:
 
 ```Java
 // Return true if there are negative-weight cycles
@@ -90,13 +130,11 @@ Graph                             Nodes ($n$)    Edges ($m$)    Distance $0 \rig
 The goal of this exercise is to parallelize the function
 `floyd_warshall()` using OpenCL. The main nested loop of the
 Floyd-Warshall algorithm has loop-carried dependences, so it can not
-be trivially parallelized. However, the serial code is written in such
-a way that dependences are evident: each iteration of the main loop is
-broken down into three phases that must be executed in sequence;
-however, each phase is embarrassingly parallel. This approach has been
-described in the following paper:
+be trivially parallelized. However, in the provided serial code we
+have broken down the loop into three sequential phases, each phase
+being embarrassingly parallel[^1].
 
-- Tang, Peiyi. _Rapid development of parallel blocked all-pairs shortest paths code for multi-core computers_, proc. IEEE SOUTHEASTCON 2014, <https://doi.org/10.1109/SECON.2014.6950734>
+[^1]: See Tang, Peiyi. _Rapid development of parallel blocked all-pairs shortest paths code for multi-core computers_, proc. IEEE SOUTHEASTCON 2014, <https://doi.org/10.1109/SECON.2014.6950734>
 
 ![Figure 1: Data dependences for the Floyd-Warshall algorithm.](floyd-warshall.svg)
 
@@ -105,18 +143,13 @@ The dependences for the Floyd-Warshall algorithm are shown in Figure
 
 1. The distance $d_{kk}$ has no dependence;
 2. Distances of row and column $k$ depend on $d_{kk}$;
-3. All other distances depend on rown and column $k$.
+3. All other distances depend on row and column $k$.
 
-This suggests that the computation is broken into three steps, to be
-executed sequentially:
+This suggests that the computation is broken into three steps:
 
-1. During the first step, compute $d_{kk}$;
-2. During the second step, compute the distances on row and column $k$,
-   in parallel;
-3. During the third step, compute everything else, in parallel.
-
-Steps 2 and 3 involve multiple computations, that can be executed in
-parallel since there are no internal dependences.
+1. Compute $d_{kk}$;
+2. Compute the distances on row and column $k$, in parallel;
+3. Compute everything else, in parallel.
 
 The steps above should be realized using three kernels.
 
