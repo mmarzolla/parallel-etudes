@@ -68,7 +68,7 @@ Run with:
 
         ./cuda-mandelbrot-area [N]
 
-For example, to use a grid of $1000 \times 1000$$ points:
+For example, to use a grid of $1000 \times 1000$ points:
 
         ./cuda-mandelbrot-area 1000
 

@@ -73,7 +73,7 @@ Run with:
 
         ./omp-mandelbrot-area [N]
 
-For example, to use a grid of $1000 \times 1000$$ points using $P=2$
+For example, to use a grid of $1000 \times 1000$ points using $P=2$
 OpenMP threads:
 
         OMP_NUM_THREADS=2 ./omp-mandelbrot-area 1000

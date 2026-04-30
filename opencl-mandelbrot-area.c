@@ -68,7 +68,7 @@ Run with:
 
         ./opencl-mandelbrot-area [N]
 
-For example, to use a grid of $1000 \times 1000$$ points:
+For example, to use a grid of $1000 \times 1000$ points:
 
         ./opencl-mandelbrot-area 1000
 
