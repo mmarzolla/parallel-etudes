@@ -513,7 +513,7 @@ int main( int argc, char* argv[] )
         return EXIT_FAILURE;
     }
 
-    load_dimacs(stdin, &g);
+    load_dimacs(filein, &g);
 
     fclose(filein);
 
