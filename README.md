@@ -65,7 +65,7 @@ programming exercises has been described in the following paper:
 > Network-Based Processing (PDP), march 12--14 2025, Turin, Italy,
 > pp. 341--348, IEEE Computer Society Conference Publishing Services
 > (CPS) ISBN: 979-8-3315-2493-7 ISSN: 2377-5750, doi:
-> <https://doi.org/10.1109/PDP66500.2025.00010>
+> <https://doi.org/10.1109/PDP66500.2025.00055>
 
 BibTeX:
 
