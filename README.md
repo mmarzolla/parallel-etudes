@@ -82,7 +82,7 @@ BibTeX:
   isbn = "979-8-3315-2493-7",
   organization = "Euromicro",
   publisher = "IEEE CPS",
-  doi = "10.1109/PDP66500.2025.00010"
+  doi = "10.1109/PDP66500.2025.00055"
 }
 ```
 
