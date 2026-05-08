@@ -2,7 +2,7 @@
  *
  * omp-loop.c - Loop-carried dependences
  *
- * Copyright (C) 2018--2022, 2024 Moreno Marzolla
+ * Copyright (C) 2018--2026 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Loop-carried dependences
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2024-10-11
+% Last updated: 2026-05-08
 
 The file [omp-loop.c](omp-loop.c) contains a set of serial functions
 with loops that iterate over arrays or matrices. The goal of this
@@ -114,11 +114,9 @@ void vec_shift_right_par2(int *a, int n)
     /* A different solution to shift a vector without using a
        temporary array: partition `a[]` into P blocks (P=size of the
        team). Each process saves the rightmost element of its block
-       into a shared array of length P, and then shifts the block on
-       position right. When all threads are done (barrier
-       synchronization), each thread fills the _leftmost_ element of
-       its block with the _rightmost_ element saved by its left
-       neighbor.
+       into a private variable `rightmost`. Each thread shifts right
+       its portion of the array, and stores the saved `rightmost`
+       element to the beginning of the block of the _next_ thread.
 
        Example, with P=4 threads:
 
@@ -128,12 +126,13 @@ void vec_shift_right_par2(int *a, int n)
        \----------/\----------/\----------/\----------/
             P0          P1          P2          P3
 
-       Each thread stores the rightmost element into a shared array
-       rightmost[]:
+       Each thread stores the rightmost element into a private
+       variable `rightmost`:
 
-       +-+-+-+-+
-       |f|l|r|x|   rightmost[]
-       +-+-+-+-+
+       `rightmost` of P0 = f
+       `rightmost` of P1 = l
+       `rightmost` of P2 = r
+       `rightmost` of P3 = x
 
        Each thread shifts right its portion; the leftmost element of
        each partition may have any value (?) and will be overwritten
@@ -145,8 +144,8 @@ void vec_shift_right_par2(int *a, int n)
        \----------/\----------/\----------/\----------/
             P0          P1          P2          P3
 
-       Each thread fills the leftmost element with the correct value
-       from `rightmost[]`
+       Each thread stores the saved `rightmost` element
+       into the beginning of the next block:
 
        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
        |x|a|c|b|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|
@@ -156,21 +155,21 @@ void vec_shift_right_par2(int *a, int n)
 
     */
 #ifndef SERIAL
-    const int num_threads = omp_get_max_threads();
-    int rightmost[num_threads];
-#pragma omp parallel default(none) shared(num_threads,rightmost,a,n)
+#pragma omp parallel default(none) shared(a,n)
     {
         const int my_id = omp_get_thread_num();
+        const int num_threads = omp_get_num_threads();
         const int my_start = n * my_id / num_threads;
         const int my_end = n * (my_id + 1) / num_threads;
-        const int left_neighbor = (my_id > 0 ? my_id - 1 : num_threads - 1);
-
-        rightmost[my_id] = a[my_end - 1];
+        const int rightmost = a[my_end - 1];
         for (int i = my_end - 1; i > my_start; i--) {
             a[i] = a[i-1];
         }
 #pragma omp barrier
-        a[my_start] = rightmost[left_neighbor];
+        /* We must be careful here: the last thread must store its
+           firhtmost element into a[0]. Indeed, `my_end` is `n` for
+           the last thread, so we take the modulus. */
+        a[my_end % n] = rightmost;
     }
 #endif
 }
