@@ -57,14 +57,23 @@ void fill(float *A, float *b, int n)
     }
 }
 
+#ifdef SERIAL
+void tri_gemv(const float *A, const float *b, float *c, int n)
+{
+    for (int i=0; i<n; i++) {
+        c[i] = 0;
+        for (int j=i; j<n; j++) {
+            c[i] += A[i*n + j] * b[j];
+        }
+    }
+}
+#else
 /* First solution: parallelize the outer loop. Use `schedule(dynamic)`
    to reduce load unbalance. */
 void tri_gemv1(const float *A, const float *b, float *c, int n)
 {
-#ifndef SERIAL
-    /* arbitrary cunksize. */
+    /* Chunksize is set arbitrarily. */
 #pragma omp parallel for schedule(dynamic, 16)
-#endif
     for (int i=0; i<n; i++) {
         c[i] = 0;
         for (int j=i; j<n; j++) {
@@ -130,6 +139,7 @@ void tri_gemv4(const float *A, const float *b, float *c, int n)
         }
     }
 }
+#endif
 
 typedef void(*tri_gemv_t)(const float *, const float *, float *, int);
 
@@ -182,6 +192,9 @@ int main( int argc, char *argv[] )
     b = (float*)malloc(n*sizeof(*b));
 
     fill(A, b, n);
+#ifdef SERIAL
+    check("Serial", tri_gemv, A, b, n);
+#else
     check("Parallel outer loop", tri_gemv1, A, b, n);
     fill(A, b, n); /* invalidate the cache. */
     check("Parallel inner loop", tri_gemv2, A, b, n);
@@ -189,6 +202,7 @@ int main( int argc, char *argv[] )
     check("Both loops collapsed", tri_gemv3, A, b, n);
     fill(A, b, n); /* ditto */
     check("Symmetric outer loop", tri_gemv4, A, b, n);
+#endif
 
     free(A);
     free(b);
