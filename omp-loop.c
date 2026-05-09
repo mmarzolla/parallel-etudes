@@ -22,7 +22,7 @@
 /***
 % Loop-carried dependences
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2026-05-08
+% Last updated: 2026-05-09
 
 The file [omp-loop.c](omp-loop.c) contains a set of serial functions
 with loops that iterate over arrays or matrices. The goal of this
@@ -78,14 +78,13 @@ void vec_shift_right_seq(int *a, int n)
 
 void vec_shift_right_par1(int *a, int n)
 {
-    /* Parallel version of `vec_shift_right_seq()`. It is not possible
-       to remove the loop-carried dependence by aligning loop
-       iterations. I suggest to use a temporary array `b[]`, and split
-       the loop into two loops: the first copies all elements of `a[]`
-       in the shifted position of `b[]` (i.e., `a[i]` goes to
-       `b[i+1]`; the rightmost element of `a[]` goes into `b[0]`). The
-       second loop copies `b[]` into `a[]`. Both loops can be
-       trivially parallelized. */
+    /* Parallel version of `vec_shift_right_seq()` using "loop
+       fission". Use a temporary array `b[]`, and split the loop into
+       two loops: the first copies all elements of `a[]` in the
+       shifted position of `b[]` (i.e., `a[i]` goes to `b[i+1]`; the
+       rightmost element of `a[]` goes into `b[0]`). The second loop
+       copies `b[]` into `a[]`. Both loops can be trivially
+       parallelized. */
 #ifdef SERIAL
     /* TODO */
 #else
@@ -111,12 +110,12 @@ void vec_shift_right_par1(int *a, int n)
 
 void vec_shift_right_par2(int *a, int n)
 {
-    /* A different solution to shift a vector without using a
-       temporary array: partition `a[]` into P blocks (P=size of the
-       team). Each process saves the rightmost element of its block
-       into a private variable `rightmost`. Each thread shifts right
-       its portion of the array, and stores the saved `rightmost`
-       element to the beginning of the block of the _next_ thread.
+    /* A different solution that does not use a temporary array:
+       partition `a[]` into P blocks (P=size of the team). Each
+       process saves the rightmost element of its block into a private
+       variable `rightmost`. Each thread shifts right its portion of
+       the array, and stores the saved `rightmost` element to the
+       beginning of the block of the _next_ thread.
 
        Example, with P=4 threads:
 
@@ -154,7 +153,9 @@ void vec_shift_right_par2(int *a, int n)
             P0          P1          P2          P3
 
     */
-#ifndef SERIAL
+#ifdef SERIAL
+    /* TODO */
+#ekse
 #pragma omp parallel default(none) shared(a,n)
     {
         const int my_id = omp_get_thread_num();
@@ -162,14 +163,14 @@ void vec_shift_right_par2(int *a, int n)
         const int my_start = n * my_id / num_threads;
         const int my_end = n * (my_id + 1) / num_threads;
         const int rightmost = a[my_end - 1];
+        /* The last thread must store its rightmost element into
+           a[0]. */
+        const int start_of_next_block = my_end % n;
         for (int i = my_end - 1; i > my_start; i--) {
             a[i] = a[i-1];
         }
 #pragma omp barrier
-        /* We must be careful here: the last thread must store its
-           firhtmost element into a[0]. Indeed, `my_end` is `n` for
-           the last thread, so we take the modulus. */
-        a[my_end % n] = rightmost;
+        a[start_of_next_block] = rightmost;
     }
 #endif
 }
@@ -190,10 +191,9 @@ void reverse(int *a, int i, int j)
 }
 
 /* The following algorithm is reported for information, since it is
-   based on an obscure and nontrivial idea; I read about this
-   algorithm in the book "Programming Pearls", by Jon Bentley,
-   Addison-Wesley Professional; 2nd edition (September 27, 1999) ISBN
-   978-0201657883.
+   based on nontrivial idea which I discovered in the book
+   "Programming Pearls", by Jon Bentley, Addison-Wesley Professional;
+   2nd edition (September 27, 1999) ISBN 978-0201657883.
 
    A right-k-shift of a[] can be realized using three array reversals:
 

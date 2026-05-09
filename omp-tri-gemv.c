@@ -47,16 +47,6 @@ Run with:
 #include <math.h>
 #include <omp.h>
 
-void fill(float *A, float *b, int n)
-{
-    for (int i=0; i<n; i++) {
-        b[i] = 1;
-        for (int j=0; j<n; j++) {
-            A[i*n + j] = (j >= i);
-        }
-    }
-}
-
 #ifdef SERIAL
 void tri_gemv(const float *A, const float *b, float *c, int n)
 {
@@ -73,7 +63,7 @@ void tri_gemv(const float *A, const float *b, float *c, int n)
 void tri_gemv1(const float *A, const float *b, float *c, int n)
 {
     /* Chunksize is set arbitrarily. */
-#pragma omp parallel for schedule(dynamic, 16)
+#pragma omp parallel for schedule(dynamic, 64)
     for (int i=0; i<n; i++) {
         c[i] = 0;
         for (int j=i; j<n; j++) {
@@ -83,7 +73,7 @@ void tri_gemv1(const float *A, const float *b, float *c, int n)
 }
 
 /* Second solution: parallelize the inner loop. Might want to use the
-   `if()` clause to avoid creating a team of threads if theer is too
+   `if()` clause to avoid creating a parallel region if there is too
    little work to do. */
 void tri_gemv2(const float *A, const float *b, float *c, int n)
 {
@@ -96,13 +86,12 @@ void tri_gemv2(const float *A, const float *b, float *c, int n)
     }
 }
 
-/* Third solution: parallelize both loops. Requires OpenMP with
-   support of non-rectangular loop nests; also, requires
-   initialization of `c[]` to be moved outside the loop.
-   Note the use of array reduction. */
+/* Third solution: parallelize both loops. Requires support of
+   non-rectangular loop nests (OpenMP >= 5.1). Initialization of `c[]`
+   must be moved outside the loop. Note the use of array reduction. */
 void tri_gemv3(const float *A, const float *b, float *c, int n)
 {
-#pragma opm parallel
+#pragma omp parallel
     {
 #pragma omp for
         for (int i=0; i<n; i++)
@@ -139,32 +128,83 @@ void tri_gemv4(const float *A, const float *b, float *c, int n)
         }
     }
 }
+
+/*
+
+  Out of curiosity, I tried the programs above on the following
+  machines:
+
+  1. 12th Gen Intel(R) Core(TM) i9-12900F, 8 P/cores with
+  hyperthreading, 8 E/cores, 64GB RAM, Ubuntu 24.04, gcc
+  13.3.0-6ubuntu2~24.04.1, using OMP_NUM_THREADS=8;
+
+  2. Intel(R) Core(TM) i5-2500 CPU @ 3.30GHz, 4 cores (no
+  hyperthreading), 24GB RAM, Debian 13, gcc Debian 14.2.0-19, using
+  all cores.
+
+  compiled with `-fopenmp -Wall -Wpedantic -std=c99 -lm`, matrix size
+  20000, times in seconds, average of 5 runs.
+
+  Version                          i9      i5
+  ---------------------------- ------  ------
+  Outer loop                    0.050   0.186
+  Inner loop                    0.177   0.217
+  Collapse                      0.055   0.194
+  Outer loop, balanced          0.046   0.186
+
+  On both processors, `tri_gemv4()` appears to be the fastest
+  version, with `tri_gemv1()` following closely.
+
+ */
 #endif
+
+void fill(float *A, float *b, int n)
+{
+    for (int i=0; i<n; i++) {
+        b[i] = 1;
+        for (int j=0; j<n; j++) {
+            A[i*n + j] = (j >= i);
+        }
+    }
+}
 
 typedef void(*tri_gemv_t)(const float *, const float *, float *, int);
 
-void check(const char *name, tri_gemv_t f, const float *A, const float *b, int n)
+void check(const char *name, tri_gemv_t f, int n)
 {
     static const float EPS = 1e-5;
+    float *A = (float*)malloc(n*n*sizeof(*A));
+    float *b = (float*)malloc(n*sizeof(*b));
     float *c = (float*)malloc(n*sizeof(*c));
-    /* Fill `c` with wrong values. */
-    for (int i=0; i<n; i++)
-        c[i] = i;
-    printf("%s\t", name);
-    const double tstart = omp_get_wtime();
-    f(A, b, c, n);
-    const double elapsed = omp_get_wtime() - tstart;
-    int test_ok = 1;
-    int i;
+    double elapsed = 0;
+    const int NREP = 5; /* number of runs. */
+
+    for (int r=0; r<NREP; r++) {
+        printf("\r%-25s %d of %d\t", name, r+1, NREP); fflush(stdout);
+        fill(A, b, n);
+        /* Fill `c` with wrong values. */
+        for (int i=0; i<n; i++)
+            c[i] = i;
+        const double tstart = omp_get_wtime();
+        f(A, b, c, n);
+        elapsed += omp_get_wtime() - tstart;
+    }
+
+    /* Check result of last run. */
+    int i, test_ok = 1;
+    float expected;
     for (i=0; i<n && test_ok; i++) {
-        const float expected = n-i;
+        expected = n-i;
         test_ok = fabs(c[i] - expected) <= EPS;
     }
     if (test_ok)
-        printf("OK\t");
+        printf("Check OK\t");
     else
-        printf("FAILED: c[%d]=%f, expected %f\t", i, c[i], (float)(n-i));
-    printf("Execution time %.3f\n", elapsed);
+        printf("Check FAILED: c[%d]=%f, expected %f\t", i, c[i], expected);
+    printf("Execution time %.3f\n", elapsed/NREP);
+
+    free(A);
+    free(b);
     free(c);
 }
 
@@ -172,7 +212,6 @@ int main( int argc, char *argv[] )
 {
     const int MAXN = 20000;
     int n = 100;
-    float *A, *b;
 
     if (argc > 2) {
         fprintf(stderr, "Usage: %s [n]\n", argv[0]);
@@ -188,23 +227,14 @@ int main( int argc, char *argv[] )
         return EXIT_FAILURE;
     }
 
-    A = (float*)malloc(n*n*sizeof(*A));
-    b = (float*)malloc(n*sizeof(*b));
-
-    fill(A, b, n);
 #ifdef SERIAL
-    check("Serial", tri_gemv, A, b, n);
+    check("Serial", tri_gemv, n);
 #else
-    check("Parallel outer loop", tri_gemv1, A, b, n);
-    fill(A, b, n); /* invalidate the cache. */
-    check("Parallel inner loop", tri_gemv2, A, b, n);
-    fill(A, b, n); /* ditto */
-    check("Both loops collapsed", tri_gemv3, A, b, n);
-    fill(A, b, n); /* ditto */
-    check("Symmetric outer loop", tri_gemv4, A, b, n);
+    check("Parallel outer loop", tri_gemv1, n);
+    check("Parallel inner loop", tri_gemv2, n);
+    check("Both loops collapsed", tri_gemv3, n);
+    check("Symmetric outer loop", tri_gemv4, n);
 #endif
 
-    free(A);
-    free(b);
     return EXIT_SUCCESS;
 }
