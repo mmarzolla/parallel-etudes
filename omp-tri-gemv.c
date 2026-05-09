@@ -24,8 +24,8 @@
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2026-05-08
 
-Given a square matrix $A$ in upper triangular form and a vector $b$,
-the function `tri_gemv(A, b, c)` computes $c = Ab$. The goal of this
+The function `tri_gemv(A, b, c)` computes $c = Ab$, where $A$ is a $n
+\times n$ upper triangular matrix and $b$ a vector. The goal of this
 exercise is to parallelize `tri_gemv()` using OpenMP.
 
 Compile with:
