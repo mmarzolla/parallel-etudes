@@ -21,12 +21,30 @@ NVCC ?= nvcc
 MPICC ?= mpicc
 NVCFLAGS += -Wno-deprecated-gpu-targets
 
-.PHONY: MAKE_DIRS clean distclean images count-locs
+.PHONY: MAKE_DIRS clean distclean images count-locs help
 
 ALL: MAKE_DIRS ${EXE} ${HTML} ${HANDOUTS_SRC} ${SOLUTIONS_SRC} ${OUTFILES}
 	@cp -a -u ${EXTRAS} ${DATAFILES} ${OUTFILES} handouts/
 
+help:
+	@echo "Main targets:"
+	@echo
+	@echo "ALL.......... build all [default]"
+	@echo "serial....... build (serial) utility applications"
+	@echo "mpi.......... build MPI applications"
+	@echo "openmp....... build OpenMP applications"
+	@echo "cuda......... build CUDA applications"
+	@echo "opencl....... build OpenCL applications"
+	@echo "simd......... build SIMD applications"
+	@echo "images....... generate images"
+	@echo
+	@echo "clean........ remove object files"
+	@echo "distclean.... remove most build targets"
+	@echo
+
 images: ${IMGS}
+
+serial: ${EXE_SERIAL}
 
 MAKE_DIRS:
 	@mkdir -p handouts solutions
@@ -172,14 +190,14 @@ cat-map-demo.png: omp-cat-map
 	montage "cat-map-demo-[0-9]*.tmp.png" -tile 6x1 -geometry +5+5 $@
 	\rm -f "cat-map-demo-[0-9]*.tmp.pgm" "cat-map-demo-[0-9]*.tmp.png"
 
-anneal-demo.png: opencl-anneal
+anneal-demo.png: omp-anneal
 	for niter in 0 10 100 1000; do \
-	  FILENAME=`printf "opencl-anneal-%06d.pbm" $${niter}` ; \
-	  ./opencl-anneal "$${niter}" ; \
+	  FILENAME=`printf "omp-anneal-%06d.pbm" $${niter}` ; \
+	  ./omp-anneal "$${niter}" ; \
 	  convert "$${FILENAME}" -resize 256 -pointsize 18 -background white label:"$$niter Iterations" -gravity Center -append `printf "anneal-demo-%06d.tmp.png" $${niter}` ; \
 	done
 	montage "anneal-demo-[0-9]*.tmp.png" -tile 4x1 -geometry +5+5 $@
-	\rm -f "opencl-anneal-[0-9]*.pbm" "anneal-demo-[0-9]*.tmp.png"
+	\rm -f "omp-anneal-[0-9]*.pbm" "anneal-demo-[0-9]*.tmp.png"
 
 valve-noise.tmp.ppm: valve.png
 	convert $< -attenuate 0.2 +noise impulse -format ppm $@

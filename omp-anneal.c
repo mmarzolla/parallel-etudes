@@ -22,7 +22,7 @@
 /***
 % ANNEAL cellular automaton
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2026-03-04
+% Last updated: 2026-05-12
 
 The ANNEAL Callular Automaton (also known as _twisted majority rule_)
 is a simple two-dimensional, binary CA defined on a grid of size $W

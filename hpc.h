@@ -3,7 +3,7 @@
  * hpc.h - Miscellaneous utility functions for the HPC course
  *
  * Copyright (C) 2017 by Moreno Marzolla
- * Last modified on 2024-11-29 by Moreno Marzolla
+ * Last modified on 2026-05-12 by Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ double hpc_gettime( void )
     return omp_get_wtime();
 }
 
-#elif defined(MPI_Init)
+#elif defined(MPI)
 /******************************************************************************
  * MPI timing routines
  ******************************************************************************/
