@@ -16,7 +16,8 @@ EXTRAS += parallel-etudes.css $(wildcard *.png *.svg *.jpg *.pgm *.ppm *.md *.sh
 IMGS := omp-c-ray-images.jpg denoise.png simd-map-levels.png edge-detect.png cat-map.png cat-map-demo.png anneal-demo.png parallel-etudes.jpg
 CFLAGS += -std=c99 -Wall -Wpedantic
 LDLIBS +=
-PANDOC_EXTRA_OPTS += -V lang=en-US --mathjax="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+#PANDOC_EXTRA_OPTS += -V lang=en-US --mathjax="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+PANDOC_EXTRA_OPTS += -V lang=en-US --mathjax="https://www.moreno.marzolla.name/mathjax/tex-chtml.js"
 NVCC ?= nvcc
 MPICC ?= mpicc
 NVCFLAGS += -Wno-deprecated-gpu-targets
@@ -133,7 +134,7 @@ cuda-nbody-shared: cuda-nbody.cu
 	$(NVCC) $(NVCFLAGS) $< -o $@
 
 handouts/%.html: %.md
-	pandoc -s $(PANDOC_EXTRA_OPTS) --from markdown --css parallel-etudes.css --to html5 $< > $@
+	pandoc -s $(PANDOC_EXTRA_OPTS) --from markdown --css parallel-etudes.css --to html5 $< | sed '/polyfill\.io/d' > $@
 
 %.md: %.c
 	./extract-markdown.sh $< > $@
