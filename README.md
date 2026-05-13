@@ -125,6 +125,7 @@ available, and which patterns are used to solve it.
 | MergeSort                   | X      | NA  | NA   | NA     | Task-level parallelism                             |
 | Monte Carlo $\pi$           | X      | X   |      |        | Embarrassingly parallel, Reduction                 |
 | N-body simulation           | X      |     | X    | X      | Embarrassingly parallel, Load balancing, Reduction |
+| Task-parallel N-body        | X      | NA  | NA   | NA     | Task-based parallelism                             |
 | Odd-Even Sort               | X      | X   | X    | X      | Scatter/Gather, Point-to-point                     |
 | OpenMP `schedule()`         | X      | NA  | NA   | NA     | OpenMP loop scheduling                             |
 | Password cracking           | X      | X   |      |        | Embarrassingly parallel                            |
