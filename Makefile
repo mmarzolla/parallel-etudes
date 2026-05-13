@@ -15,7 +15,7 @@ HTML := ${SRC:%.c=handouts/%.html} ${SRC:%.cu=handouts/%.html}
 PDF := ${HTML:%.html=%.pdf}
 PDF := $(filter-out handouts/mpi-rule30.pdf handouts/omp-rule30.pdf handouts/cuda-rule30.pdf handouts/opencl-rule30.pdf,${PDF}) # LaTeX does not handle correctly unicode characters
 EXTRAS += parallel-etudes.css $(wildcard *.png *.svg *.jpg *.pgm *.ppm *.md *.sh *.odp *.odg) mpi-rule30.pdf
-IMGS := omp-c-ray-images.jpg denoise.png simd-map-levels.png edge-detect.png cat-map.png cat-map-demo.png anneal-demo.png parallel-etudes.jpg
+IMGS := c-ray-images.jpg denoise.png simd-map-levels.png edge-detect.png cat-map.png cat-map-demo.png anneal-demo.png parallel-etudes.jpg
 CFLAGS += -std=c99 -Wall -Wpedantic
 LDLIBS +=
 #PANDOC_EXTRA_OPTS += -V lang=en-US --mathjax="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
@@ -168,7 +168,7 @@ spheres.tmp.ppm: omp-c-ray spheres.in
 dna.tmp.ppm: omp-c-ray dna.in
 	./omp-c-ray -r 10 < dna.in > $@
 
-omp-c-ray-images.jpg: sphfract.small.tmp.ppm spheres.tmp.ppm dna.tmp.ppm
+c-ray-images.jpg: sphfract.small.tmp.ppm spheres.tmp.ppm dna.tmp.ppm
 	montage $< -tile 3x1 -geometry +2+4 $@
 
 simd-map-levels.png: simd-map-levels simd-map-levels-in.pgm
