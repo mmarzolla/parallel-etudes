@@ -118,7 +118,7 @@ $$
 \mathbf{F}_{00} & \mathbf{F}_{01} & \ldots & \mathbf{F}_{0\ n-1}\\
 \mathbf{F}_{10} & \mathbf{F}_{11} & \ldots & \mathbf{F}_{1\ n-1}\\
 \vdots & \vdots & \ddots & \vdots \\
-\mathbf{F}_{n-1\ 0} & \mathbf{F}_{n-1\ 1} & \ldots & \mathbf{F}_{n-1 n-1}
+\mathbf{F}_{n-1\ 0} & \mathbf{F}_{n-1\ 1} & \ldots & \mathbf{F}_{n-1\ n-1}
 \end{array}
 \right)
 $$
@@ -149,8 +149,8 @@ simulation as shown in Figure 1.
 First of all, we observe that gravitational interactions are
 symmetric, so we only need to compute the upper triangular part of the
 matrix (Figure 1.a). To avoid race conditions, we decompose a
-triangular interaction into two triangles %T1, T2$ and a rectangle $S$
-(Figure 1.b); $T1$ and $T2$ can be computed in parallel, and when they
+triangular interaction into two triangles $T_1, T_2$ and a rectangle $S$
+(Figure 1.b); $T_1$ and $T_2$ can be computed in parallel, and when they
 are completed we can compute $S$. Finally, to compute a rectangle we
 decompose it into four rectangles $S_1, S_2, S_3, S_4$; those of equal
 color can be processed in parallel, so we can process $S_1, S_3$ in
