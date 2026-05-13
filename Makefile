@@ -12,6 +12,8 @@ OUTFILES :=
 HANDOUTS_SRC := ${SRC:%.c=handouts/%.c} ${SRC:%.cu=handouts/%.cu} ${SRC:%.cl=handouts/%.cl} ${INC:%.h=handouts/%.h}
 SOLUTIONS_SRC := ${SRC:%.c=solutions/%.c} ${SRC:%.cu=solutions/%.cu} ${SRC:%.cl=solutions/%.cl} ${INC:%.h=solutions/%.h}
 HTML := ${SRC:%.c=handouts/%.html} ${SRC:%.cu=handouts/%.html}
+PDF := ${HTML:%.html=%.pdf}
+PDF := $(filter-out handouts/mpi-rule30.pdf handouts/omp-rule30.pdf handouts/cuda-rule30.pdf handouts/opencl-rule30.pdf,${PDF}) # LaTeX does not handle correctly unicode characters
 EXTRAS += parallel-etudes.css $(wildcard *.png *.svg *.jpg *.pgm *.ppm *.md *.sh *.odp *.odg) mpi-rule30.pdf
 IMGS := omp-c-ray-images.jpg denoise.png simd-map-levels.png edge-detect.png cat-map.png cat-map-demo.png anneal-demo.png parallel-etudes.jpg
 CFLAGS += -std=c99 -Wall -Wpedantic
@@ -142,8 +144,10 @@ handouts/%.html: %.md
 %.md: %.cu
 	./extract-markdown.sh $< > $@
 
-%.pdf: %.md
-	pandoc --from markdown $< -o $@
+pdf: ${PDF}
+
+handouts/%.pdf: %.md
+	pandoc -V geometry:margin=1in --from markdown $< -o $@
 
 sphfract.small.in sphfract.big.in: gen-sphfract
 	./gen-sphfract 4 > sphfract.small.in

@@ -42,10 +42,10 @@ and computing the endpoints of the iterations explicitly.  To this
 aim, let $P$ be the size of the OpenMP team; partition the
 arrays into $P$ blocks of approximately uniform size. Thread $p$ ($0
 \leq p < P$) computes the dot product `my_p` of the subvectors with
-indices $\texttt{my_start}, \ldots, \texttt {my_end}-1$:
+indices $\texttt{my\_start}, \ldots, \texttt{my\_end}-1$:
 
 $$
-\texttt{my_p}: = \sum_{i=\texttt{my_start}}^{\texttt{my_end}-1} v1[i] \times v2[i]
+\texttt{my\_p}: = \sum_{i=\texttt{my\_start}}^{\texttt{my\_end}-1} v1[i] \times v2[i]
 $$
 
 There are several ways to accumulate partial results. One possibility

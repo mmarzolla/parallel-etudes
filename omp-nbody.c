@@ -39,10 +39,9 @@ algorithm, based on a program developed by Mark Harris available at
 
 The physical laws governing the dynamics of $N$ masses were discovered
 by [Isaac Newton](https://en.wikipedia.org/wiki/Isaac_Newton): these
-are the [second law of
-dynamic](https://en.wikipedia.org/wiki/Newton%27s_laws_of_motion#Newton's_second_law)
+are the [second law of dynamic](https://en.wikipedia.org/wiki/Newton%27s_laws_of_motion#Newton%27s_second_law)
 and the [law of universal
-gravitation](https://en.wikipedia.org/wiki/Newton's_law_of_universal_gravitation).
+gravitation](https://en.wikipedia.org/wiki/Newton%27s_law_of_universal_gravitation).
 
 The second law of dynamics states that a force $\textbf{F}$ acting on
 a point mass $m$ produces an acceleration $\textbf{a}$ such that

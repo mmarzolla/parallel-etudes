@@ -113,7 +113,7 @@ Whitted's recursive algorithm (T. Whitted, _An improved illumination
 model for shaded display_, Commun. ACM 23, 6, June 1980,
 343–349. <https://doi.org/10.1145/358876.358882>). Refer to Figure 2.
 
-![Figure 2: Recursive ray tracer.](ray-tracing.png)
+![Figure 2: Recursive ray tracer.](ray-tracing.svg)
 
 The scene is represented by a list of spheres. The program generates a
 _primary ray_ (_V_) from the observer towards each pixel. For each

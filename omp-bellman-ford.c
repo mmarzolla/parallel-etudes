@@ -44,7 +44,7 @@ at each iteration the shortest paths tree grows by the edge $(u, v)$
 that satisfies all the following properties:
 
 1. Node $u$ is already part of the shortest paths tree, i.e., its
-distance $d[i] < \infinity$ has been computed.
+distance $d[i] < \infty$ has been computed.
 2. Node $v$ is not yet part of the shortest paths tree, i.e.,
 its distance has not been computed ($d[j] = \infty$)-
 3. The quantity $d[u] + w(v, w)$ is minimal among all edges
@@ -57,24 +57,24 @@ queue). Therefore, Dijkstra's algorithm can be expressed as follows:
 ```
 Dijkstra(graph G=(V, E, w), int s)
 	double d[0..n - 1]
-	// Set all distances to +∞
-	for i ← 0 to n – 1 do
-		d[i] ← +∞
+	// Set all distances to +INF
+	for i <- 0 to n – 1 do
+		d[i] ← +INF
 	endfor
-	d[s] ← 0
+	d[s] <- 0
 	do
-		best_dist ← +∞
-		best_node ← -1
+		best_dist <- +INF
+		best_node <- -1
 		foreach edge (i, j) in E do
-			if (d[i] < +∞ and d[j] = +∞ and d[i] + w(i, j) < best_dist) then
-				best_dist ← d[i] + w(i, j)
-				best_node ← j
+			if (d[i] < +INF and d[j] = +INF and d[i] + w(i, j) < best_dist) then
+				best_dist <- d[i] + w(i, j)
+				best_node <- j
 			endif
 		endfor
-		if ( best_node ≠ -1 ) then
-			d[best_node] ← best_dist
+		if ( best_node != -1 ) then
+			d[best_node] <- best_dist
 		endif
-	while ( best_node ≠ -1 )
+	while ( best_node != -1 )
 ```
 
 The file [omp-bellman-ford.c](omp-bellman-ford.c) contains the serial

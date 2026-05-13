@@ -104,7 +104,7 @@ format, e.g., JPEG. Under Linux you can use `convert` from the
         convert cat1368-100.pgm cat1368-100.jpeg
 
 To make use of OpenCL parallelism, define a 2D grid of 2D workgroups
-that cover the input image. The workgroup size is $B \imtes B$, with
+that cover the input image. The workgroup size is $B \times B$, with
 $B := \mathit{SCL\_DEFAULT\_WG\_SIZE2D}$, and the grid size is the
 minimum multiple of _B_ that is no less than $N$.
 

@@ -51,13 +51,13 @@ implementation, with a few caveats described below.
 ```
 Allocate an array of N integers.
 Initialize: for each processor/list node n, in parallel:
-   If n.next = nil, set d[n] ← 0.
-      Else, set d[n] ← 1.
-   While any node n has n.next ≠ nil:
+   If n.next != nil, set d[n] <- 0.
+      Else, set d[n] <- 1.
+   While any node n has n.next != nil:
       For each processor/list node n, in parallel:
-         If n.next ≠ nil:
-             Set d[n] ← d[n] + d[n.next].
-             Set n.next ← n.next.next.
+         If n.next != nil:
+             Set d[n] <- d[n] + d[n.next].
+             Set n.next <- n.next.next.
 ```
 
 First of all, right before the `While` loop there must be a barrier

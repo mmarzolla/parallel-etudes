@@ -87,7 +87,7 @@ computes the result as the column-wise sum of `local_hist`. In other
 words, the number of occurrences of the character (`'a'` + _c_) is
 
 $$
-\texttt{hist}[c] = \sum_{p=0}^{\texttt{num_threads}-1} \texttt{local_hist}[p][c]
+\texttt{hist}[c] = \sum_{p=0}^{\texttt{num\_threads}-1} \texttt{local\_hist}[p][c]
 $$
 
 Don't forget that there is a reduction on `nlet` that reports the
@@ -115,7 +115,7 @@ for (int i=0; i<TEXT_LEN; i++) {
 The content of `hist[]` must be set to zero before the parallel
 region. Array reduction performs `ALPHA_LEN` scalar reductions at the
 end of the parallel region. Specifically, faor each $i$, $0 \leq i <
-\texttt{ALPHA_LEN}$, `hist[i]` will be the sum of the local values of
+\texttt{ALPHA\_LEN}$, `hist[i]` will be the sum of the local values of
 `hist[i]` computed by all threads, plus the value of `hist[i]` right
 before the parallel region.
 
