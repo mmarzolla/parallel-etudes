@@ -2,7 +2,7 @@
  *
  * gen-dna.c - Generate input for omp-c-ray
  *
- * Copyright (C) 2022, 2023 Moreno Marzolla
+ * Copyright (C) 2022--2026 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,9 +22,9 @@
 /***
 % Generate input for omp-c-ray
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2023-11-03
+% Last updated: 2026-05-14
 
-Inspired by <https://twitter.com/pickover/status/1505350972641525765>
+Generate an input for [omp-c-ray](omp-c-ray.html).
 
 Compile with:
 

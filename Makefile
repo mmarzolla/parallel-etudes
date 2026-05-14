@@ -19,7 +19,7 @@ IMGS := c-ray-images.jpg denoise.png simd-map-levels.png edge-detect.png cat-map
 CFLAGS += -std=c99 -Wall -Wpedantic
 LDLIBS +=
 #PANDOC_EXTRA_OPTS += -V lang=en-US --mathjax="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
-PANDOC_EXTRA_OPTS += -V lang=en-US --mathjax="https://www.moreno.marzolla.name/mathjax/tex-chtml.js"
+PANDOC_EXTRA_OPTS += -V lang=en-US --mathjax="https://www.moreno.marzolla.name/mathjax/tex-chtml.js" --fail-if-warnings
 NVCC ?= nvcc
 MPICC ?= mpicc
 NVCFLAGS += -Wno-deprecated-gpu-targets
@@ -136,7 +136,7 @@ cuda-nbody-shared: cuda-nbody.cu
 	$(NVCC) $(NVCFLAGS) $< -o $@
 
 handouts/%.html: %.md
-	pandoc -s $(PANDOC_EXTRA_OPTS) --from markdown --css parallel-etudes.css --to html5 $< | sed '/polyfill\.io/d' > $@
+	if [ -s $< ]; then pandoc -s $(PANDOC_EXTRA_OPTS) --from markdown --css parallel-etudes.css --to html5 $< | sed '/polyfill\.io/d' > $@ ; fi
 
 %.md: %.c
 	./extract-markdown.sh $< > $@
@@ -147,7 +147,7 @@ handouts/%.html: %.md
 pdf: ${PDF}
 
 handouts/%.pdf: %.md
-	pandoc -V geometry:margin=1in --from markdown $< -o $@
+	if [ -s $< ]; then pandoc -V geometry:margin=1in --fail-if-warnings --from markdown $< -o $@ ; fi
 
 sphfract.small.in sphfract.big.in: gen-sphfract
 	./gen-sphfract 4 > sphfract.small.in
@@ -169,7 +169,7 @@ dna.tmp.ppm: omp-c-ray dna.in
 	./omp-c-ray -r 10 < dna.in > $@
 
 c-ray-images.jpg: sphfract.small.tmp.ppm spheres.tmp.ppm dna.tmp.ppm
-	montage $< -tile 3x1 -geometry +2+4 $@
+	montage $+ -tile 3x1 -geometry +2+4 $@
 
 simd-map-levels.png: simd-map-levels simd-map-levels-in.pgm
 	./simd-map-levels 100 180 < simd-map-levels-in.pgm > simd-map-levels.tmp.pgm
@@ -211,7 +211,7 @@ valve-clear.tmp.ppm: omp-denoise valve-noise.tmp.ppm
 	./omp-denoise < valve-noise.tmp.ppm > $@
 
 denoise.png: valve-noise.tmp.ppm valve-clear.tmp.ppm
-	montage $< -tile 2x1 -geometry +2+4 $@
+	montage $+ -tile 2x1 -geometry +2+4 $@
 
 # cover image
 parallel-etudes.jpg: dna.tmp.ppm omp-anneal mandelbrot-set.png rule30.png

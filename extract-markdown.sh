@@ -2,7 +2,7 @@
 
 ## Use this script to extract comment blocks delimited by `/***` and
 ## `***/`. The delimiters *must* appear on a line from themselves,
-## without any extraneous characters before or after (spaces are ok).
+## without any extra characters before or after (spaces are ok).
 ##
 ## This script also replaces `\/\*` with `/*`, and `\*\/` with `*/` so
 ## that it is possible to type C-style comments inside comment blocks.
