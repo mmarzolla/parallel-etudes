@@ -122,7 +122,7 @@ available, and which patterns are used to solve it.
 | Mandelbrot set              | X      | X   | X    | X      | Embarrassingly parallel, Load balancing            |
 | Matrix sum                  | X      | X   | X    | X      | Embarrassingly parallel                            |
 | Matrix-vector multiply      |        | X   |      |        | Scatter/Gather                                     |
-| MergeSort                   | X      | NA  | NA   | NA     | Task-level parallelism                             |
+| Merge Sort                  | X      | X   | NA   | NA     | Task-level parallelism (OpenMP), Reduction (MPI)   |
 | Monte Carlo $\pi$           | X      | X   |      |        | Embarrassingly parallel, Reduction                 |
 | N-body simulation           | X      |     | X    | X      | Embarrassingly parallel, Load balancing, Reduction |
 | Task-parallel N-body        | X      | NA  | NA   | NA     | Task-based parallelism                             |
