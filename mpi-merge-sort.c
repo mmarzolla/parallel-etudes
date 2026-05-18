@@ -24,23 +24,33 @@
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
 % Last updated: 2026-05-18
 
-The file [mpi-merge-sort.c](mpi-merge-sort.c) contains a bottom-up,
-iterative implementation of the _Merge Sort_ algorithm. Write a
-parallel version using MPI, according to the following specirfication:
+The goal of this exercise is to implement a bottom-up, iterative
+implementation of the _Merge Sort_ algorithm that operates as follows:
+
+- Initially, rank 0 knows the content of an array `v[]` of length $n$;
+  all $P$ MPI processes know the length $n$.
+
+- Process 0 scatters `v[]` across all processes; each process receives
+  $n/P$ elements of `v[]`.
+
+- Each process sorts its chunk using an efficient serial algorithm,
+  e.g., the `qsort()` C function.
+
+- All processes cooperate to perform a tree-merge of the chunks (see
+  Figure 1). The procedure involves $O(\log P)$ phases and is similar
+  to tree-reduction, except that during each phase processes send
+  their local chunks to partners, that perform a merge to get a larger
+  chunk.  At the last phase, rank 0 performs the last merge of two
+  chunks of size $n/2$ to get the sorted array.
+
+![Figure 1: Tree-merge procedure.](mpi-merge-sort.svg)
+
+Assumptions:
 
 - The array length $n$ must be an integer multiple of the number of
   processes $P$;
 
-- $P$ must be a power of two;
-
-- Initially, rank 0 knows the content of the whole array; all
-  processes know the array length $n$;
-
-- At the end, rank 0 must know the sorted array.
-
-The input array is scattered across all processes; each process then
-sorts its local block using QuickSort, and then the sorted blocks are
-tree-merged up to the root.
+- $P$ is a power of two.
 
 To compile:
 
@@ -128,6 +138,11 @@ void mergesort(int *v, int n)
     MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 
+#ifdef SERIAL
+    /* TODO: implement the bottom-up merge-sort algorithm. */
+    if (my_rank == 0)
+        qsort(v, n, sizeof(*v), compare);
+#else
     int local_n = n / comm_sz;
     int *local_v = malloc(local_n * sizeof(*local_v));
     assert(local_v != NULL);
@@ -154,7 +169,7 @@ void mergesort(int *v, int n)
         if (my_rank >= p)
             continue;
 
-        int *remote_v = malloc(local_n * sizeof(*remote_v)); assert(remove_v != NULL);
+        int *remote_v = malloc(local_n * sizeof(*remote_v)); assert(remote_v != NULL);
         int *new_v = malloc(local_n*2 * sizeof(*new_v)); assert(new_v != NULL);
 
         if (my_rank < p/2) {
@@ -182,6 +197,7 @@ void mergesort(int *v, int n)
     if (my_rank == 0)
         memcpy(v, local_v, n*sizeof(*v));
     free(local_v);
+#endif
 }
 
 /* Returns a random integer in the range [a..b], inclusive */
