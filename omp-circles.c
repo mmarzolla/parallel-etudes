@@ -22,7 +22,7 @@
 /***
 % Monte Carlo estimation of the area of the union of circles
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2026-04-30
+% Last updated: 2026-05-19
 
 The file [omp-circles.c](omp-circles.c) contains a serial
 implementation of a Monte Carlo algorithm that estimates the area of
@@ -56,12 +56,11 @@ test each point with all the circles; the total number of points
 inside the circles is the sum-reduction of the partial counts.
 
 A critical issue with this program is the generation of random
-numbers.  The function `rand()` is not thread-safe, since it might
-store current state of the generator in a global
-variable[^1]. Function `int rand_r(unsigned int *seed)` is a
-thread-safe version of `rand()`. Since the sequence of pseudo-random
-numbers depends on the seed, each OpenMP thread must initialize the
-seed to a different value.
+numbers. The function `rand()` might not be thread-safe[^1]; `int
+rand_r(unsigned int *seed)` is a thread-safe version of
+`rand()`[^2]. Since the sequence of pseudo-random numbers depends on
+the seed, each OpenMP thread must initialize the seed to a different
+value.
 
 Random number generation is a though issue. The use of `rand()` and
 `rand_r()` is not recommended for serious applications. Furthermore,
@@ -73,10 +72,13 @@ depending on the number of OpenMP threads that are created.
 
 [^1]: The man page of `rand()` shipped with Ubuntu 24.04 contains
       contradicting information. It states that function `rand()` is
-      not reentrant (i.e., is not thread-safe), but later on states
+      not reentrant (i.e., is not thread-safe), but later on, states
       that `rand()` is thread safe. The `rand()` implementation in the
       latest [glibc](https://www.gnu.org/software/libc/) appears
       thread-safe indeed, since there is a mutex inside the function.
+
+[^2]: According to the same man page, `rand_r()` is deprecated; it
+      seems that the recommended replacement is `random_r()`.
 
 To compile:
 

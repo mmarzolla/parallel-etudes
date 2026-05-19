@@ -22,7 +22,7 @@
 /***
 % Estimate $\pi$ using random numbers
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2026-03-07
+% Last updated: 2026-05-19
 
 The file [omp-pi.c](omp-pi.c) implements a serial Monte Carlo
 algorithm for computing the approximate value of $\pi$. Monte Carlo
@@ -79,12 +79,21 @@ the computation correct for any value of $N$.
 
 A better approach is to let the compiler parallelize the "for" loop in
 `generate_points()` using `omp parallel` and `omp for`.  There is a
-problem, though: function `int rand(void)` is not thread-safe since it
-modifies a global state variable, so it can not be called concurrently
-by multiple threads. Instead, we use `int rand_r(unsigned int *seed)`
-which is thread-safe but requires that each thread keeps a local
+problem, though: function `int rand(void)` might not be
+thread-safe[^1]. Instead, we use `int rand_r(unsigned int *seed)`
+which is thread-safe[^2] but requires that each thread keeps a local
 `seed`. We split the `omp parallel` and `omp for` directives, so that
 a different local seed can be given to each thread like so:
+
+[^1]: The man page of `rand()` shipped with Ubuntu 24.04 contains
+      contradicting information. It states that function `rand()` is
+      not reentrant (i.e., is not thread-safe), but later on, states
+      that `rand()` is thread safe. The `rand()` implementation in the
+      latest [glibc](https://www.gnu.org/software/libc/) appears
+      thread-safe indeed, since there is a mutex inside the function.
+
+[^2]: According to the same man page, `rand_r()` is deprecated; it
+      seems that the recommended replacement is `random_r()`.
 
 ```C
 #pragma omp parallel default(none) shared(n, n_inside)
