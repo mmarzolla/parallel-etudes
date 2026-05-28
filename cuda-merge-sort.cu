@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * opencl-merge-sort.c - Bottom-up Merge Sort with OpenCL
+ * cuda-merge-sort.cu - Bottom-up Merge Sort with CUDA
  *
  * Copyright (C) 2017--2026 Moreno Marzolla
  *
@@ -20,9 +20,9 @@
  ****************************************************************************/
 
 /***
-% Bottom-up Merge Sort with OpenCL
+% Bottom-up Merge Sort with CUDA
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2026-05-27
+% Last updated: 2026-05-28
 
 The goal of this exercise is to implement a bottom-up, iterative
 version of the _Merge Sort_ algorithm. Starting with an unsorted array
@@ -31,19 +31,19 @@ of increasing lengths `len`, for `len = 1, 2, 4, 8, ...`.
 
 To compile:
 
-        gcc -std=c99 -Wall -Wpedantic opencl-merge-sort.c simpleCL.c -o opencl-merge-sort -lOpenCL
+        nvcc cuda-merge-sort.cu -o cuda-merge-sort
 
 To sort an array of length $n$:
 
-        ./opencl-merge-sort [n]
+        ./cuda-merge-sort [n]
 
 Example:
 
-        ./opencl-merge-sort 500000
+        ./cuda-merge-sort 500000
 
 ## Files
 
-- [opencl-merge-sort.c](opencl-merge-sort.c)
+- [cuda-merge-sort.cu](cuda-merge-sort.cu)
 
 ***/
 #if _XOPEN_SOURCE < 600
@@ -55,7 +55,6 @@ Example:
 #include <string.h>
 #include <assert.h>
 #include <omp.h>
-#include "simpleCL.h"
 #include "hpc.h"
 
 void swap(int* a, int* b)
@@ -105,7 +104,43 @@ void merge(const int* src, int low, int mid, int high, int* dst)
     }
 }
 #else
-sclKernel merge_kernel;
+#define BLKDIM 1024
+
+__global__ void
+merge_kernel(const int* src,
+	     int len,
+	     int n,
+	     int* dst)
+{
+    const int id = threadIdx.x + blockIdx.x * blockDim.x;
+
+    /* avoid overflow of `low` below. */
+    if (id >= (n + 2*len-1) / (2*len))
+        return;
+
+    const int low = id*2*len;
+    const int mid = min(n-1, low+len-1);
+    const int high = min(n-1, mid+len);
+
+    int i=low, j=mid+1, k=low;
+    while (i<=mid && j<=high) {
+        if (src[i] <= src[j]) {
+            dst[k] = src[i++];
+        } else {
+            dst[k] = src[j++];
+        }
+        k++;
+    }
+    /* Handle leftovers */
+    while (i<=mid) {
+        dst[k] = src[i++];
+        k++;
+    }
+    while (j<=high) {
+        dst[k] = src[j++];
+        k++;
+    }
+}
 #endif
 
 /**
@@ -134,31 +169,23 @@ void bottom_up_mergesort(int* v, int n)
     free(tmp);
 #else
     /* double-buffering. */
-    cl_mem buf[2];
+    int *buf[2];
     const size_t SIZE = n*sizeof(*v);
-    buf[0] = sclMallocCopy(SIZE, v, CL_MEM_READ_WRITE);
-    buf[1] = sclMalloc(SIZE, CL_MEM_READ_WRITE);
+    cudaSafeCall( cudaMalloc( (void**)&buf[0], SIZE ) );
+    cudaSafeCall( cudaMemcpy( buf[0], v, SIZE, cudaMemcpyHostToDevice ) );
+    cudaSafeCall( cudaMalloc( (void**)&buf[1], SIZE ) );
     int cur = 0, next = 1-cur; /* current array to be sorted. */
 
     for (int len=1; len < n; len *= 2) {
         /* merge adjacent sub-arrays of length `len`. */
         const int nthreads = (n + 2*len-1)/(2*len);
-        sclDim grid, block;
-        sclWGSetup1D(nthreads, &grid, &block);
-        sclSetArgsEnqueueKernel(merge_kernel,
-                                grid, block,
-                                ":b :d :d :b",
-                                buf[cur],
-                                len,
-                                n,
-                                buf[next],
-                                merge_kernel);
+        merge_kernel<<< (nthreads + BLKDIM-1) / BLKDIM, BLKDIM >>>(buf[cur], len, n, buf[next]);
         cur = next;
         next = 1-cur;
     }
-    sclMemcpyDeviceToHost(v, buf[cur], SIZE);
-    sclFree(buf[0]);
-    sclFree(buf[1]);
+    cudaSafeCall( cudaMemcpy( v, buf[cur], SIZE, cudaMemcpyDeviceToHost ) );
+    cudaSafeCall( cudaFree( buf[0] ) );
+    cudaSafeCall( cudaFree( buf[1] ) );
 #endif
 }
 
@@ -199,10 +226,6 @@ int main( int argc, char* argv[] )
 {
     int n = 10000000;
 
-#ifndef SERIAL
-    sclInitFromFile("opencl-merge-sort.cl");
-    merge_kernel = sclCreateKernel("merge_kernel");
-#endif
     if ( argc > 2 ) {
         fprintf(stderr, "Usage: %s [n]\n", argv[0]);
         return EXIT_FAILURE;
@@ -233,8 +256,5 @@ int main( int argc, char* argv[] )
 
     free(a);
 
-#ifndef SERIAL
-    sclFinalize();
-#endif
     return EXIT_SUCCESS;
 }
