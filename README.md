@@ -128,6 +128,7 @@ available, and which patterns are used to solve it.
 | Task-parallel N-body        | X      | NA  | NA   | NA     | Task-based parallelism                             |
 | Odd-Even Sort               | X      | X   | X    | X      | Scatter/Gather, Point-to-point                     |
 | OpenMP `schedule()`         | X      | NA  | NA   | NA     | OpenMP loop scheduling                             |
+| OpenMP `collapse()`         | X      | NA  | NA   | NA     | OpenMP loop collapse                               |
 | Password cracking           | X      | X   |      |        | Embarrassingly parallel                            |
 | Ring communication          |        | X   |      |        | Point-to-point                                     |
 | Sieve of Eratosthenes       | X      |     | X    | X      | Embarrassingly parallel, Reduction                 |
