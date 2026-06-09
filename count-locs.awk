@@ -28,6 +28,9 @@ BEGIN {
     title["bbox"] = "Bounding box of a set of rectangles";
     patterns["bbox"] = "SG, RD";
 
+    title["bellman-ford"] = "Single-Source Shortest Paths";
+    patterns["bbox"] = "";
+
     title["bintree-walk"] = "Binary tree traversal";
     patterns["bintree-walk"] = "task-level parallelism";
 
@@ -61,11 +64,20 @@ BEGIN {
     title["edge-detect"] = "Sobel's edge detection filter";
     patterns["edge-detect"] = "2D";
 
+    title["erode"] = "Erosion morphological operator";
+    patterns["erode"] = "2D";
+
     title["first-pos"] = "First occurrence of a key in unsorted array";
     patterns["first-pos"] = "SG, RD";
 
     title["floyd-warshall"] = "All-pair shortest paths (Floyd and Warshall)";
     patterns["floyd-warshall"] = "EP";
+
+    title["gaussian-elimination"] = "Gaussian elimination";
+    patterns["gaussian-elimination"] = "";
+
+    title["gemv"] = "Matrix-vector multiply";
+    patterns["gemv"] = "";
 
     title["inclusive-scan"] = "Inclusive scan";
     patterns["inclusive-scan"] = "SC, P2P";
@@ -97,6 +109,9 @@ BEGIN {
     title["matsum"] = "Matrix sum";
     patterns["matsum"] = "EP, SG";
 
+    title["median"] = "Median filter";
+    patterns["median"] = "2D";
+
     title["my-bcast"] = "Tree-structured broadcast";
     patterns["my-bcast"] = "P2P";
 
@@ -118,8 +133,8 @@ BEGIN {
     title["ring"] = "Ring communication";
     patterns["ring"] = "P2P";
 
-    title["rotate-right"] = "Circular rotation of an array";
-    patterns["rotate-right"] = "SG, P2P";
+    title["shift-right"] = "Circular rotation of an array";
+    patterns["shift-right"] = "SG, P2P";
 
     title["rule30"] = "\"Rule 30\" cellular automaton";
     patterns["rule30"] = "1D, P2P";
@@ -132,6 +147,9 @@ BEGIN {
 
     title["sieve"] = "Prime-counting function $\\pi(n)$";
     patterns["sieve"] = "EP, RD";
+
+    title["tri-gemv"] = "Uper-triangular matrix-vector multiply";
+    patterns["tri-gemv"] = "EP, RD";
 }
 
 {
