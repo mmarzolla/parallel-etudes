@@ -2,7 +2,7 @@
  *
  * cat-map-rectime.c - Minimum recurrence time of Arnold's  cat map
  *
- * Copyright (C) 2017--2021, 2024, 2025 Moreno Marzolla
+ * Copyright (C) 2017--2026 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Minimum Recurrence Time of Arnold's cat map
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-11-27
+% Last updated: 2026-06-15
 
 This program computes the _Minimum Recurrence Time_ of Arnold's cat
 map for an image of given size $N \times N$. The minimum recurrence
@@ -116,8 +116,8 @@ int cat_map_rectime( int n )
             /* Iterate the cat map until (xnew, ynew) becomes equal to
                (x, y) */
             do {
-                xnew = (2*xold+yold) % n;
-                ynew = (xold + yold) % n;
+                xnew = (xold + yold) % n;
+                ynew = (xold + 2*yold) % n;
                 xold = xnew;
                 yold = ynew;
                 k++;

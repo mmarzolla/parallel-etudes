@@ -31,8 +31,8 @@ void cat_map_iter_kernel( __global const unsigned char *cur,
     const int y = get_global_id(1);
 
     if ( x < N && y < N ) {
-        const int xnext = (2*x+y) % N;
-        const int ynext = (x + y) % N;
+        const int xnext = (x + y) % N;
+        const int ynext = (x + 2*y) % N;
         next[xnext + ynext*N] = cur[x+y*N];
     }
 }
@@ -52,8 +52,8 @@ void cat_map_iter_k_kernel( __global const unsigned char *cur,
     if ( x < N && y < N ) {
         int xcur = x, ycur = y, xnext, ynext;
         while (k--) {
-            xnext = (2*xcur+ycur) % N;
-            ynext = (xcur + ycur) % N;
+            xnext = (xcur + ycur) % N;
+            ynext = (xcur + 2*ycur) % N;
             xcur = xnext;
             ycur = ynext;
         }

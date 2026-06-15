@@ -2,7 +2,7 @@
  *
  * opencl-cat-map.c - Arnold's cat map
  *
- * Copyright (C) 2016--2025 Moreno Marzolla
+ * Copyright (C) 2016--2026 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /***
 % Arnold's cat map
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-10-09
+% Last updated: 2026-06-15
 
 ![](cat-map.png)
 
@@ -37,7 +37,7 @@ $(x,y)$ in $P$ is mapped into a new position $C(x, y) = (x', y')$ in
 $P'$ where
 
 $$
-x' = (2x + y) \bmod N, \qquad y' = (x + y) \bmod N
+x' = (x + y) \bmod N, \qquad y' = (x + 2y) \bmod N
 $$
 
 ("mod" is the integer remainder operator, i.e., operator `%` of the C
@@ -154,8 +154,8 @@ int xcur = x, ycur = y, xnext, ynext;
 
 if ( x < N && y < N ) {
     while (k--) {
-        next = (2*xcur + ycur) % N;
-	ynext = (xcur + ycur) % N;
+        next = (xcur + ycur) % N;
+	ynext = (xcur + 2*ycur) % N;
 	xcur = xnext;
 	ycur = ynext;
     }
@@ -237,8 +237,8 @@ void cat_map( PGM_image* img, int k )
     for (int i=0; i<k; i++) {
         for (int y=0; y<N; y++) {
             for (int x=0; x<N; x++) {
-                int xnext = (2*x+y) % N;
-                int ynext = (x + y) % N;
+                int xnext = (x + y) % N;
+                int ynext = (x + 2*y) % N;
                 next[xnext + ynext*N] = cur[x+y*N];
             }
         }

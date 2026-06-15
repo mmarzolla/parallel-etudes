@@ -22,7 +22,7 @@
 /***
 % Arnold's cat map
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2026-03-10
+% Last updated: 2026-06-15
 
 ![](cat-map.png)
 
@@ -37,7 +37,7 @@ $(x,y)$ in $P$ is mapped into a new position $C(x, y) = (x', y')$ in
 $P'$ such that
 
 $$
-x' = (2x + y) \bmod N, \qquad y' = (x + y) \bmod N
+x' = (x + y) \bmod N, \qquad y' = (x + 2y) \bmod N
 $$
 
 ("mod" is the integer remainder operator, i.e., operator `%` of the C
@@ -304,8 +304,8 @@ void cat_map( PGM_image* img, int k )
 #endif
         for (int y=0; y<N; y++) {
             for (int x=0; x<N; x++) {
-                const int xnext = (2*x+y) % N;
-                const int ynext = (x + y) % N;
+                const int xnext = (x + y) % N;
+                const int ynext = (x + 2*y) % N;
                 next[ynext*N + xnext] = cur[x+y*N];
             }
         }
@@ -336,8 +336,8 @@ void cat_map_interchange( PGM_image* img, int k )
             /* Compute the k-th iterate of pixel (x, y) */
             int xcur = x, ycur = y;
             for (int i=0; i<k; i++) {
-                const int xnext = (2*xcur+ycur) % N;
-                const int ynext = (xcur + ycur) % N;
+                const int xnext = (xcur + ycur) % N;
+                const int ynext = (xcur + 2*ycur) % N;
                 xcur = xnext;
                 ycur = ynext;
             }
