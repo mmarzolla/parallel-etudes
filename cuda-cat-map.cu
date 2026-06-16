@@ -57,7 +57,7 @@ the $k$-th iterate of $\phi$, i.e.:
 $$
 \phi^k(x, y) = \begin{cases}
 (x, y) & \mbox{if $k=0$}\\
-\left( (x+y) \bmodN, (x+2y) \bmod N) & \mbox{if $k=1$}\\
+\left( (x+y) \bmod N, (x+2y) \bmod N \right) & \mbox{if $k=1$}\\
 \phi(\phi^{k-1}(x,y)) & \mbox{if $k>1$}
 \end{cases}
 $$
