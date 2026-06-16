@@ -22,7 +22,7 @@
 /***
 % Arnold's cat map
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2026-06-15
+% Last updated: 2026-06-16
 
 ![](cat-map.png)
 
@@ -33,7 +33,7 @@ Arnold](https://en.wikipedia.org/wiki/Vladimir_Arnold). In its
 discrete version, the function can be understood as a transformation
 of a bitmapped image $P$ of size $N \times N$ into a new image $P'$ of
 the same size. For each $0 \leq x, y < N$, the pixel of coordinates
-$(x,y)$ in $P$ is mapped into a new position $C(x, y) = (x', y')$ in
+$(x,y)$ in $P$ is mapped into a new position $\phi(x, y) = (x', y')$ in
 $P'$ such that
 
 $$
@@ -51,22 +51,23 @@ in Figure 1.
 
 ![Figure 1: Arnold's cat map.](cat-map.svg)
 
-Arnold's cat map has interesting properties. Let $C^k(x, y)$ be the
-$k$-th iterate of $C$, i.e.:
+Arnold's cat map has interesting properties. Let $\phi^k(x, y)$ be the
+$k$-th iterate of $\phi$, i.e.:
 
 $$
-C^k(x, y) = \begin{cases}
+\phi^k(x, y) = \begin{cases}
 (x, y) & \mbox{if $k=0$}\\
-C(C^{k-1}(x,y)) & \mbox{if $k>0$}
+\left( (x+y) \bmodN, (x+2y) \bmod N) & \mbox{if $k=1$}\\
+\phi(\phi^{k-1}(x,y)) & \mbox{if $k>1$}
 \end{cases}
 $$
 
-Therefore, $C^2(x,y) = C(C(x,y))$, $C^3(x,y) = C(C(C(x,y)))$, and so
+Therefore, $\phi^2(x,y) = \phi(\phi(x,y))$, $\phi^3(x,y) = \phi(\phi(\phi(x,y)))$, and so
 on.
 
-If we apply $C$ once, we get a severely distorted version of the
-input. If we apply $C$ again on the result, we get an even more
-distorted image. As we keep applying $C$, the original image is no
+If we apply $\phi$ once, we get a severely distorted version of the
+input. If we apply $\phi$ again on the result, we get an even more
+distorted image. As we keep applying $\phi$, the original image is no
 longer discernible. However, after a certain number of iterations,
 that depends on the image size $N$ and has been proved to never exceed
 $3N$, we get back the original image! (Figure 2).
@@ -74,7 +75,7 @@ $3N$, we get back the original image! (Figure 2).
 ![Figure 2: Some iterations of the cat map.](cat-map-demo.png)
 
 The _minimum recurrence time_ is the minimum number of iterations $k
-\geq 1$ such that produce the original image, i.e., $C^k(x, y) = (x,
+\geq 1$ such that produce the original image, i.e., $\phi^k(x, y) = (x,
 y)$ for all $(x, y)$. For example, the minimum recurrence time for
 [cat1368.pgm](cat1368.pgm) of size $1368 \times 1368$ is $36$.
 
@@ -104,8 +105,8 @@ Modify the function `cat_map()` to make use of shared-memory
 parallelism using OpenMP. You might want to take advantage from the
 fact that Arnold's cat map is _invertible_, meaning that any two
 different points $(x_1, y_1)$ and $(x_2, y_2)$ are always mapped to
-different points $(x'_1, y'_1) = C(x_1, y_1)$ and $(x'_2, y'_2) =
-C(x_2, y_2)$. Therefore, the output image $P'$ can be filled up in
+different points $(x'_1, y'_1) = \phi(x_1, y_1)$ and $(x'_2, y'_2) =
+\phi(x_2, y_2)$. Therefore, the output image $P'$ can be filled up in
 parallel without race conditions.
 
 To compile:
@@ -128,7 +129,7 @@ The provided function `cat_map()` is based on the following pseudocode:
 for (int i=0; i<k; i++) {
     for (int y=0; y<N; y++) {
         for (int x=0; x<N; x++) {
-            (x', y') = C(x, y);
+            (x', y') = phi(x, y);
             P'(x', y') = P(x, y);
         }
     }
@@ -157,7 +158,7 @@ for (int y=0; y<N; y++) {
     for (int x=0; x<N; x++) {
         xcur = x; ycur = y;
         for (int i=0; i<k; i++) {
-            (xnext, ynext) = C(xcur, ycur);
+            (xnext, ynext) = phi(xcur, ycur);
             xcur = xnext;
             ycur = ynext;
         }
@@ -168,7 +169,7 @@ for (int y=0; y<N; y++) {
 
 This version can be understood as follows: the two outer loops iterate
 over all pixels $(x, y)$. For each pixel, the inner loop computes the
-final position $(\mathit{xnext}, \mathit{ynext}) = C^k(x,y)$ that the
+final position $(\mathit{xnext}, \mathit{ynext}) = \phi^k(x,y)$ that the
 pixel $(x, y)$ will occupy after $k$ iterations.
 
 In this second version, we have the following options:

@@ -22,7 +22,7 @@
 /***
 % Arnold's cat map
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2026-06-15
+% Last updated: 2026-06-16
 
 ![](cat-map.png)
 
@@ -33,7 +33,7 @@ Arnold](https://en.wikipedia.org/wiki/Vladimir_Arnold). In its
 discrete version, the function can be understood as a transformation
 of a bitmapped image $P$ of size $N \times N$ into a new image $P'$ of
 the same size. For each $0 \leq x, y < N$, the pixel of coordinates
-$(x,y)$ in $P$ is mapped into a new position $C(x, y) = (x', y')$ in
+$(x,y)$ in $P$ is mapped into a new position $\phi(x, y) = (x', y')$ in
 $P'$ where
 
 $$
@@ -51,32 +51,33 @@ Figure 1.
 
 ![Figure 1: Arnold's cat map.](cat-map.svg)
 
-Arnold's cat map has some interesting properties. Let $C^k(x, y)$ be the
-result of iterating function $C()$ $k$ times, i.e.:
+Arnold's cat map has interesting properties. Let $\phi^k(x, y)$ be the
+$k$-th iterate of $\phi$, i.e.:
 
 $$
-C^k(x, y) = \begin{cases}
+\phi^k(x, y) = \begin{cases}
 (x, y) & \mbox{if $k=0$}\\
-C(C^{k-1}(x,y)) & \mbox{if $k>0$}
+\left( (x+y) \bmodN, (x+2y) \bmod N) & \mbox{if $k=1$}\\
+\phi(\phi^{k-1}(x,y)) & \mbox{if $k>1$}
 \end{cases}
 $$
 
-Therefore, $C^2(x,y) = C(C(x,y))$, $C^3(x,y) = C(C(C(x,y)))$, and so
-on.
+Therefore, $\phi^2(x,y) = \phi(\phi(x,y))$, $\phi^3(x,y) =
+\phi(\phi(\phi(x,y)))$, and so on.
 
-If we apply $C$ to an image, we get a severely distorted
-version of the input. If we apply $C$ on the resulting image, we get
-an even more distorted image. As we keep applying $C$, the original
-image is no longer discernible. However, after a certain number of
-iterations that depends on $N$ and has been proved to never exceed
-$3N$, we get back the original image! (Figure 2).
+If we apply $\phi$ to an image, we get a severely distorted version of
+the input. If we apply $\phi$ on the resulting image, we get an even more
+distorted image. As we keep applying $\phi$, the original image is no
+longer discernible. However, after a certain number of iterations that
+depends on $N$ and has been proved to never exceed $3N$, we get back
+the original image! (Figure 2).
 
 ![Figure 2: Some iterations of the cat map.](cat-map-demo.png)
 
 The _minimum recurrence time_ for an image is the minimum positive
-integer $k \geq 1$ such that $C^k(x, y) = (x, y)$ for all $(x, y)$. In
-simple terms, the minimum recurrence time is the minimum number of
-iterations of the cat map that produce the starting image.
+integer $k \geq 1$ such that $\phi^k(x, y) = (x, y)$ for all $(x,
+y)$. In simple terms, the minimum recurrence time is the minimum
+number of iterations of the cat map that produce the starting image.
 
 For example, the minimum recurrence time for
 [cat1368.pgm](cat1368.pgm) of size $1368 \times 1368$ is $36$. As said
