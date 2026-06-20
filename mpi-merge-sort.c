@@ -157,14 +157,14 @@ void mergesort(int *v, int n)
                 0,              // root
                 MPI_COMM_WORLD);
 
-    /* Each process sorts it local array. */
+    /* Each process sorts its local array. */
     qsort(local_v, local_n, sizeof(int), compare);
 
     /* Tree-merge. */
     for (int p=comm_sz; p>1; p = p/2) {
 
         /* Only the first `p` processes are active at each round; all
-           the other ones skip the computation. */
+           the other processes skip the computation. */
 
         if (my_rank >= p)
             continue;

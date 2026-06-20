@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * omp-median.c - Image denoising using a median filter
+ * omp-median-filter.c - Image denoising using a median filter
  *
- * Copyright (C) 2018--2025 Moreno Marzolla
+ * Copyright (C) 2018--2026 Moreno Marzolla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,24 +22,25 @@
 /***
 % Image denoising using a median filter
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2025-10-09
+% Last updated: 2026-06-20
 
-The file [omp-median.c](omp-median.c) contains a serial implementation
-of an _image denoising_ algorithm that can be used to clean color
-images. The algorithm replaces the color of each pixel with the
-_median_ of a neighborhood of radius `RADIUS` (including itself).
+The file [omp-median-filter.c](omp-median-filter.c) contains a serial
+implementation of an _image denoising_ algorithm that can be used to
+clean color images. The algorithm replaces the color of each pixel
+with the _median_ of a neighborhood of radius `RADIUS` (including
+itself).
 
 To compile:
 
-        gcc -std=c99 -fopenmp -Wall -Wpedantic omp-median.c -o omp-median
+        gcc -std=c99 -fopenmp -Wall -Wpedantic omp-median-filter.c -o omp-median-filter
 
 To execute:
 
-        ./omp-median inputfile outputfile
+        ./omp-median-filter inputfile outputfile
 
 ## Files
 
-- [omp-median.c](omp-median.c)
+- [omp-median-filter.c](omp-median-filter.c)
 
  ***/
 #include <stdio.h>

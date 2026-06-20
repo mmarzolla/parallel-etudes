@@ -22,7 +22,7 @@
 /***
 % Arnold's cat map
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2026-06-16
+% Last updated: 2026-06-18
 
 ![](cat-map.png)
 
@@ -202,7 +202,7 @@ alter the functions, and executed as:
 
 Each measurement is the average of five independent executions.
 
-:Table 1: Execution time (in seconds; lower is better) of the command `./omp-cat-map 2048 < cat1368.pgm > /dev/null` using all processor cores, with different implementations of the cat map iteration.
+:Table 1: Execution time (in seconds; lower is better) of the command `./omp-cat-map 2048 < cat1368.pgm > /dev/null` using all processor cores, with different implementations of the cat map iteration. Compilation flags: `-std=c99 -Wall -Wpedantic -O0`.
 
 Processor           Cores   GHz  GCC version  No loop interchange   Loop interchange
 ------------------ ------ ----- ------------ -------------------- ------------------
@@ -375,10 +375,12 @@ int main( int argc, char* argv[] )
 
     elapsed = 0.0;
     for (int i=0; i<NTESTS; i++) {
-        fprintf(stderr, "Run %d of %d\r", i+1, NTESTS);
+        fprintf(stderr, "Run %d of %d: ", i+1, NTESTS);
         const double tstart = omp_get_wtime();
         cat_map(&img, niter);
-        elapsed += omp_get_wtime()- tstart;
+        const double tend = omp_get_wtime();
+        fprintf(stderr, "%.3f\n", tend-tstart);
+        elapsed += tend - tstart;
         if (i==0)
             write_pgm(stdout, &img, "produced by omp-cat-map.c");
     }
@@ -400,10 +402,12 @@ int main( int argc, char* argv[] )
 
     elapsed = 0.0;
     for (int i=0; i<NTESTS; i++) {
-        fprintf(stderr, "Run %d of %d\r", i+1, NTESTS);
+        fprintf(stderr, "Run %d of %d: ", i+1, NTESTS);
         const double tstart = omp_get_wtime();
         cat_map_interchange(&img, niter);
-        elapsed += omp_get_wtime() - tstart;
+        const double tend = omp_get_wtime();
+        fprintf(stderr, "%.3f\n", tend-tstart);
+        elapsed += tend - tstart;
     }
     elapsed /= NTESTS;
 #if defined(_OPENMP)

@@ -7,7 +7,7 @@
 # cloc --quiet --hide-rate --by-file --csv *.c *.cl *.cu | gawk -f count-locs.awk
 #
 # Written by Moreno Marzolla
-# last updated on 2024-10-02
+# last updated on 2026-06-20
 
 # If v > 0 the returns a string where v is formatted according
 # to fmt; otherwise, returns the empty string.
@@ -109,8 +109,8 @@ BEGIN {
     title["matsum"] = "Matrix sum";
     patterns["matsum"] = "EP, SG";
 
-    title["median"] = "Median filter";
-    patterns["median"] = "2D";
+    title["median-filter"] = "Median filter";
+    patterns["median-filter"] = "2D";
 
     title["my-bcast"] = "Tree-structured broadcast";
     patterns["my-bcast"] = "P2P";
