@@ -22,7 +22,7 @@
 /***
 % Upper-triangular Matrix-Vector multiply
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2026-05-08
+% Last updated: 2026-06-29
 
 The function `tri_gemv(A, b, c)` computes $c = Ab$, where $A$ is a $n
 \times n$ upper triangular matrix and $b$ a vector. The goal of this
@@ -96,7 +96,18 @@ void tri_gemv3(const float *A, const float *b, float *c, int n)
 #pragma omp for
         for (int i=0; i<n; i++)
             c[i] = 0.0f;
+#if _OPENMP < 202011
+        /* OpenMP < 5.1. It is not possible to collapse both loops, so
+           we parallelize the outer loop only.  The schedule() clause
+           tries to address load imbalancing caused by the fact that
+           for each iteration of the outer loop the work decreases.
+           The optimal chunksize should be empirically determined. */
+#pragma omp for reduction(+:c[:n]) schedule(dynamic,16)
+#else
+        /* OpenMP >= 5.1; collapse both loops, to address load
+           imbalance. */
 #pragma omp for collapse(2) reduction(+:c[:n])
+#endif
         for (int i=0; i<n; i++) {
             for (int j=i; j<n; j++) {
                 c[i] += A[i*n + j] * b[j];
