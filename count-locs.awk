@@ -136,6 +136,9 @@ BEGIN {
     title["shift-right"] = "Circular rotation of an array";
     patterns["shift-right"] = "SG, P2P";
 
+    title["rank"] = "Array rank";
+    patterns["rank"] = "SG, P2P";
+
     title["rule30"] = "\"Rule 30\" cellular automaton";
     patterns["rule30"] = "1D, P2P";
 
