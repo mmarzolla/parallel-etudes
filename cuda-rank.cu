@@ -25,22 +25,20 @@
 % Last updated: 2026-06-30
 
 Given an array $v$ of length $n$, the _rank_ $r[i]$ of $v[i]$ if the
-number of elements that are lower than $v[i]$ (this definition assumes
-that $v$ does not contain duplicate values; however, this program
-handles the general case where this is not necessarily true). $r[i]$
-is the position that $v[i]$ would occupy if the array $v$ were sorted;
-therefore, the array of ranks defines a sorting permutation of $v$.
+number of elements that are lower than $v[i]$; this definition assumes
+that $v$ does not contain duplicate values, but this program handles
+the general case where this might not be true. $r[i]$ is the position
+that $v[i]$ would occupy if the array $v$ were sorted; therefore, the
+array of ranks defines a sorting permutation of $v$.
 
 From the discussion above, it is possible to compute the ranks by
 simply sorting $v$ and keeping track of the sorting permutation. This
 can be accomplished in $\Theta(n \log n)$ serial time using an
 efficient general-purpose sorting algorithm.
 
-The goal of this exercise is to write a distributed-memory version of
-the trivial ranking algorithm that works by comparing each element
-$v[i]$ with all other elements, and count how many of them are lower
-than $v[i]$. The algorithm assumes that $v$ does not contain duplicate
-values.
+The goal of this exercise is to write a CUDA version of the trivial
+ranking algorithm that works by comparing each element $v[i]$ with all
+other elements, and count how many of them are lower than $v[i]$.
 
 To compile:
 
