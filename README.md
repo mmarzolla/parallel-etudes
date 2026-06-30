@@ -130,7 +130,7 @@ available, and which patterns are used to solve it.
 | OpenMP `schedule()`         | X      | NA  | NA   | NA     | OpenMP loop scheduling                             |
 | OpenMP `collapse()`         | X      | NA  | NA   | NA     | OpenMP loop collapse                               |
 | Password cracking           | X      | X   |      |        | Embarrassingly parallel                            |
-| Array rank                  |        | X   |      |        | Scatter/Gather, Point-to-point                     |
+| Array rank                  |        | X   | X    |        | Scatter/Gather, Point-to-point                     |
 | Ring communication          |        | X   |      |        | Point-to-point                                     |
 | Sieve of Eratosthenes       | X      |     | X    | X      | Embarrassingly parallel, Reduction                 |
 | Triangular GEMV             | X      |     |      |        | Embarrassingly parallel                            |

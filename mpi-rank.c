@@ -27,9 +27,9 @@
 Given an array $v$ of length $n$, the _rank_ $r[i]$ of $v[i]$ if the
 number of elements that are lower than $v[i]$ (this definition assumes
 that $v$ does not contain duplicate values; however, it can be
-extended to the general case, as is done by this program).  $r[i]$ is
-the position that $v[i]$ would occupy if the array $v$ were sorted;
-therefore, the array of ranks defines a sorting permutation of $v$.
+extended to the general case).  $r[i]$ is the position that $v[i]$
+would occupy if the array $v$ were sorted; therefore, the array of
+ranks defines a sorting permutation of $v$.
 
 From the discussion above, it is possible to compute the ranks by
 simply sorting $v$ and keeping track of the sorting permutation. This
@@ -179,7 +179,7 @@ int main( int argc, char *argv[])
     }
 
     for (int round=0; round < comm_sz; round++) {
-        if (0 == my_rank) 
+        if (0 == my_rank)
             printf("Round %d of %d\n", round+1, comm_sz);
         update_ranks(local_v, received_v, local_rank, local_n);
 
