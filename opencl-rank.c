@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * cuda-rank.cu - Rank elements of an array.
+ * opencl-rank.c - Rank elements of an array.
  *
  * Copyright (C) 2026 Moreno Marzolla
  *
@@ -22,7 +22,7 @@
 /***
 % Rank elements of an array
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2026-06-30
+% Last updated: 2026-07-01
 
 Given an array $v$ of length $n$, the _rank_ $r[i]$ of $v[i]$ if the
 number of elements that are lower than $v[i]$; this definition assumes
@@ -42,60 +42,30 @@ other elements, and count how many of them are lower than $v[i]$.
 
 To compile:
 
-        nvcc cuda-rank.cu -o cuda-rank
+        cc -std=c99 -Wall -Wpedantic opencl-rank.c simpleCL.c -o opencl-rank -lOpenCL
 
 To execute:
 
-        ./cuda-rank
+        ./opencl-rank
 
 ## Files
 
-- [cuda-rank.cu](cuda-rank.cu)
+- [opencl-rank.c](opencl-rank.c)
 
 ***/
-#include "hpc.h"
+#if _XOPEN_SOURCE < 600
+#define _XOPEN_SOURCE 600
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-
-#define BLKDIM 1024
+#include "simpleCL.h"
+#include "hpc.h"
 
 #ifndef SERIAL
-__global__ void
-rank_kernel( const int *v, int *rank, int n )
-{
-    __shared__ int other_v[BLKDIM];
-    __shared__ int local_rank[BLKDIM];
-    const int li = threadIdx.x;
-    const int gi = blockIdx.x * blockDim.x + threadIdx.x;
-
-    if (gi >= n)
-        return;
-
-    local_rank[li] = 0;
-
-    /* Loop over tiles */
-    for (int t=0; t<n; t += blockDim.x) {
-        const int this_tile_size = (t + blockDim.x <= n ? blockDim.x : n % blockDim.x);
-        /* Fetch an element and populate the tile; make sure we don't
-           fetch outside the array bound. */
-        if (li < this_tile_size)
-            other_v[li] = v[t + li];
-        __syncthreads();
-        /* compare v[gi] to other_v[]; gj is the global index
-           corresponding to the local index lj. */
-        for (int lj=0, gj = t; lj<this_tile_size; lj++, gj++) {
-            if ( (v[gi] > other_v[lj]) || (v[gi] == other_v[lj] && gi < gj) )
-                local_rank[li]++;
-        }
-        __syncthreads();
-    }
-
-    /* Update ranks */
-    rank[gi] = local_rank[li];
-}
+sclKernel rank_kernel;
 #endif
 
 void rank(const int *v, int *r, int n)
@@ -109,22 +79,29 @@ void rank(const int *v, int *r, int n)
         }
     }
 #else
-    int *d_v, *d_r;
+    cl_mem d_v, d_r;
     const size_t SIZE = n * sizeof(int);
-    cudaSafeCall( cudaMalloc((void**)&d_v, SIZE) );
-    cudaSafeCall( cudaMalloc((void**)&d_r, SIZE) );
-    cudaSafeCall( cudaMemcpy(d_v, v, SIZE, cudaMemcpyHostToDevice) );
-    rank_kernel<<< (n + BLKDIM-1)/BLKDIM, BLKDIM >>>(d_v, d_r, n);
-    cudaSafeCall( cudaMemcpy(r, d_r, SIZE, cudaMemcpyDeviceToHost) );
-    cudaSafeCall( cudaFree(d_v) );
-    cudaSafeCall( cudaFree(d_r) );
+    d_v = sclMallocCopy(SIZE, (int*)v, CL_MEM_READ_ONLY);
+    d_r = sclMalloc(SIZE, CL_MEM_READ_WRITE);
+    sclSetArgsEnqueueKernel(rank_kernel,
+                            DIM1(sclRoundUp(n, SCL_DEFAULT_WG_SIZE)),
+                            DIM1(SCL_DEFAULT_WG_SIZE),
+                            ":b :b :d",
+                            d_v, d_r, n);
+    sclMemcpyDeviceToHost(r, d_r, SIZE);
+    sclFree(d_v);
+    sclFree(d_r);
 #endif
 }
 
 int main( int argc, char *argv[])
 {
     int *v = NULL, *r = NULL;
-    int n = 100*BLKDIM;
+#ifndef SERIAL
+    sclInitFromFile("opencl-rank.cl");
+    rank_kernel = sclCreateKernel("rank_kernel");
+#endif
+    int n = 100*SCL_DEFAULT_WG_SIZE;
 
     if (argc > 1)
         n = atoi(argv[1]);
@@ -156,5 +133,8 @@ int main( int argc, char *argv[])
     free(v);
     free(r);
 
+#ifndef SERIAL
+    sclFinalize();
+#endif
     return EXIT_SUCCESS;
 }
