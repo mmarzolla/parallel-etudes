@@ -22,7 +22,7 @@
 /***
 % Rank elements of an array
 % [Moreno Marzolla](https://www.unibo.it/sitoweb/moreno.marzolla)
-% Last updated: 2026-06-29
+% Last updated: 2026-07-02
 
 Given an array $v$ of length $n$, the _rank_ $r[i]$ of $v[i]$ if the
 number of elements that are lower than $v[i]$ (this definition assumes
@@ -39,8 +39,8 @@ efficient general-purpose sorting algorithm.
 The goal of this exercise is to write a distributed-memory version of
 the trivial ranking algorithm that works by comparing each element
 $v[i]$ with all other elements, and count how many of them are lower
-than $v[i]$. The algorithm assumes that $v$ does not contain duplicate
-values.
+than $v[i]$. Assume that the number of elements $n$ is a multiple of
+the number of MPI processes.
 
 ![Figure 1: MPI rank.](mpi-rank.svg)
 
@@ -61,6 +61,10 @@ If there are $P$ processes, step 3 needs to be repeated $P-1$ times.
 In this way, each process can compare its own elements with all other
 ones.
 
+In order to handle correctly duplicate elements in `v[]` it is
+necessary to keep track of the global index of the elements in the
+`local_v[]` and `received_v[]` arrays.
+
 To compile:
 
         mpicc -std=c99 -Wall -Wpedantic mpi-rank.c -o mpi-rank
@@ -80,23 +84,29 @@ To execute:
 #include <string.h>
 #include <mpi.h>
 
+#ifndef SERIAL
+
 /* Update the `local_rank` array, by comparing all values in `local_v`
-   to all values in `received_v`. */
-void update_ranks(const int *local_v, const int *received_v, int *local_rank, int local_n)
+   to all values in `received_v`.  `local_idx` is the global index of
+   the element at the beginning of `local_v[]`; similarly,
+   `received_idx` is the global index of the element at the beginning
+   of `received_v[]`. The indexes are needed to handle the case of
+   duplicate values in the input array.
+*/
+void update_ranks(const int *local_v, int local_idx, const int *received_v, int received_idx, int *local_rank, int local_n)
 {
-    for (int i=0; i<local_n; i++) {
-        for (int j=0; j<local_n; j++) {
-            if (local_v[i] > received_v[j])
+    for (int i=0, gi = local_idx; i<local_n; i++, gi++) {
+        for (int j=0, gj = received_idx; j<local_n; j++, gj++) {
+            if ((local_v[i] > received_v[j]) || (local_v[i] == received_v[j] && gi > gj))
                 local_rank[i]++;
         }
     }
 }
 
-#ifndef SERIAL
 /* Send `received_v` to neighbor, and receive from neighbor. It is
    possible to use MPI_Sendrecv_replace() to do the same thing without
    the need of an additional buffer `tmp`. */
-void circulate_received_v(int *received_v, int local_n, int pred, int succ)
+void circulate_received_v(int *received_v, int *received_idx, int local_n, int n, int pred, int succ)
 {
     int *tmp = (int*)malloc(local_n * sizeof(*tmp)); assert(tmp != NULL);
 
@@ -112,6 +122,7 @@ void circulate_received_v(int *received_v, int local_n, int pred, int succ)
                  MPI_ANY_TAG,   /* recvtag      */
                  MPI_COMM_WORLD,
                  MPI_STATUS_IGNORE);
+    *received_idx = (*received_idx - local_n + n) % n;
     memcpy(received_v, tmp, local_n * sizeof(*tmp));
     free(tmp);
 }
@@ -124,13 +135,21 @@ int main( int argc, char *argv[])
     int  *local_v, *received_v, *local_rank;
 #endif
     int my_rank, comm_sz;
-
+    int n;
+    
     MPI_Init(&argc, &argv);
 
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
 
-    const int n = 1000 * comm_sz;
+    if (argc > 1) {
+        n = atoi(argv[1]);
+    }
+
+    if (n % comm_sz && 0 == my_rank) {
+        fprintf(stderr, "FATAL; the array length (%d) is not a multiple of the number of MPI processes (%d)\n", n, comm_sz);
+        MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+    }
 
     if (my_rank == 0) {
         v = (int*)malloc(n * sizeof(*v));
@@ -140,21 +159,24 @@ int main( int argc, char *argv[])
         }
     }
 
-    assert(n % comm_sz == 0); /* requires that comm_sz divides n. */
-
 #ifdef SERIAL
     /* [TODO] This is not a true parallel version, since process 0
        does everything. */
     if (0 == my_rank) {
         for (int i=0; i<n; i++) {
             rank[i] = 0;
+            for (int j=0; j<n; j++) {
+                if ((v[i] > v[j]) || (v[i] == v[j] && i > j))
+                    rank[i]++;
+            }
         }
-        update_ranks(v, v, rank, n);
     }
 #else
     const int pred = (my_rank - 1 + comm_sz) % comm_sz;
     const int succ = (my_rank + 1) % comm_sz;
     const int local_n = n / comm_sz;
+    const int local_idx = local_n * my_rank;
+    int received_idx = local_idx;
 
     /* Allocate local buffers. */
     local_v = (int*)malloc( local_n * sizeof(*local_v)); assert(local_v != NULL);
@@ -181,10 +203,11 @@ int main( int argc, char *argv[])
     for (int round=0; round < comm_sz; round++) {
         if (0 == my_rank)
             printf("Round %d of %d\n", round+1, comm_sz);
-        update_ranks(local_v, received_v, local_rank, local_n);
+        update_ranks(local_v, local_idx, received_v, received_idx, local_rank, local_n);
 
-        if (round < comm_sz-1)
-            circulate_received_v(received_v, local_n, pred, succ);
+        if (round < comm_sz-1) {
+            circulate_received_v(received_v, &received_idx, local_n, n, pred, succ);
+        }
     }
 
     /* Concatenate local ranks. */
